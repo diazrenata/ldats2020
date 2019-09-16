@@ -28,8 +28,7 @@ pipeline <- drake_plan(
   ll_dfs = target(get_year_ll(models),
                   transform = map(models)), 
   composite_ll = target(combine_year_lls(list(ll_dfs)),
-                        transform = combine(ll_dfs)),
-  report = target(rmarkdown::render(here::here("analysis", "report.Rmd")))
+                        transform = combine(ll_dfs))
 )
 
 
