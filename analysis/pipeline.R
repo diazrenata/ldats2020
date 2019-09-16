@@ -1,5 +1,6 @@
 library(drake)
 library(MATSS)
+library(LDATS)
 library(matssldats)
 source(here::here("fxns", "lda_wrapper.R"))
 ## make sure the package functions in MATSS and matssldats are loaded in as
