@@ -9,11 +9,11 @@ expose_imports(MATSS)
 expose_imports(matssldats)
 
 
-seed <- c(2, 4)
+seed <- seq(from = 2, to = 20, by = 2)
 
-ncpts <- c(0, 1)
+ncpts <- c(0, 1, 2)
 
-ntopics <- c(2, 3)
+ntopics <- c(2, 3, 6, 12)
 
 forms <- c("intercept", "time")
 
@@ -22,7 +22,7 @@ pipeline <- drake_plan(
     portal_annual = get_portal_annual_data(),
   dat = target(subset_data(portal_annual, n_segs = 28, sequential = T, buffer = 2, which_seg = this_seg),
                transform = map(this_seg = !!c(1:28))),
-  models = target(ldats_wrapper(dat, seed = sd, ntopics = k, ncpts = cpts, formulas = form),
+  models = target(ldats_wrapper(dat, seed = sd, ntopics = k, ncpts = cpts, formulas = form, nit = 1000),
                transform = cross(dat, sd = !!seed, k = !!ntopics,
                                  cpts = !!ncpts, form = !!forms)),
   ll_dfs = target(get_year_ll(models),
@@ -59,7 +59,7 @@ if(grepl("ufhpc", nodename)) {
        cache_log_file = here::here("drake", "cache_log.txt"),
        verbose = 2,
        parallelism = "future",
-       jobs = 16,
+       jobs = 128,
        caching = "master") # Important for DBI caches!
 } else {
   # Run the pipeline on a single local core
