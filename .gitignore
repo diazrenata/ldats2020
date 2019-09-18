@@ -8,3 +8,5 @@ drake/*
 .drake_history
 .future/*
 .future
+.drake/
+.drake/*
