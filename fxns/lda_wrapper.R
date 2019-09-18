@@ -15,7 +15,7 @@ ldats_wrapper <- function(data_list, seed, ntopics, ncpts, formulas, nit = 100) 
     
   )
   
-  test_liks <- loo_ll(ts_model = thists[[1]], lda_model = thislda[[1]], data = data_list)
+  test_liks <- try(loo_ll(ts_model = thists[[1]], lda_model = thislda[[1]], data = data_list))
   
   return(list(data = data_list,
               lda = thislda,
