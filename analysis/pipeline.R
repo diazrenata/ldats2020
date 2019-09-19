@@ -9,11 +9,11 @@ expose_imports(MATSS)
 expose_imports(matssldats)
 
 
-seed <- seq(from = 2, to = 20, by = 2)
+seed <- seq(from = 2, to = 6, by = 2)
 
-ncpts <- c(0, 1, 2)
+ncpts <- c(0, 1)
 
-ntopics <- c(2, 3, 6, 12)
+ntopics <- c(2, 3, 6)
 
 forms <- c("intercept", "time")
 
