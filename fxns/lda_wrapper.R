@@ -31,11 +31,15 @@ loo_ll <- function(ts_model, lda_model, data) {
   full_dat <- dplyr::bind_rows(
     cbind(data$abundance, data$covariates),
     cbind(data$test_abundance, data$test_covariates)
-  ) %>%
+  ) 
+  
+  full_dat <- full_dat %>%
+    dplyr::bind_rows(data.frame(year = setdiff(c(min(data$covariates$year):max(data$covariates$year)), full_dat$year))) %>%
     dplyr::arrange(year)
   
   full_abund <- dplyr::select(full_dat, -year)
   full_cov <- dplyr::select(full_dat, year)
+    
   
   heldout_rows <- which(full_cov$year %in% data$test_covariates$year)
   
