@@ -3,7 +3,25 @@ title: "Composite LL"
 output: github_document
 ---
 
+Calculating composite loglikelihood for all model specifications using leave-one-out cross validation.
+
+Per model specification (number of changepoints, number of topics, LDA seed, covariates), fit one model to one dataset for every year of data. Every dataset has a focal year, plus a 2 year buffer on either side, witheld for model fitting. Then we calculate estimates of the likelihood of that focal year of data given the model, using estimates of the model parameters. We assemble a full timeseries likelihood by adding together loglikelihoods for every year, scrambling the (probably arbitrary) iterations that get combined. This gives us an estimated loglikelihood measuring performance of the model specification across all the years of data. 
+
+I tried using likelihood (not log), but the numbers were too small for R. 
+
+I had some internal debate over whether to keep LDA seeds fixed or try to incorporate variation between LDA models of the same k but different seed. I decided not to go there, because it seemed mathematically dubious and also like an organizational nightmare. 
+
+
+## Model specifications
+
+- 3 seeds
+- 0 or 1 changepoint
+- 2, 3, or 6 topics
+- ~1 or ~year
+
 ```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
 library(drake)
 library(ggplot2)
 library(dplyr)
@@ -20,16 +38,21 @@ loadd(composite_ll, cache = cache)
 
 ```
 
-```{r plots}
+## Loglikelihood for all models
+
+The y-axis is loglikelihood across all years. The x axis is *seed*
+
+```{r plots, fig.height = 20, fig.width = 12}
 
 composite_ll <- composite_ll %>%
   mutate(k = as.factor(k),
          ncpt = as.factor(ncpt),
          seed = as.factor(seed))
 
-all_var <- ggplot(data = composite_ll, aes(x = seed, y = sum_ll, color = k, group = seed)) +
-  geom_boxplot() +
-  facet_wrap(facets = c("ncpt", "form", "k")) +
+all_var <- ggplot(data = composite_ll, aes(x = k, y = sum_ll, color = seed)) +
+  geom_violin() +
+  geom_jitter(aes(shape = seed), alpha = .5) +
+  facet_wrap(facets = c("ncpt", "form"), ncol = 3) +
   theme_bw() +
   scale_color_viridis_d(end = .8)
 

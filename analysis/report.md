@@ -12,8 +12,9 @@ composite_ll <- composite_ll %>%
          seed = as.factor(seed))
 
 all_var <- ggplot(data = composite_ll, aes(x = seed, y = sum_ll, color = k, group = seed)) +
-  geom_boxplot() +
-  facet_wrap(facets = c("ncpt", "form", "k")) +
+  geom_violin() +
+  geom_point() +
+  facet_wrap(facets = c("ncpt", "form", "k"), ncol = 3) +
   theme_bw() +
   scale_color_viridis_d(end = .8)
 
