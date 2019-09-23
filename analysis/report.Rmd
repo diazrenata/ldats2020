@@ -163,3 +163,20 @@ obs_pred_best_plot
 
 ```
 
+## Loglikihood at each time step
+
+These are the individual likelihood estimates for each draw at each timestep. The x axis is the timestep and the y axis is the loglikelihood. Variation comes from different parameter estimates.
+
+```{r ll timesteps}
+
+best_ll_ts <- select(all_predictions_best, timestep, draw, logliks, source) %>%
+  filter(source == "predicted") %>%
+  distinct() %>%
+  mutate(timestep = as.factor(timestep))
+
+ll_time_plot <- ggplot(data = best_ll_ts, aes(x = timestep, y = logliks)) +
+  geom_boxplot() +
+  theme_bw()
+
+ll_time_plot
+```

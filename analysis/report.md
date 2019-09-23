@@ -51,3 +51,10 @@ Predictions from "best" models
 Here are observed-predicted time series plots for the best model. The green boxplots are predictions at each time step, and the purple lines are the observed abundances. (All relative). The facets are species. The variation in the boxplots is different draws.
 
 ![](report_files/figure-markdown_github/get%20predictions-1.png)
+
+Loglikihood at each time step
+-----------------------------
+
+These are the individual likelihood estimates for each draw at each timestep. The x axis is the timestep and the y axis is the loglikelihood. Variation comes from different parameter estimates.
+
+![](report_files/figure-markdown_github/ll%20timesteps-1.png)
