@@ -16,7 +16,7 @@ I had some internal debate over whether to keep LDA seeds fixed or try to incorp
 
 - 3 seeds
 - 0 or 1 changepoint
-    - I am currently running a set with 2 changepoints.
+- I am currently running a set with 2 changepoints.
 - 2, 3, or 6 topics
 - ~1 or ~year
 - 1000 iterations
@@ -53,7 +53,7 @@ composite_ll <- composite_ll %>%
 
 all_var <- ggplot(data = composite_ll, aes(x = k, y = sum_ll, color = seed)) +
   geom_boxplot() +
-#  geom_jitter(aes(shape = seed), alpha = .5) +
+  #  geom_jitter(aes(shape = seed), alpha = .5) +
   facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
   theme_bw() +
   scale_color_viridis_d(begin = .01, end = .2)
@@ -87,7 +87,7 @@ sd_plot
 
 This is the same plot as above, but filtered to the top 10 models based on *mean* loglikelihood. The 9 runners-up are semitransparent, and the top ranked one is shaded all the way in.
 
-There's more inter-seed than inter-model variation, so don't interpret this result too strongly. But based on this extremely small run, the best model would be 3 topics, 0 changepoints, and ~1. 
+There's more inter-seed than inter-model variation, so don't interpret this result too strongly. But based on this extremely small run, the best model would be 3 topics, 0 changepoints, and ~time. 
 
 ```{r best ll}
 
@@ -97,7 +97,7 @@ best_ll <- smooth_draws %>%
   filter(rank <= 10)
 
 best_llplot <- ggplot(data = best_ll, aes(x = k, y = mean_llik, color = seed)) +
-geom_point(alpha = .5) +
+  geom_point(alpha = .5) +
   geom_point(data = filter(best_ll, rank == 1), alpha = 1) +
   facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
   theme_bw() +
@@ -111,12 +111,23 @@ One fit of this model looks like this:
 
 ```{r plot best}
 
-best_models_names <- cached(cache = cache) [ which(substr(cached(cache = cache), 0, 27) == "models_2_3_0_intercept_dat_")]
+best_models_names <- cached(cache = cache) [ which(substr(cached(cache = cache), 0, 22) == "models_2_3_0_time_dat_")]
 
 best_models <- lapply(as.list(best_models_names), FUN = readd, cache = cache, character_only = T)
 
 plot(best_models[[10]]$lda$`k: 3, seed: 2`)
-plot(best_models[[10]]$ts$`k: 3, seed: 2, gamma ~ 1, 0 changepoints`)
+plot(best_models[[10]]$ts$`k: 3, seed: 2, gamma ~ year, 0 changepoints`)
+
+```
+
+The other LDA timeseries look like this:
+
+```{r other LDAs}
+
+plot(readd(models_2_2_0_intercept_dat_10L, cache = cache)$lda[[1]])
+
+plot(readd(models_2_6_0_intercept_dat_10L, cache = cache)$lda[[1]])
+
 
 ```
 
@@ -125,7 +136,7 @@ plot(best_models[[10]]$ts$`k: 3, seed: 2, gamma ~ 1, 0 changepoints`)
 Here are observed-predicted time series plots for the best model. The green boxplots are predictions at each time step, and the purple lines are the observed abundances. (All relative). The facets are species. The variation in the boxplots is different draws. 
 
 
-```{r get predictions, fig.width = 8, fig.height = 40}
+```{r get predictions, fig.width = 8, fig.height = 24}
 
 source(here::here("fxns", "lda_wrapper.R"))
 
@@ -154,12 +165,55 @@ all_predictions_best <- all_predictions_best %>%
 obs_pred_best_plot <- ggplot(data = all_predictions_best, aes(x = timestep, y = abundance, color = source)) +
   geom_boxplot(aes(x = as.factor(timestep)), data = filter(all_predictions_best, source == "predicted")) +
   geom_point(data = filter(all_predictions_best, source == "observed")) +
-    geom_line(data = filter(all_predictions_best, source == "observed")) +
+  geom_line(data = filter(all_predictions_best, source == "observed")) +
   theme_bw() +
-  facet_wrap(~species, ncol = 2) +
+  facet_wrap(~species, ncol = 3) +
   scale_color_viridis_d(end = .7)
 
 obs_pred_best_plot
+
+```
+
+Here are 1:1 observed-predicted plots for abundance for the 10 most abundant species, all draws, all timesteps. 
+
+The x-axis is predicted and the y axis is observed abundance. The black line is the 1:1 line. 
+
+The light blue dots are individual predictions. The black dots are mean predictions per species per timestep. 
+
+```{r obs pred one to one plots,  fig.width = 12, fig.height = 30}
+
+abundant_species <- filter(all_predictions_best, source == "observed") %>%
+  group_by(species) %>%
+  summarize(mean_abund = mean(abundance)) %>%
+  ungroup() %>%
+  arrange(desc(mean_abund)) %>%
+  mutate(rank_abund = row_number()) %>%
+  filter(rank_abund >= 10) %>%
+  select(species)
+
+all_predictions_1t1 <- all_predictions_best %>%
+  filter(source == "predicted", species %in% abundant_species$species) %>%
+  left_join(
+    filter(all_predictions_best, source == "observed") %>%
+      select(timestep, species, abundance) %>%
+      rename(obs_abundance = abundance), 
+    by = c("timestep", "species")) %>%
+  group_by(species, timestep) %>%
+  mutate(mean_abund = mean(abundance)) %>%
+  ungroup()
+
+
+obs_pred_1t1_plots <- lapply(as.list(unique(all_predictions_1t1$species)),
+                             FUN = function(species_name) 
+                               return(ggplot(data = filter(all_predictions_1t1, species == species_name), aes(x = abundance, y = obs_abundance)) +
+  geom_point(alpha = .005, color = "blue") +
+    geom_point(aes(x =mean_abund), alpha = .5) +
+    geom_abline(slope = 1, intercept = 0) +
+    ggtitle(paste0(species_name), " obs-pred abundance") +
+  theme_bw()))
+
+
+gridExtra::grid.arrange(grobs = obs_pred_1t1_plots, ncol = 2)
 
 ```
 
