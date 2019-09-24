@@ -16,12 +16,14 @@ I had some internal debate over whether to keep LDA seeds fixed or try to incorp
 
 - 3 seeds
 - 0 or 1 changepoint
+    - I am currently running a set with 2 changepoints.
 - 2, 3, or 6 topics
 - ~1 or ~year
+- 1000 iterations
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-
+library(matssldats)
 library(drake)
 library(ggplot2)
 library(dplyr)
@@ -40,9 +42,9 @@ loadd(composite_ll, cache = cache)
 
 ## Loglikelihood for all models
 
-The y-axis is loglikelihood across all years. The x axis is *seed*
+The y-axis is loglikelihood across all years. The x axis is the number of topics. The very short color scale is the seed (included to split the box plots). The facet columns are number of changepoints and the rows are formula (top is ~1, bottom is ~time). Variation represents variation in estimates of the likelihood from different parameter estimates (1000 draws).
 
-```{r plots, fig.height = 20, fig.width = 12}
+```{r plots, fig.height = 10, fig.width = 8}
 
 composite_ll <- composite_ll %>%
   mutate(k = as.factor(k),
@@ -50,14 +52,18 @@ composite_ll <- composite_ll %>%
          seed = as.factor(seed))
 
 all_var <- ggplot(data = composite_ll, aes(x = k, y = sum_ll, color = seed)) +
-  geom_violin() +
-  geom_jitter(aes(shape = seed), alpha = .5) +
-  facet_wrap(facets = c("ncpt", "form"), ncol = 3) +
+  geom_boxplot() +
+#  geom_jitter(aes(shape = seed), alpha = .5) +
+  facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
   theme_bw() +
-  scale_color_viridis_d(end = .8)
+  scale_color_viridis_d(begin = .01, end = .2)
 
 all_var
 ```
+
+### Mean loglikelihood
+
+This is the same plot as above, but only plotting the mean loglikelihood across all estimates for each model specification.  
 
 ```{r summarize}
 
@@ -66,12 +72,111 @@ smooth_draws <- composite_ll %>%
   summarize(mean_llik = mean(sum_ll)) %>%
   ungroup() 
 
-sd_plot <- ggplot(data = smooth_draws, aes(x = k, y = mean_llik, color = k, group = k)) +
-  geom_boxplot() +
-  facet_wrap(facets = c("ncpt", "form")) +
+sd_plot <- ggplot(data = smooth_draws, aes(x = k, y = mean_llik, color = seed)) +
+  geom_jitter(height = 0, width = .1) +
+  facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
   theme_bw() +
-  scale_color_viridis_d(end = .8)
+  scale_color_viridis_d(begin = .01, end = .2)
+
 
 sd_plot
 
+```
+
+## Best models
+
+This is the same plot as above, but filtered to the top 10 models based on *mean* loglikelihood. The 9 runners-up are semitransparent, and the top ranked one is shaded all the way in.
+
+There's more inter-seed than inter-model variation, so don't interpret this result too strongly. But based on this extremely small run, the best model would be 3 topics, 0 changepoints, and ~1. 
+
+```{r best ll}
+
+best_ll <- smooth_draws %>%
+  arrange(desc(mean_llik)) %>%
+  mutate(rank = row_number()) %>%
+  filter(rank <= 10)
+
+best_llplot <- ggplot(data = best_ll, aes(x = k, y = mean_llik, color = seed)) +
+geom_point(alpha = .5) +
+  geom_point(data = filter(best_ll, rank == 1), alpha = 1) +
+  facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
+  theme_bw() +
+  scale_color_viridis_d(begin = .01, end = .2) 
+
+best_llplot
+
+```
+
+One fit of this model looks like this:
+
+```{r plot best}
+
+best_models_names <- cached(cache = cache) [ which(substr(cached(cache = cache), 0, 27) == "models_2_3_0_intercept_dat_")]
+
+best_models <- lapply(as.list(best_models_names), FUN = readd, cache = cache, character_only = T)
+
+plot(best_models[[10]]$lda$`k: 3, seed: 2`)
+plot(best_models[[10]]$ts$`k: 3, seed: 2, gamma ~ 1, 0 changepoints`)
+
+```
+
+## Predictions from "best" models
+
+Here are observed-predicted time series plots for the best model. The green boxplots are predictions at each time step, and the purple lines are the observed abundances. (All relative). The facets are species. The variation in the boxplots is different draws. 
+
+
+```{r get predictions, fig.width = 8, fig.height = 40}
+
+source(here::here("fxns", "lda_wrapper.R"))
+
+all_predictions_best <- lapply(best_models, loo_predict)
+
+names(all_predictions_best) <- 1:length(all_predictions_best)
+
+all_predictions_best <- bind_rows(all_predictions_best, .id = "timestep")
+
+loadd(portal_annual, cache = cache)
+
+portal_annual_dat <- portal_annual$abundance %>%
+  mutate(timestep = row_number()) %>%
+  tidyr::gather(-timestep, key = "species", value = "abundance") %>%
+  mutate(source = "observed") %>%
+  group_by(timestep, source) %>%
+  mutate(abundance = abundance / sum(abundance)) %>%
+  ungroup()
+
+all_predictions_best <- all_predictions_best %>%
+  mutate(source = "predicted",
+         timestep = as.integer(timestep)) %>%
+  bind_rows(portal_annual_dat)
+
+
+obs_pred_best_plot <- ggplot(data = all_predictions_best, aes(x = timestep, y = abundance, color = source)) +
+  geom_boxplot(aes(x = as.factor(timestep)), data = filter(all_predictions_best, source == "predicted")) +
+  geom_point(data = filter(all_predictions_best, source == "observed")) +
+    geom_line(data = filter(all_predictions_best, source == "observed")) +
+  theme_bw() +
+  facet_wrap(~species, ncol = 2) +
+  scale_color_viridis_d(end = .7)
+
+obs_pred_best_plot
+
+```
+
+## Loglikihood at each time step
+
+These are the individual likelihood estimates for each draw at each timestep. The x axis is the timestep and the y axis is the loglikelihood. Variation comes from different parameter estimates.
+
+```{r ll timesteps}
+
+best_ll_ts <- select(all_predictions_best, timestep, draw, logliks, source) %>%
+  filter(source == "predicted") %>%
+  distinct() %>%
+  mutate(timestep = as.factor(timestep))
+
+ll_time_plot <- ggplot(data = best_ll_ts, aes(x = timestep, y = logliks)) +
+  geom_boxplot() +
+  theme_bw()
+
+ll_time_plot
 ```

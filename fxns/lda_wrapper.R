@@ -57,6 +57,64 @@ loo_ll <- function(ts_model, lda_model, data) {
   
 }
 
+
+loo_predict <- function(model_list) {
+  ts_model <- model_list$ts[[1]]
+  
+  lda_model <- model_list$lda[[1]]
+  
+  data <- model_list$data
+  
+  betas <- exp(lda_model@beta)
+  
+  full_dat <- dplyr::bind_rows(
+    cbind(data$abundance, data$covariates),
+    cbind(data$test_abundance, data$test_covariates)
+  ) 
+  
+  full_dat <- full_dat %>%
+    dplyr::bind_rows(data.frame(year = setdiff(c(min(data$covariates$year):max(data$covariates$year)), full_dat$year))) %>%
+    dplyr::arrange(year)
+  
+  full_abund <- dplyr::select(full_dat, -year)
+  full_cov <- dplyr::select(full_dat, year)
+  
+  
+  heldout_rows <- which(full_cov$year %in% data$test_covariates$year)
+  
+  sample_size <- sum(data$test_abundance)
+  
+  all_thetas <- lapply(as.list(1:nrow(ts_model$etas)), 
+                       FUN = get_loo_theta, ts_model = ts_model,
+                       full_cov = full_cov)
+  all_thetas <- lapply(all_thetas, 
+                       FUN = function(theta_matrix, heldout_data_rows)
+                         return(theta_matrix[heldout_data_rows, ]),
+                       heldout_data_rows = heldout_rows)
+  all_p_matrices <- lapply(all_thetas, FUN = function(thetam, betam)
+    return(thetam %*% betam), betam = betas)
+  
+  all_preds <- lapply(all_p_matrices, FUN = function(p_matrix, sample_size) 
+    return((rmultinom(n = 1, size = sample_size, prob = p_matrix[1,])) / sample_size), sample_size = sample_size)
+  
+  names(all_preds) <- 1:length(all_preds)
+  
+  all_preds <- dplyr::bind_rows(all_preds) %>%
+    t() %>%
+    as.data.frame()
+  
+  colnames(all_preds) <- colnames(data$test_abundance)
+  
+  all_preds <- all_preds %>%
+    dplyr::mutate(draw = row_number(),
+                  logliks = loo_ll(ts_model, lda_model, data)) %>% 
+    tidyr::gather(-draw, -logliks, key = "species", value = "abundance")
+  
+  
+  return(all_preds)
+  
+}
+
 get_loo_theta <- function(ts_model, full_cov, sim = 1){
   
   covars <- get_relevant_covars(full_cov, ts_model$formula)
