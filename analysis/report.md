@@ -13,8 +13,7 @@ Model specifications
 --------------------
 
 -   3 seeds
--   0 or 1 changepoint
--   I am currently running a set with 2 changepoints.
+-   0, 1, or 2 changepoints
 -   2, 3, or 6 topics
 -   ~1 or ~year
 -   1000 iterations
@@ -23,6 +22,11 @@ Loglikelihood for all models
 ----------------------------
 
 The y-axis is loglikelihood across all years. The x axis is the number of topics. The very short color scale is the seed (included to split the box plots). The facet columns are number of changepoints and the rows are formula (top is ~1, bottom is ~time). Variation represents variation in estimates of the likelihood from different parameter estimates (1000 draws).
+
+There is a *lot* of variation in the likelihood estimates for the more complex models. 
+
+Inter-seed variation is often of a similar scale to inter-model variation. 
+
 
 ![](report_files/figure-markdown_github/plots-1.png)
 
