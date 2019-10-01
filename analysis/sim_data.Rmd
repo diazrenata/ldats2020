@@ -1,0 +1,57 @@
+---
+title: "Generating sim data"
+output: github_document
+date: 10/1/2019
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(LDATS)
+library(matssldats)
+```
+
+
+Renata working through how to generate a sim dataset with specified characteristics. 
+
+```{r state vars}
+
+nspp = 15
+mean_nind = 200
+ntimesteps = 30
+ntopics = 2
+nchangepoints = 0
+```
+
+```{r generate LDA_TS parameters}
+
+set.seed(1977)
+
+N <- floor(rnorm(n = ntimesteps,
+                 mean = mean_nind,
+                 sd = 50))
+
+gen_beta <- function(nspp) {
+  beta_sample <- sample(x = 1000, size = nspp, replace = T)
+  beta_sample <- beta_sample / sum(beta_sample)
+}
+
+Beta <- replicate(n = ntopics, expr = gen_beta(nspp = nspp), simplify = T) %>%
+  t()
+
+X <- matrix(nrow = ntimesteps, ncol = 1, data = 1:ntimesteps)
+
+Eta <- matrix(nrow = 1, ncol = ntopics, data = runif(n = ntopics, min = 0.0000001, max = 1.5))
+
+rho <- NULL
+
+tD <- 1:ntimesteps
+
+err <- 0
+
+seed <- 410
+
+Theta <- LDATS::sim_TS_data()
+    
+simData <- LDATS::sim_LDA_TS_data(N, Beta,X, Eta, rho, tD, err = 0)
+
+```
