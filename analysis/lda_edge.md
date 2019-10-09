@@ -5,6 +5,7 @@ LDA behavior in odd situations
 Imagine a) no relationship amongst the different species, b) a fixed relationship amongst the species.
 
 ``` r
+mean_nind = 200
 nspp = 7
 ntimesteps = 30
 nchangepoints = 0
@@ -40,6 +41,57 @@ noisy_relabund_plot
 ```
 
 ![](lda_edge_files/figure-markdown_github/plot%20sim%20data-1.png)
+
+#### LDATS sim, 1 species == 1 topic
+
+``` r
+N <- floor(rnorm(n = ntimesteps,
+                 mean = mean_nind,
+                 sd = 50))
+
+Beta <- matrix(nrow = nspp, ncol = nspp, data = 0)
+
+for(i in 1:nspp) {
+  for(j in 1:nspp) {
+    if(i == j) {
+      Beta[i, j] <- 1
+    }
+  }
+}
+
+X <- matrix(nrow = ntimesteps, ncol = 2, data = c(rep(1, ntimesteps), 1:ntimesteps))
+
+Eta <- matrix(nrow = 2, ncol = nspp, data = runif(n =2* nspp, min = 0.0000001, max = 1.5))
+
+rho <- NULL
+
+tD <- 1:ntimesteps
+
+err <- 0
+
+seed <- 410
+    
+simData <- LDATS::sim_LDA_TS_data(N, Beta,X, Eta, rho, tD, err = 0, seed)
+
+simData_toplot <- as.data.frame(simData)
+
+simData_toplot <- simData_toplot %>%
+  mutate(timestep = row_number(), 
+         total_abundance = rowSums(simData_toplot)) %>%
+  tidyr::gather(-timestep, -total_abundance, key = "species", value = "abundance") %>%
+  mutate(rel_abund = abundance / total_abundance)
+
+
+sim_relabund_plot <- ggplot(data = simData_toplot, aes(x = timestep, y = rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(end = .8) +
+  ggtitle("Relative abundances - LDATS sim data")
+
+sim_relabund_plot
+```
+
+![](lda_edge_files/figure-markdown_github/use%20LDATS%20sim-1.png)
 
 #### "Fixed" relative abundances
 
@@ -105,7 +157,7 @@ lda_result_plot <- ggplot(data = all_lda_dat, aes(x = k, y = AICc, color = k)) +
   geom_boxplot() +
   theme_bw() +
   scale_color_viridis_d(end = .8) +
-  facet_grid(cols = vars(dat_source)) 
+  facet_wrap(vars(dat_source), scales = "free", strip.position = "top") 
 
 lda_result_plot
 ```
