@@ -27,8 +27,10 @@ pipeline <- drake_plan(
                                  cpts = !!ncpts, form = !!forms)),
   ll_dfs = target(get_year_ll(models),
                   transform = map(models)), 
-  composite_ll = target(combine_year_lls(list(ll_dfs)),
-                        transform = combine(ll_dfs))
+  composite_ll = target(combine_year_lls(list(ll_dfs), ncombos = 10000),
+                        transform = combine(ll_dfs)),
+  list_ll = target(list(ll_dfs),
+                   transform = combine(ll_dfs))
 )
 
 
@@ -65,3 +67,4 @@ if(grepl("ufhpc", nodename)) {
   # Run the pipeline on a single local core
   system.time(make(pipeline, cache = cache, cache_log_file = here::here("drake", "cache_log.txt")))
 }
+

@@ -162,18 +162,34 @@ get_year_ll <- function(ts_result) {
                     ncpt = rep(nchange)))
 }
 
-combine_year_lls <- function(list_of_ll_dfs) {
+combine_year_lls <- function(list_of_ll_dfs, ncombos = 10000) {
 
   ndraws <- nrow(list_of_ll_dfs[[1]])
   
-  big_ll_df <- dplyr::bind_rows(list_of_ll_dfs) %>%
-    dplyr::group_by(test_year, k, seed, form, ncpt) %>%
-    dplyr::mutate(draw = sample.int(n = ndraws, size = ndraws, replace = F)) %>%
-    dplyr::ungroup() %>%
-    dplyr::group_by(draw, k, seed, form, ncpt) %>%
+  big_ll_df <- dplyr::bind_rows(list_of_ll_dfs) 
+  
+  models_to_fit <- big_ll_df %>%
+    dplyr::select(k, seed, form, ncpt)  %>%
+    dplyr::distinct()
+  
+  nyears <- length(unique(big_ll_df$test_year))
+  test_year <- unique(big_ll_df$test_year)
+  
+  composed_ts <- data.frame(
+    draw = sample.int(n = ndraws, size = ncombos * nyears * nrow(models_to_fit), replace = T),
+    k = rep(x = models_to_fit$k, times = ncombos * nyears),
+    seed =rep(x = models_to_fit$seed, times = ncombos * nyears),
+    form = rep(x = models_to_fit$form, times = ncombos * nyears),
+    ncpt = rep(x = models_to_fit$ncpt, times = ncombos * nyears)
+  ) %>%
+    dplyr::arrange(k, seed, form, ncpt) %>%
+    dplyr::mutate(test_year = rep(test_year, times = ncombos * nrow(models_to_fit))) %>%
+    dplyr::mutate(ll_draw = ceiling(dplyr::row_number()/nyears)) %>%
+    dplyr::left_join(big_ll_df, by = c("draw", "k", "seed", "form", "ncpt", "test_year")) %>%
+    dplyr::group_by(ll_draw, k, seed, form, ncpt) %>%
     dplyr::summarize(sum_ll = sum(lglik)) %>%
     dplyr::ungroup()
   
-  return(big_ll_df)
+  return(composed_ts)
 
 }
