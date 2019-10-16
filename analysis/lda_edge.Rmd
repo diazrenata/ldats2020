@@ -73,7 +73,7 @@ for(i in 1:nspp) {
 
 X <- matrix(nrow = ntimesteps, ncol = 2, data = c(rep(1, ntimesteps), 1:ntimesteps))
 
-Eta <- matrix(nrow = 2, ncol = nspp, data = runif(n =2* nspp, min = 0.0000001, max = 1.5))
+Eta <- matrix(nrow = 2, ncol = nspp, data = runif(n =2* nspp, min = 0.0000001, max = .5))
 
 rho <- NULL
 
@@ -81,7 +81,7 @@ tD <- 1:ntimesteps
 
 err <- 0
 
-seed <- 410
+seed <- 1977
     
 simData <- LDATS::sim_LDA_TS_data(N, Beta,X, Eta, rho, tD, err = 0, seed)
 
@@ -159,7 +159,7 @@ dats <- list(noisy = noisy_dat, fixed = fixed_dat, sim = sim_dat)
 
 ```{r run LDAs}
 
-lda_fits <- lapply(dats, FUN = function(a_dat) return(LDATS::LDA_set(a_dat$document_term_table, topics = c(2:nspp), nseeds = 100, control = list(quiet = TRUE))))
+lda_fits <- lapply(dats, FUN = function(a_dat) return(LDATS::LDA_set(a_dat$document_term_table, topics = c(2:nspp), nseeds = 20, control = list(quiet = TRUE))))
 
 lda_dat <- lapply(lda_fits, FUN = function(some_ldas)
   return(data.frame(
@@ -190,3 +190,5 @@ lda_result_plot <- ggplot(data = all_lda_dat, aes(x = k, y = AICc, color = k)) +
 lda_result_plot
 
 ```
+
+## LDA plots

@@ -1,35 +1,43 @@
-LDA behavior in odd situations
-================
-10/7/2019
+---
+title: "times of great confusion"
+output: github_document
+date: 10/16/2019
+---
 
-Imagine a) no relationship amongst the different species, b) a fixed relationship amongst the species.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(LDATS)
+library(dplyr)
+library(ggplot2)
+library(matssldats)
+```
 
-``` r
+Imagine a) no relationship amongst the different species, b) a fixed relationship amongst the species. 
+
+```{r state vars}
 mean_nind = 200
 nspp = 7
 ntimesteps = 30
 nchangepoints = 0
+set.seed(1977)
+
 ```
 
 #### "Noisy" community
 
-A lot probably depends on the assumptions about how to build the noisy community. First I'm going with each species' abundance at each timestep is `runif(0, 100)`. Next I might try giving each species a mean and sd.
+A lot probably depends on the assumptions about how to build the noisy community. First I'm going with each species' abundance at each timestep is `runif(0, 100)`. Next I might try giving each species a mean and sd. 
 
-``` r
-set.seed(1977)
-
+```{r generate noisy community}
 noisyAbund <- matrix(nrow = ntimesteps, ncol = nspp, data = floor(runif(ntimesteps * nspp, 0, 100)))
 ```
 
-``` r
+```{r plot sim data}
 noisyAbund_toplot <- as.data.frame(noisyAbund)
-
 noisyAbund_toplot <- noisyAbund_toplot %>%
   mutate(timestep = row_number(), 
          total_abundance = rowSums(noisyAbund_toplot)) %>%
   tidyr::gather(-timestep, -total_abundance, key = "species", value = "abundance") %>%
   mutate(rel_abund = abundance / total_abundance)
-
 
 noisy_relabund_plot <- ggplot(data = noisyAbund_toplot, aes(x = timestep, y = rel_abund, color = species)) +
   geom_line() +
@@ -38,13 +46,12 @@ noisy_relabund_plot <- ggplot(data = noisyAbund_toplot, aes(x = timestep, y = re
   ggtitle("Relative abundances - noisy data")
 
 noisy_relabund_plot
+
 ```
 
-![](lda_edge_files/figure-markdown_github/plot%20sim%20data-1.png)
+#### LDATS sim, 1 species == 1 topic 
+```{r use LDATS sim}
 
-#### LDATS sim, 1 species == 1 topic
-
-``` r
 N <- floor(rnorm(n = ntimesteps,
                  mean = mean_nind,
                  sd = 50))
@@ -61,7 +68,7 @@ for(i in 1:nspp) {
 
 X <- matrix(nrow = ntimesteps, ncol = 2, data = c(rep(1, ntimesteps), 1:ntimesteps))
 
-Eta <- matrix(nrow = 2, ncol = nspp, data = runif(n =2* nspp, min = 0.0000001, max = .5))
+Eta <- matrix(nrow = 2, ncol = nspp, data = runif(n =2* nspp, min = 0.0000001, max = 1.5))
 
 rho <- NULL
 
@@ -69,7 +76,7 @@ tD <- 1:ntimesteps
 
 err <- 0
 
-seed <- 1977
+seed <- 410
     
 simData <- LDATS::sim_LDA_TS_data(N, Beta,X, Eta, rho, tD, err = 0, seed)
 
@@ -89,13 +96,13 @@ sim_relabund_plot <- ggplot(data = simData_toplot, aes(x = timestep, y = rel_abu
   ggtitle("Relative abundances - LDATS sim data")
 
 sim_relabund_plot
-```
 
-![](lda_edge_files/figure-markdown_github/use%20LDATS%20sim-1.png)
+```
 
 #### "Fixed" relative abundances
 
-``` r
+```{r fixed relative abundance data}
+
 fixed_props <- runif(n = nspp, 0, 100)
 
 fixed_props <- fixed_props / sum(fixed_props)
@@ -129,12 +136,25 @@ fixed_relabund_plot <- ggplot(data = fixedAbund_toplot, aes(x = timestep, y = re
   ggtitle("Relative abundances - fixed data")
 
 fixed_relabund_plot
+
+
 ```
 
-![](lda_edge_files/figure-markdown_github/fixed%20relative%20abundance%20data-1.png)
+```{r prep data for ldats, echo = F}
 
-``` r
-lda_fits <- lapply(dats, FUN = function(a_dat) return(LDATS::LDA_set(a_dat$document_term_table, topics = c(2:nspp), nseeds = 20, control = list(quiet = TRUE))))
+noisy_dat <- list(document_term_table = noisyAbund, document_covariate_table = data.frame(timestep = 1:ntimesteps))
+
+fixed_dat <- list(document_term_table = fixedAbund,  document_covariate_table = data.frame(timestep = 1:ntimesteps))
+
+sim_dat <- list(document_term_table = simData, document_covariate_table = data.frame(timestep = 1:ntimesteps))
+
+dats <- list(noisy = noisy_dat, fixed = fixed_dat, sim = sim_dat)
+
+```
+
+```{r run LDAs}
+
+lda_fits <- lapply(dats, FUN = function(a_dat) return(LDATS::LDA_set(a_dat$document_term_table, topics = c(2:nspp), nseeds = 100, control = list(quiet = TRUE))))
 
 lda_dat <- lapply(lda_fits, FUN = function(some_ldas)
   return(data.frame(
@@ -150,9 +170,12 @@ lda_dat <- lapply(lda_fits, FUN = function(some_ldas)
 
 all_lda_dat <- bind_rows(lda_dat, .id = "dat_source") %>%
   mutate(k = as.factor(k))
+
+
 ```
 
-``` r
+```{r plot LDA results}
+
 lda_result_plot <- ggplot(data = all_lda_dat, aes(x = k, y = AICc, color = k)) +
   geom_boxplot() +
   theme_bw() +
@@ -160,9 +183,5 @@ lda_result_plot <- ggplot(data = all_lda_dat, aes(x = k, y = AICc, color = k)) +
   facet_wrap(vars(dat_source), scales = "free", strip.position = "top") 
 
 lda_result_plot
+
 ```
-
-![](lda_edge_files/figure-markdown_github/plot%20LDA%20results-1.png)
-
-LDA plots
----------

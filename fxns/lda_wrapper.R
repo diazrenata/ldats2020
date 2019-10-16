@@ -1,5 +1,65 @@
+get_sim_dat <- function(kind = "noisy") {
+  if(kind == "noisy") {
+    nspp = 7
+    ntimesteps = 30
+    nchangepoints = 0
+    
+    set.seed(1977)
+    
+    noisyAbund <- matrix(nrow = ntimesteps, ncol = nspp, data = floor(runif(ntimesteps * nspp, 0, 100)))
+    noisy_dat <- list(abundance = noisyAbund, covariates = data.frame(timestep = 1:ntimesteps), metadata = list(timename = "timestep"))
+    return(noisy_dat)
+  }
+  
+  if(kind == "sim") {
+    nspp = 7
+    ntimesteps = 30
+    nchangepoints = 0
+    mean_nind = 200
+    
+    N <- floor(rnorm(n = ntimesteps,
+                     mean = mean_nind,
+                     sd = 50))
+    
+    Beta <- matrix(nrow = nspp, ncol = nspp, data = 0)
+    
+    for(i in 1:nspp) {
+      for(j in 1:nspp) {
+        if(i == j) {
+          Beta[i, j] <- 1
+        }
+      }
+    }
+    
+    X <- matrix(nrow = ntimesteps, ncol = 2, data = c(rep(1, ntimesteps), 1:ntimesteps))
+    
+    Eta <- matrix(nrow = 2, ncol = nspp, data = runif(n =2* nspp, min = 0.0000001, max = .5))
+    
+    rho <- NULL
+    
+    tD <- 1:ntimesteps
+    
+    err <- 0
+    
+    seed <- 1977
+    
+    simData <- LDATS::sim_LDA_TS_data(N, Beta,X, Eta, rho, tD, err = 0, seed)
+    
+    sim_dat <- list(abundance = simData, covariates = data.frame(timestep = 1:ntimesteps), metadata = list(timename = "timestep"))
+    
+    return(sim_dat)
+    
+  }
+}
+
 ldats_wrapper <- function(data_list, seed, ntopics, ncpts, formulas, nit = 100) {
   data_list$covariates <- as.data.frame( data_list$covariates)
+  colnames(data_list$covariates) <- data_list$metadata$timename
+  
+  data_list$test_covariates <- as.data.frame( data_list$test_covariates)
+  colnames(data_list$test_covariates) <- data_list$metadata$timename
+  
+  data_list$test_abundance <- as.data.frame(matrix(data = data_list$test_abundance, nrow = 1))
   #data_list$covariates[ ,data_list$metadata$timename] <- as.integer(data_list$covariates[ , data_list$metadata$timename])
   
   thislda <- LDATS::LDA_set_user_seeds(data_list$abundance, topics = ntopics, seed = seed)
@@ -7,11 +67,11 @@ ldats_wrapper <- function(data_list, seed, ntopics, ncpts, formulas, nit = 100) 
   
   if(formulas == "time") {
     
-    thists <-  LDATS::TS_on_LDA(LDA_models = thislda, document_covariate_table = data_list$covariates, nchangepoints = ncpts, formulas = c(~ year), weights =LDATS::document_weights(data_list$abundance), timename = "year", control = list(nit = nit))
+    thists <-  LDATS::TS_on_LDA(LDA_models = thislda, document_covariate_table = data_list$covariates, nchangepoints = ncpts, formulas = c(~ timestep), weights =LDATS::document_weights(data_list$abundance), timename = "timestep", control = list(nit = nit))
     
   } else (
     
-    thists <-  LDATS::TS_on_LDA(LDA_models = thislda, document_covariate_table = data_list$covariates, nchangepoints = ncpts, formulas = c(~ 1), weights =LDATS::document_weights(data_list$abundance), timename = "year", control = list(nit = nit, magnitude = 4))
+    thists <-  LDATS::TS_on_LDA(LDA_models = thislda, document_covariate_table = data_list$covariates, nchangepoints = ncpts, formulas = c(~ 1), weights =LDATS::document_weights(data_list$abundance), timename = "timestep", control = list(nit = nit, magnitude = 4))
     
   )
   
@@ -34,14 +94,14 @@ loo_ll <- function(ts_model, lda_model, data) {
   ) 
   
   full_dat <- full_dat %>%
-    dplyr::bind_rows(data.frame(year = setdiff(c(min(data$covariates$year):max(data$covariates$year)), full_dat$year))) %>%
-    dplyr::arrange(year)
+    dplyr::bind_rows(data.frame(timestep = setdiff(c(min(data$covariates$timestep):max(data$covariates$timestep)), full_dat$timestep))) %>%
+    dplyr::arrange(timestep)
   
-  full_abund <- dplyr::select(full_dat, -year)
-  full_cov <- dplyr::select(full_dat, year)
+  full_abund <- dplyr::select(full_dat, -timestep)
+  full_cov <- dplyr::select(full_dat, timestep)
     
   
-  heldout_rows <- which(full_cov$year %in% data$test_covariates$year)
+  heldout_rows <- which(full_cov$timestep %in% data$test_covariates$timestep)
   
   all_thetas <- lapply(as.list(1:nrow(ts_model$etas)), 
                        FUN = get_loo_theta, ts_model = ts_model,
@@ -73,14 +133,14 @@ loo_predict <- function(model_list) {
   ) 
   
   full_dat <- full_dat %>%
-    dplyr::bind_rows(data.frame(year = setdiff(c(min(data$covariates$year):max(data$covariates$year)), full_dat$year))) %>%
-    dplyr::arrange(year)
+    dplyr::bind_rows(data.frame(timestep = setdiff(c(min(data$covariates$timestep):max(data$covariates$timestep)), full_dat$timestep))) %>%
+    dplyr::arrange(timestep)
   
-  full_abund <- dplyr::select(full_dat, -year)
-  full_cov <- dplyr::select(full_dat, year)
+  full_abund <- dplyr::select(full_dat, -timestep)
+  full_cov <- dplyr::select(full_dat, timestep)
   
   
-  heldout_rows <- which(full_cov$year %in% data$test_covariates$year)
+  heldout_rows <- which(full_cov$timestep %in% data$test_covariates$timestep)
   
   sample_size <- sum(data$test_abundance)
   
@@ -141,7 +201,7 @@ get_loo_theta <- function(ts_model, full_cov, sim = 1){
   return(Theta) 
 }
 
-get_year_ll <- function(ts_result) {
+get_timestep_ll <- function(ts_result) {
   
   modelinfo <- strsplit(names(ts_result$ts), ", ")[[1]]
   
@@ -154,7 +214,7 @@ get_year_ll <- function(ts_result) {
   nchange <- as.integer(strsplit(modelinfo[[4]], " c")[[1]][[1]])
   
   return(data.frame(lglik = ts_result$ts_lliks,
-                    test_year = rep(ts_result$data$test_covariates$year[1]),
+                    test_timestep = rep(ts_result$data$test_covariates$timestep[1]),
                     draw = 1:length(ts_result$ts_lliks),
                     k = rep(k),
                     seed = rep(seed),
@@ -162,7 +222,7 @@ get_year_ll <- function(ts_result) {
                     ncpt = rep(nchange)))
 }
 
-combine_year_lls <- function(list_of_ll_dfs, ncombos = 10000) {
+combine_timestep_lls <- function(list_of_ll_dfs, ncombos = 10000) {
 
   ndraws <- nrow(list_of_ll_dfs[[1]])
   
@@ -172,20 +232,20 @@ combine_year_lls <- function(list_of_ll_dfs, ncombos = 10000) {
     dplyr::select(k, seed, form, ncpt)  %>%
     dplyr::distinct()
   
-  nyears <- length(unique(big_ll_df$test_year))
-  test_year <- unique(big_ll_df$test_year)
+  ntimesteps <- length(unique(big_ll_df$test_timestep))
+  test_timestep <- unique(big_ll_df$test_timestep)
   
   composed_ts <- data.frame(
-    draw = sample.int(n = ndraws, size = ncombos * nyears * nrow(models_to_fit), replace = T),
-    k = rep(x = models_to_fit$k, times = ncombos * nyears),
-    seed =rep(x = models_to_fit$seed, times = ncombos * nyears),
-    form = rep(x = models_to_fit$form, times = ncombos * nyears),
-    ncpt = rep(x = models_to_fit$ncpt, times = ncombos * nyears)
+    draw = sample.int(n = ndraws, size = ncombos * ntimesteps * nrow(models_to_fit), replace = T),
+    k = rep(x = models_to_fit$k, times = ncombos * ntimesteps),
+    seed =rep(x = models_to_fit$seed, times = ncombos * ntimesteps),
+    form = rep(x = models_to_fit$form, times = ncombos * ntimesteps),
+    ncpt = rep(x = models_to_fit$ncpt, times = ncombos * ntimesteps)
   ) %>%
     dplyr::arrange(k, seed, form, ncpt) %>%
-    dplyr::mutate(test_year = rep(test_year, times = ncombos * nrow(models_to_fit))) %>%
-    dplyr::mutate(ll_draw = ceiling(dplyr::row_number()/nyears)) %>%
-    dplyr::left_join(big_ll_df, by = c("draw", "k", "seed", "form", "ncpt", "test_year")) %>%
+    dplyr::mutate(test_timestep = rep(test_timestep, times = ncombos * nrow(models_to_fit))) %>%
+    dplyr::mutate(ll_draw = ceiling(dplyr::row_number()/ntimesteps)) %>%
+    dplyr::left_join(big_ll_df, by = c("draw", "k", "seed", "form", "ncpt", "test_timestep")) %>%
     dplyr::group_by(ll_draw, k, seed, form, ncpt) %>%
     dplyr::summarize(sum_ll = sum(lglik)) %>%
     dplyr::ungroup()
