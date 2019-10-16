@@ -1,55 +1,11 @@
-get_sim_dat <- function(kind = "noisy") {
-  if(kind == "noisy") {
-    nspp = 7
-    ntimesteps = 30
-    nchangepoints = 0
-    
-    set.seed(1977)
-    
-    noisyAbund <- matrix(nrow = ntimesteps, ncol = nspp, data = floor(runif(ntimesteps * nspp, 0, 100)))
-    noisy_dat <- list(abundance = noisyAbund, covariates = data.frame(timestep = 1:ntimesteps), metadata = list(timename = "timestep"))
-    return(noisy_dat)
-  }
+get_sim_dat <- function(datname) {
   
-  if(kind == "sim") {
-    nspp = 7
-    ntimesteps = 30
-    nchangepoints = 0
-    mean_nind = 200
-    
-    N <- floor(rnorm(n = ntimesteps,
-                     mean = mean_nind,
-                     sd = 50))
-    
-    Beta <- matrix(nrow = nspp, ncol = nspp, data = 0)
-    
-    for(i in 1:nspp) {
-      for(j in 1:nspp) {
-        if(i == j) {
-          Beta[i, j] <- 1
-        }
-      }
-    }
-    
-    X <- matrix(nrow = ntimesteps, ncol = 2, data = c(rep(1, ntimesteps), 1:ntimesteps))
-    
-    Eta <- matrix(nrow = 2, ncol = nspp, data = runif(n =2* nspp, min = 0.0000001, max = .5))
-    
-    rho <- NULL
-    
-    tD <- 1:ntimesteps
-    
-    err <- 0
-    
-    seed <- 1977
-    
-    simData <- LDATS::sim_LDA_TS_data(N, Beta,X, Eta, rho, tD, err = 0, seed)
-    
-    sim_dat <- list(abundance = simData, covariates = data.frame(timestep = 1:ntimesteps), metadata = list(timename = "timestep"))
-    
-    return(sim_dat)
-    
-  }
+  simData <- read.csv(here::here("data", paste0(datname, ".csv")), stringsAsFactors = F)
+  ntimesteps <- nrow(simData)
+  sim_dat <- list(abundance = simData, covariates = data.frame(timestep = 1:ntimesteps), metadata = list(timename = "timestep"))
+  
+  return(sim_dat)
+  
 }
 
 ldats_wrapper <- function(data_list, seed, ntopics, ncpts, formulas, nit = 100) {
@@ -99,7 +55,7 @@ loo_ll <- function(ts_model, lda_model, data) {
   
   full_abund <- dplyr::select(full_dat, -timestep)
   full_cov <- dplyr::select(full_dat, timestep)
-    
+  
   
   heldout_rows <- which(full_cov$timestep %in% data$test_covariates$timestep)
   
@@ -223,7 +179,7 @@ get_timestep_ll <- function(ts_result) {
 }
 
 combine_timestep_lls <- function(list_of_ll_dfs, ncombos = 10000) {
-
+  
   ndraws <- nrow(list_of_ll_dfs[[1]])
   
   big_ll_df <- dplyr::bind_rows(list_of_ll_dfs) 
@@ -251,5 +207,5 @@ combine_timestep_lls <- function(list_of_ll_dfs, ncombos = 10000) {
     dplyr::ungroup()
   
   return(composed_ts)
-
+  
 }
