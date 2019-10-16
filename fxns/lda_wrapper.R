@@ -1,3 +1,13 @@
+get_bbs_dat <- function(rt, rg){
+  bbs_dat <- MATSS::get_bbs_route_region_data(route = rt, region = rg)
+  bbs_dat$covariates <- bbs_dat$covariates %>%
+    dplyr::select(year) %>%
+    dplyr::rename(timestep = year)
+  bbs_dat$metadata$timename <- "timestep"
+  return(bbs_dat)
+}
+
+
 get_sim_dat <- function(datname) {
   
   simData <- read.csv(here::here("data", paste0(datname, ".csv")), stringsAsFactors = F)
@@ -12,11 +22,16 @@ ldats_wrapper <- function(data_list, seed, ntopics, ncpts, formulas, nit = 100) 
   data_list$covariates <- as.data.frame( data_list$covariates)
   colnames(data_list$covariates) <- data_list$metadata$timename
   
-  data_list$test_covariates <- as.data.frame( data_list$test_covariates)
+  data_list$test_covariates <- as.data.frame(data_list$test_covariates)
   colnames(data_list$test_covariates) <- data_list$metadata$timename
   
-  data_list$test_abundance <- as.data.frame(matrix(data = data_list$test_abundance, nrow = 1))
+  data_list$test_abundance <- matrix(data = data_list$test_abundance, nrow = 1)
   #data_list$covariates[ ,data_list$metadata$timename] <- as.integer(data_list$covariates[ , data_list$metadata$timename])
+  
+  colnames(data_list$test_abundance) <- colnames(data_list$abundance)
+  data_list$test_abundance <- as.data.frame(data_list$test_abundance) %>%
+    dplyr::mutate_all(unlist)
+  
   
   thislda <- LDATS::LDA_set_user_seeds(data_list$abundance, topics = ntopics, seed = seed)
   
