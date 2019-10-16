@@ -5,139 +5,239 @@ date: 10/1/2019
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(LDATS)
 library(dplyr)
 library(ggplot2)
 library(matssldats)
 ```
 
+## Some ground parameters
 
-Renata working through how to generate a sim dataset with specified characteristics. 
-
-```{r state vars}
-
-nspp = 5
-mean_nind = 200
-ntimesteps = 30
-ntopics = 2
-nchangepoints = 0
+```{r statevars, echo = T}
+nspp <- 7
+ntimesteps <- 30
+mean_nind <- 200
+err_prop <- .2
 ```
 
-```{r generate LDA_TS parameters}
+## Static with sampling error
 
+```{r static}
 set.seed(1977)
+abundance_proportions_mete <- meteR::meteESF(S0 = nspp, N0 = mean_nind)
+abundance_proportions_sad <- meteR::sad(abundance_proportions_mete)
+abundance_proportions <- abundance_proportions_sad$r(n = nspp)
+abundance_proportions <- abundance_proportions / sum(abundance_proportions)
 
-N <- floor(rnorm(n = ntimesteps,
-                 mean = mean_nind,
-                 sd = 50))
+N <- matrix(nrow = 1, data = rnorm(n = ntimesteps, mean = mean_nind, sd = .25 * mean_nind))
 
-gen_beta <- function(nspp) {
-  beta_sample <- sample(x = 1000, size = nspp, replace = T)
-  beta_sample <- beta_sample / sum(beta_sample)
-}
+abund_mat <-abundance_proportions %*% N
 
-Beta <- replicate(n = ntopics, expr = gen_beta(nspp = nspp), simplify = T) %>%
-  t()
+abund_mat <- apply(abund_mat, MARGIN = c(1,2), FUN = function(val) return(val * runif(n = 1, min = 1 - err_prop, max = 1 + err_prop)))
+abund_mat <- t(floor(abund_mat))
 
-X <- matrix(nrow = ntimesteps, ncol = 2, data = c(rep(1, ntimesteps), 1:ntimesteps))
-
-Eta <- matrix(nrow = 2, ncol = ntopics, data = runif(n =2* ntopics, min = 0.0000001, max = 1.5))
-
-rho <- NULL
-
-tD <- 1:ntimesteps
-
-err <- 0
-
-seed <- 410
-    
-simData <- LDATS::sim_LDA_TS_data(N, Beta,X, Eta, rho, tD, err = 0, seed)
-
-```
-
-```{r plot sim data}
-
-simdat_toplot <- as.data.frame(simData)
-
-simdat_toplot <- simdat_toplot %>%
+relabund <- abund_mat %>%
+  as.data.frame() %>%
   mutate(timestep = row_number(), 
-         total_abundance = rowSums(simdat_toplot)) %>%
+         total_abundance = rowSums(abund_mat)) %>%
   tidyr::gather(-timestep, -total_abundance, key = "species", value = "abundance") %>%
-  mutate(rel_abund = abundance / total_abundance)
+  mutate(rel_abund = abundance / total_abundance) %>%
+  select(-total_abundance, -abundance)
 
-
-relabund_plot <- ggplot(data = simdat_toplot, aes(x = timestep, y = rel_abund, color = species)) +
+relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color = species)) +
   geom_line() +
   theme_bw() +
-  scale_color_viridis_d(end = .8)
-
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Relative abundances")
 relabund_plot
 
+write.csv(abund_mat, file = here::here("data", "static.csv"), row.names = F)
 
-topics_dat <- as.data.frame(Beta) %>%
-  mutate(topic = row_number()) %>%
-  tidyr::gather(-topic, key = "species", value = "proportion") %>%
-  mutate(source = "simulated")
-
-topics_plot <- ggplot(data = topics_dat, aes(x = species, y = proportion, fill = species)) +
-  geom_col() +
-  facet_grid(cols = vars(topic)) +
-  theme_bw() +
-  scale_fill_viridis_d(end = .8)
-
-#topics_plot
-
+rm(relabund, abund_mat, abundance_proportions, N)
 ```
 
+## Everyone changes directionally (in different directions)
 
-```{r run lda ts on fit}
+```{r directional}
+starting_vals <- sort(abundance_proportions_sad$r(n = nspp)) 
 
-source(here::here("fxns", "lda_wrapper.R"))
+slopes <- matrix(nrow = 1, data = runif(n = nspp, min = -2, max = 3))
+if(slopes[1,nspp] > 0) {
+  slopes[1,nspp] <- -1 * abs(slopes[1, nspp])
+}
 
-simDataList <- list(document_term_table = simData, document_covariate_table = data.frame(timestep = 1:ntimesteps))
+if(slopes[1,1] < 0) {
+  slopes[1,1] <- abs(slopes[1,1])
+}
 
-simLDA <- LDA_TS(data = simDataList, topics = c(2, 3), nseeds = 50, formulas = c(~1, ~timestep), nchangepoints = c(0, 1, 2), timename = "timestep", control = list(nit = 1000, quiet = TRUE))
+timesteps <- 1:ntimesteps
 
-lda_beta <- simLDA$`Selected LDA model`[[1]]@beta %>%
-  exp() %>%
+abund_mat <- timesteps %*% slopes
+
+abund_mat <- apply(abund_mat, MARGIN = 1, FUN = function(a_row, starting_vals) return(a_row + starting_vals),
+                   starting_vals = starting_vals)
+
+abund_mat <- apply(abund_mat, MARGIN = c(1,2), FUN = function(val) return(max(0, val * runif(n = 1, min = 1 - err_prop, max = 1 + err_prop))))
+
+abund_mat <- t(floor(abund_mat))
+
+relabund <- abund_mat %>%
   as.data.frame() %>%
-  mutate(topic = row_number()) %>%
-  tidyr::gather(-topic, key = "species", value = "proportion") %>%
-  mutate(source = "model") %>%
-  bind_rows(topics_dat)
+  mutate(timestep = row_number(), 
+         total_abundance = rowSums(abund_mat)) %>%
+  tidyr::gather(-timestep, -total_abundance, key = "species", value = "abundance") %>%
+  mutate(rel_abund = abundance / total_abundance) %>%
+  select(-total_abundance, -abundance)
 
-all_topics_plot <-  ggplot(data = lda_beta, aes(x = species, y = proportion, fill = species)) +
-  geom_col() +
-  facet_grid(cols = vars(topic), rows = vars(source), switch = "y") +
-  theme_bw() +
-  scale_fill_viridis_d(end = .8)
-
-all_topics_plot
-
-```
-
-```{r lda topics over ts}
-
-sim_theta <- sim_TS_data(X, Eta, rho, err = 0, tD, seed) %>%
-  as.data.frame %>%
-  mutate(timestep = row_number()) %>%
-  tidyr::gather(-timestep, key = "topic", value = "relabund") %>%
-  mutate(source = "simulated")
-
-ts_theta <- get_theta(simLDA$`Selected TS model`) %>%
-  as.data.frame %>%
-  mutate(timestep = row_number()) %>%
-  tidyr::gather(-timestep, key = "topic", value = "relabund") %>%
-  mutate(source = "model") %>%
-  bind_rows(sim_theta)
-
-ts_plot <- ggplot(data = ts_theta, aes(x = timestep, y = relabund, color = topic)) +
+relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color = species)) +
   geom_line() +
   theme_bw() +
-  facet_grid(rows = vars(source), switch = "y") +
-  scale_color_viridis_d(option = "magma", begin = .2, end = .8)
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Relative abundances")
+relabund_plot
 
-ts_plot
+write.csv(abund_mat, file = here::here("data", "directional.csv"), row.names = F)
+
+rm(starting_vals)
+rm(slopes)
+rm(abund_mat)
+rm(relabund)
+
+```
+
+## Static with a changepoint
+
+```{r static changepoint}
+
+abundance_proportions_seg1 <- abundance_proportions_sad$r(n = nspp)
+abundance_proportions_seg1 <- abundance_proportions_seg1 / sum(abundance_proportions_seg1)
+
+abundance_proportions_seg2 <- abundance_proportions_sad$r(n = nspp)
+abundance_proportions_seg2 <- abundance_proportions_seg2 / sum(abundance_proportions_seg2)
+
+changepoint_location <- sample.int(ntimesteps, size = 1)
+
+N <- matrix(nrow = 1, data = rnorm(n = ntimesteps, mean = mean_nind, sd = .25 * mean_nind))
+
+abund_mat1 <-abundance_proportions_seg1 %*% N
+abund_mat2 <- abundance_proportions_seg2 %*% N
+
+abund_mat <- cbind(abund_mat1[,1:changepoint_location], abund_mat2[,(1 + changepoint_location):ntimesteps])
+
+abund_mat <- apply(abund_mat, MARGIN = c(1,2), FUN = function(val) return(val * runif(n = 1, min = 1 - err_prop, max = 1 + err_prop)))
+abund_mat <- t(floor(abund_mat))
+
+relabund <- abund_mat %>%
+  as.data.frame() %>%
+  mutate(timestep = row_number(), 
+         total_abundance = rowSums(abund_mat)) %>%
+  tidyr::gather(-timestep, -total_abundance, key = "species", value = "abundance") %>%
+  mutate(rel_abund = abundance / total_abundance) %>%
+  select(-total_abundance, -abundance)
+
+relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Relative abundances")
+relabund_plot
+
+write.csv(abund_mat, file = here::here("data", "static_changepoint.csv"), row.names = F)
+
+rm(abundance_proportions_seg1)
+rm(abundance_proportions_seg2)
+rm(abund_mat)
+rm(abund_mat1)
+rm(abund_mat2)
+rm(relabund)
+rm(changepoint_location)
+rm(N)
+
+```
+
+## Directional change with a changepoint
+
+```{r directional changepoint}
+
+starting_vals_seg1 <- sort(abundance_proportions_sad$r(n = nspp))
+starting_vals_seg2 <- abundance_proportions_sad$r(n = nspp)
+
+slopes1 <- matrix(nrow = 1, data = runif(n = nspp, min = -2, max = 2))
+
+slopes1[1,1] <- abs(slopes1[1,1])
+
+slopes2 <- matrix(nrow = 1, data = runif(n = nspp, min = -2, max = 2))
+
+timesteps <- 1:ntimesteps
+
+abund_mat1 <- timesteps %*% slopes1
+abund_mat2 <- timesteps %*% slopes2
+
+abund_mat1 <- apply(abund_mat1, MARGIN = 1, FUN = function(a_row, starting_vals) return(a_row + starting_vals),
+                   starting_vals = starting_vals_seg1)
+abund_mat2 <- apply(abund_mat2, MARGIN = 1, FUN = function(a_row, starting_vals) return(a_row + starting_vals),
+                   starting_vals = starting_vals_seg2)
+
+changepoint_location <- sample.int(ntimesteps, size = 1)
+
+abund_mat <- cbind(abund_mat1[,1:changepoint_location], abund_mat2[, (changepoint_location + 1):ntimesteps])
+
+abund_mat <- apply(abund_mat, MARGIN = c(1,2), FUN = function(val) return(max(0, val * runif(n = 1, min = 1 - err_prop, max = 1 + err_prop))))
+abund_mat <- t(floor(abund_mat))
+
+relabund <- abund_mat %>%
+  as.data.frame() %>%
+  mutate(timestep = row_number(), 
+         total_abundance = rowSums(abund_mat)) %>%
+  tidyr::gather(-timestep, -total_abundance, key = "species", value = "abundance") %>%
+  mutate(rel_abund = abundance / total_abundance) %>%
+  select(-total_abundance, -abundance)
+
+relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Relative abundances")
+relabund_plot
+
+write.csv(abund_mat, file = here::here("data", "directional_changepoint.csv"), row.names = F)
+
+rm(abund_mat)
+rm(abund_mat1)
+rm(abund_mat2)
+rm(relabund)
+rm(slopes1)
+rm(slopes2)
+
+```
+
+## Noise
+
+```{r noise}
+N <- matrix(nrow = 1, data = rnorm(n = ntimesteps, mean = mean_nind, sd = .25 * mean_nind))
+
+mean_abund <- mean_nind / nspp
+
+abund_mat <- matrix(nrow = nspp, ncol = ntimesteps, data = rnorm(n = nspp * ntimesteps, mean = mean_abund, sd = .5 * mean_abund))
+
+abund_mat <- t(floor(abund_mat))
+
+relabund <- abund_mat %>%
+  as.data.frame() %>%
+  mutate(timestep = row_number(), 
+         total_abundance = rowSums(abund_mat)) %>%
+  tidyr::gather(-timestep, -total_abundance, key = "species", value = "abundance") %>%
+  mutate(rel_abund = abundance / total_abundance) %>%
+  select(-total_abundance, -abundance)
+
+relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Relative abundances")
+relabund_plot
+
+write.csv(abund_mat, file = here::here("data", "noise.csv"), row.names = F)
 
 ```
