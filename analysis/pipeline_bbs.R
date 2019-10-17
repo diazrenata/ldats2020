@@ -8,24 +8,14 @@ source(here::here("fxns", "lda_wrapper.R"))
 expose_imports(MATSS)
 expose_imports(matssldats)
 
-# 
-# seed <- seq(from = 2, to = 6, by = 2)
-# 
-# ncpts <- c(0, 1)
-# 
-# ntopics <- c(2, 3, 4, 7, 11)
-# 
-# forms <- c("intercept", "time")
 
+seed <- seq(from = 2, to = 6, by = 2)
 
-seed <- 2
+ncpts <- c(0, 1)
 
-ncpts <- 0
+ntopics <- c(2, 3, 4, 7, 11)
 
-ntopics <- 2
-
-forms <-"intercept"
-
+forms <- c("intercept", "time")
 
 rt <- 6
 rg <- 11
