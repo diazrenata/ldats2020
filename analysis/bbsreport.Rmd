@@ -111,6 +111,12 @@ plot(ldats2$lda[[1]])
 plot(ldats2$ts[[1]])
 
 
+ldats2time <- ldats_wrapper(data_list = rdat_6_11, seed = 2, ntopics = 2, ncpts = 0, formulas = c("time"))
+
+plot(ldats2time$lda[[1]])
+plot(ldats2time$ts[[1]])
+
+
 ldats3 <- ldats_wrapper(data_list = rdat_6_11, seed = 2, ntopics = 3, ncpts = 0, formulas = c("intercept"))
 
 plot(ldats3$lda[[1]])

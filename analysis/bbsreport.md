@@ -36,14 +36,20 @@ Models
 
 ![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-1.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-2.png)
 
+    ## Running LDA with 2 topics (seed 2)
+
+    ## Running TS model with 0 changepoints and equation gamma ~ timestep on LDA model k: 2, seed: 2
+
+![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-3.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-4.png)
+
     ## Running LDA with 3 topics (seed 2)
 
     ## Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model k: 3, seed: 2
 
-![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-3.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-4.png)
+![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-5.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-6.png)
 
     ## Running LDA with 11 topics (seed 2)
 
     ## Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model k: 11, seed: 2
 
-![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-5.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-6.png)
+![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-7.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-8.png)
