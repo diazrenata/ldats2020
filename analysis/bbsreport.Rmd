@@ -105,19 +105,19 @@ source(here::here("fxns", "lda_wrapper.R"))
 rdat_6_11$test_abundance <- rdat_6_11$abundance[1, ]
 rdat_6_11$test_covariates <- rdat_6_11$covariates[1, ]
 
-ldats2 <- ldats_wrapper(data_list = rdat_6_11, seed = 4, ntopics = 2, ncpts = 0, formulas = c("intercept"))
+ldats2 <- ldats_wrapper(data_list = rdat_6_11, seed = 2, ntopics = 2, ncpts = 0, formulas = c("intercept"))
 
 plot(ldats2$lda[[1]])
 plot(ldats2$ts[[1]])
 
 
-ldats3 <- ldats_wrapper(data_list = rdat_6_11, seed = 4, ntopics = 3, ncpts = 0, formulas = c("intercept"))
+ldats3 <- ldats_wrapper(data_list = rdat_6_11, seed = 2, ntopics = 3, ncpts = 0, formulas = c("intercept"))
 
 plot(ldats3$lda[[1]])
 plot(ldats3$ts[[1]])
 
 
-ldats11 <- ldats_wrapper(data_list = rdat_6_11, seed = 4, ntopics = 11, ncpts = 0, formulas = c("intercept"))
+ldats11 <- ldats_wrapper(data_list = rdat_6_11, seed = 2, ntopics = 11, ncpts = 0, formulas = c("intercept"))
 
 plot(ldats11$lda[[1]])
 plot(ldats11$ts[[1]])
