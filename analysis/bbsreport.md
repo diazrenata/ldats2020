@@ -26,4 +26,4 @@ Models
 
 -   The changepoint models are consistently worse than the no changepoint models
 -   11 topics isn't *terrible*, but 2 topics wins based on the mean sum loglikelihood
--   If we look at the top 10 performing models based on mean sum loglikelihood, they appear comparable. That generally says 2, 3, or possibly 4 topics all do about the same, always with 0 changepoints, and occasionally - with 2 topics - with ~timestep as a covariate.
+-   But even the top 30 (of 60!) models seem to be fairly comparable, given the spread in sum loglikelihoods based on parameter uncertainty (?)
