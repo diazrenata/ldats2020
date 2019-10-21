@@ -9,7 +9,7 @@ expose_imports(MATSS)
 expose_imports(matssldats)
 
 
-seed <- seq(from = 2, to = 6, by = 2)
+seed <- seq(from = 2, to = 4, by = 2)
 
 ncpts <- c(0, 1)
 
