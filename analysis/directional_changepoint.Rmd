@@ -72,7 +72,8 @@ relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color 
   theme_bw() +
   scale_color_viridis_d(option = "plasma", end = .8) +
   ggtitle("Relative abundances") +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  ylim(0,1)
 relabund_plot
 
 #write.csv(abund_mat, file = here::here("data", "directional_changepoint.csv"), row.names = F)
@@ -179,7 +180,7 @@ plot(models_4_2_0_time_dat_10L_rdat_directional_changepoint$ts[[1]])
 source(here::here("fxns", "lda_wrapper.R"))
 betas <- exp(models_4_2_0_time_dat_10L_rdat_directional_changepoint$lda[[1]]@beta)
 
-thetas <- get_loo_theta(ts_model = models_4_2_0_time_dat_10L_rdat_directional_changepoint$ts[[1]], full_cov = data.frame(timestep = 1:30), sim = 1)
+thetas <- get_loo_theta(ts_model = models_4_2_0_time_dat_10L_rdat_directional_changepoint$ts[[1]], full_cov = data.frame(timestep = 1:30), sim = 50)
 
 species <- thetas %*% betas
 
@@ -195,7 +196,8 @@ predabund_plot <- ggplot(data = predabund, aes(x = timestep, y = pred_rel_abund,
   theme_bw() +
   scale_color_viridis_d(option = "plasma", end = .8) +
   ggtitle("Predicted relative abundances") +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  ylim(0,1)
 
 
 gridExtra::grid.arrange(grobs = list(relabund_plot, predabund_plot), nrow = 1)

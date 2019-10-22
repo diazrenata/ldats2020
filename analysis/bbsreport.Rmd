@@ -44,7 +44,8 @@ true_ts <- ggplot(data = rdat_to_plot, aes(x = year, y = rel_abund, color = spec
   theme_bw() +
   theme(legend.position = "none") +
   scale_color_viridis_d() +
-  ggtitle("Real TS data")
+  ggtitle("Real TS data")+
+  ylim(0,1)
 
 true_ts
 
@@ -68,7 +69,7 @@ composite_ll_rdat_6_11 <- composite_ll_rdat_6_11 %>%
 composite_ll_plot <- ggplot(data = composite_ll_rdat_6_11, aes(x = model_name, y = sum_ll, color = k)) +
   geom_boxplot() +
   theme_bw() +
-  scale_color_viridis_c()
+  scale_color_viridis_c(begin = .2, end = .9)
 composite_ll_plot
 
 mean_ll <- composite_ll_rdat_6_11 %>%
@@ -84,7 +85,7 @@ composite_ll_mean_plot <- ggplot(data = mean_ll, aes(x = model_name, y = mean_ll
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
 composite_ll_mean_plot
 
-best_means <- filter(mean_ll, rank_mean_ll >= 30)
+best_means <- filter(mean_ll, rank_mean_ll >= 10)
 
 composite_ll_mean_plot_filtered <- ggplot(data = filter(composite_ll_rdat_6_11, model_name %in% best_means$model_name), aes(x = model_name, y = sum_ll, color = k)) +
   geom_boxplot() +
@@ -97,36 +98,136 @@ composite_ll_mean_plot_filtered
 
 * The changepoint models are consistently worse than the no changepoint models
 * 11 topics isn't _terrible_, but 2 topics wins based on the mean sum loglikelihood
-* But even the top 20 (of 60!) models seem to be fairly comparable, given the spread in sum loglikelihoods based on parameter uncertainty (?)
+* But the top models seem to be fairly comparable, given the spread in sum loglikelihoods based on parameter uncertainty (?)
 
-```{r 2 3 11 topic LDAS}
+### Best model (2 topics, 0 cpts, ~ 0)
+```{r best lda}
+
+loadd(models_2_2_0_intercept_dat_10L_rdat_6_11, cache = cache)
+
+plot(models_2_2_0_intercept_dat_10L_rdat_6_11$lda[[1]])
+```
+
+
+
+```{r plot ts}
+
+plot(models_2_2_0_intercept_dat_10L_rdat_6_11$ts[[1]])
+
+```
+
+```{r generate species predictions, fig.height = 6, fig.width = 10}
 source(here::here("fxns", "lda_wrapper.R"))
+betas <- exp(models_2_2_0_intercept_dat_10L_rdat_6_11$lda[[1]]@beta)
 
-rdat_6_11$test_abundance <- rdat_6_11$abundance[1, ]
-rdat_6_11$test_covariates <- rdat_6_11$covariates[1, ]
+thetas <- get_loo_theta(ts_model = models_2_2_0_intercept_dat_10L_rdat_6_11$ts[[1]], full_cov = data.frame(timestep = 1:30), sim = 40)
 
-ldats2 <- ldats_wrapper(data_list = rdat_6_11, seed = 2, ntopics = 2, ncpts = 0, formulas = c("intercept"))
+species <- thetas %*% betas
 
-plot(ldats2$lda[[1]])
-plot(ldats2$ts[[1]])
+species <- as.data.frame(species)
+
+species$timestep <- 1:30
+
+predabund <- species %>%
+  tidyr::gather(-timestep, key = "species", value = "pred_rel_abund")
+
+predabund_plot1 <- ggplot(data = predabund, aes(x = timestep, y = pred_rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Predicted relative abundances") +
+  theme(legend.position = "none")+
+  ylim(0,1)
 
 
-ldats2time <- ldats_wrapper(data_list = rdat_6_11, seed = 2, ntopics = 2, ncpts = 0, formulas = c("time"))
-
-plot(ldats2time$lda[[1]])
-plot(ldats2time$ts[[1]])
+gridExtra::grid.arrange(grobs = list(true_ts, predabund_plot1), nrow = 1)
 
 
-ldats3 <- ldats_wrapper(data_list = rdat_6_11, seed = 2, ntopics = 3, ncpts = 0, formulas = c("intercept"))
+```
 
-plot(ldats3$lda[[1]])
-plot(ldats3$ts[[1]])
+### Best model with time (2 topics, 0 cpts, ~time)
+```{r best lda with time}
+
+loadd(models_2_2_0_time_dat_10L_rdat_6_11, cache = cache)
+
+plot(models_2_2_0_time_dat_10L_rdat_6_11$lda[[1]])
+```
 
 
-ldats11 <- ldats_wrapper(data_list = rdat_6_11, seed = 2, ntopics = 11, ncpts = 0, formulas = c("intercept"))
 
-plot(ldats11$lda[[1]])
-plot(ldats11$ts[[1]])
+```{r plot ts with time}
+
+plot(models_2_2_0_time_dat_10L_rdat_6_11$ts[[1]])
+
+```
+```{r generate species predictions with time, fig.height = 6, fig.width = 10}
+source(here::here("fxns", "lda_wrapper.R"))
+betas <- exp(models_2_2_0_time_dat_10L_rdat_6_11$lda[[1]]@beta)
+
+thetas <- get_loo_theta(ts_model = models_2_2_0_time_dat_10L_rdat_6_11$ts[[1]], full_cov = data.frame(timestep = 1:30), sim = 60)
+
+species <- thetas %*% betas
+
+species <- as.data.frame(species)
+
+species$timestep <- 1:30
+
+predabund <- species %>%
+  tidyr::gather(-timestep, key = "species", value = "pred_rel_abund")
+
+predabund_plot2 <- ggplot(data = predabund, aes(x = timestep, y = pred_rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Predicted relative abundances") +
+  theme(legend.position = "none")+
+  ylim(0,1)
+
+
+gridExtra::grid.arrange(grobs = list(true_ts, predabund_plot2), nrow = 1)
+
+```
+
+### One with 11 topics (11 topics, 0 cpts, ~ 0)
+```{r best lda 11 topics}
+
+loadd(models_2_11_0_intercept_dat_10L_rdat_6_11, cache = cache)
+
+plot(models_2_11_0_intercept_dat_10L_rdat_6_11$lda[[1]])
+```
+
+
+
+```{r plot ts 11 topics}
+
+plot(models_2_11_0_intercept_dat_10L_rdat_6_11$ts[[1]])
+
+```
+```{r generate species predictions 11 topics, fig.height = 6, fig.width = 10}
+source(here::here("fxns", "lda_wrapper.R"))
+betas <- exp(models_2_11_0_intercept_dat_10L_rdat_6_11$lda[[1]]@beta)
+
+thetas <- get_loo_theta(ts_model = models_2_11_0_intercept_dat_10L_rdat_6_11$ts[[1]], full_cov = data.frame(timestep = 1:30), sim = 60)
+
+species <- thetas %*% betas
+
+species <- as.data.frame(species)
+
+species$timestep <- 1:30
+
+predabund <- species %>%
+  tidyr::gather(-timestep, key = "species", value = "pred_rel_abund")
+
+predabund_plot <- ggplot(data = predabund, aes(x = timestep, y = pred_rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Predicted relative abundances") +
+  theme(legend.position = "none")+
+  ylim(0,1)
+
+
+gridExtra::grid.arrange(grobs = list(true_ts, predabund_plot), nrow = 1)
 
 
 ```

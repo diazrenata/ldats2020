@@ -26,30 +26,24 @@ Models
 
 -   The changepoint models are consistently worse than the no changepoint models
 -   11 topics isn't *terrible*, but 2 topics wins based on the mean sum loglikelihood
--   But even the top 20 (of 60!) models seem to be fairly comparable, given the spread in sum loglikelihoods based on parameter uncertainty (?)
+-   But the top models seem to be fairly comparable, given the spread in sum loglikelihoods based on parameter uncertainty (?)
 
-<!-- -->
+### Best model (2 topics, 0 cpts, ~ 0)
 
-    ## Running LDA with 2 topics (seed 2)
+![](bbsreport_files/figure-markdown_github/best%20lda-1.png)
 
-    ## Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model k: 2, seed: 2
+![](bbsreport_files/figure-markdown_github/plot%20ts-1.png)
 
-![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-1.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-2.png)
+![](bbsreport_files/figure-markdown_github/generate%20species%20predictions-1.png)
 
-    ## Running LDA with 2 topics (seed 2)
+### Best model with time (2 topics, 0 cpts, ~time)
 
-    ## Running TS model with 0 changepoints and equation gamma ~ timestep on LDA model k: 2, seed: 2
+![](bbsreport_files/figure-markdown_github/best%20lda%20with%20time-1.png)
 
-![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-3.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-4.png)
+![](bbsreport_files/figure-markdown_github/plot%20ts%20with%20time-1.png) ![](bbsreport_files/figure-markdown_github/generate%20species%20predictions%20with%20time-1.png)
 
-    ## Running LDA with 3 topics (seed 2)
+### One with 11 topics (11 topics, 0 cpts, ~ 0)
 
-    ## Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model k: 3, seed: 2
+![](bbsreport_files/figure-markdown_github/best%20lda%2011%20topics-1.png)
 
-![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-5.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-6.png)
-
-    ## Running LDA with 11 topics (seed 2)
-
-    ## Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model k: 11, seed: 2
-
-![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-7.png)![](bbsreport_files/figure-markdown_github/2%203%2011%20topic%20LDAS-8.png)
+![](bbsreport_files/figure-markdown_github/plot%20ts%2011%20topics-1.png) ![](bbsreport_files/figure-markdown_github/generate%20species%20predictions%2011%20topics-1.png)
