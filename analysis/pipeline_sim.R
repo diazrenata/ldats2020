@@ -19,19 +19,19 @@ forms <- c("intercept", "time")
 
 dats_touse <- list.files(path = here::here("data"), full.names = FALSE)
 dats_touse <- unlist(strsplit(dats_touse, split = ".csv"))
-
+dats_touse <- dats_touse[1]
 
 pipeline <- drake_plan(
   rdat = target(get_sim_dat(dat_to_use),
                 transform = map(dat_to_use = !!dats_touse)),
   dat = target(subset_data(rdat, n_segs = 30, sequential = T, buffer = 2, which_seg = this_seg),
                transform = cross(rdat, this_seg = !!c(1:30))),
-  models = target(ldats_wrapper(dat, seed = sd, ntopics = k, ncpts = cpts, formulas = form, nit = 1000),
+  models = target(ldats_wrapper(dat, seed = sd, ntopics = k, ncpts = cpts, formulas = form, nit = 100),
                   transform = cross(dat, sd = !!seed, k = !!ntopics,
                                     cpts = !!ncpts, form = !!forms)),
   ll_dfs = target(get_timestep_ll(models),
                   transform = map(models)), 
-  composite_ll = target(combine_timestep_lls(list(ll_dfs), ncombos = 10000),
+  composite_ll = target(combine_timestep_lls(list(ll_dfs), ncombos = 1000),
                         transform = combine(ll_dfs, .by = rdat)),
   list_ll = target(list(ll_dfs),
                    transform = combine(ll_dfs))
