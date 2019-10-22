@@ -11,3 +11,4 @@ drake/*
 .drake/
 .drake/*
 .DS_Store
+scrap.R

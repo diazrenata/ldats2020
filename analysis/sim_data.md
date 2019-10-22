@@ -36,3 +36,9 @@ Noise
 -----
 
 ![](sim_data_files/figure-markdown_github/noise-1.png)
+
+![](sim_data_files/figure-markdown_github/plot%20directional%20changepoint-1.png)
+
+![](sim_data_files/figure-markdown_github/plot%20dc%20means-1.png)
+
+![](sim_data_files/figure-markdown_github/best-1.png)

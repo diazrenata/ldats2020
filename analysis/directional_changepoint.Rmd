@@ -1,0 +1,204 @@
+---
+title: "Generating sim data"
+output: github_document
+date: 10/1/2019
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(LDATS)
+library(dplyr)
+library(ggplot2)
+library(matssldats)
+```
+
+## Some ground parameters
+
+```{r statevars, echo = T}
+nspp <- 7
+ntimesteps <- 30
+mean_nind <- 200
+err_prop <- .2
+```
+
+```{r static}
+set.seed(1977)
+abundance_proportions_mete <- meteR::meteESF(S0 = nspp, N0 = mean_nind)
+abundance_proportions_sad <- meteR::sad(abundance_proportions_mete)
+abundance_proportions <- abundance_proportions_sad$r(n = nspp)
+abundance_proportions <- abundance_proportions / sum(abundance_proportions)
+```
+
+## Directional change with a changepoint
+
+```{r directional changepoint}
+
+starting_vals_seg1 <- sort(abundance_proportions_sad$r(n = nspp))
+starting_vals_seg2 <- abundance_proportions_sad$r(n = nspp)
+
+slopes1 <- matrix(nrow = 1, data = runif(n = nspp, min = -2, max = 2))
+
+slopes1[1,1] <- abs(slopes1[1,1])
+
+slopes2 <- matrix(nrow = 1, data = runif(n = nspp, min = -2, max = 2))
+
+timesteps <- 1:ntimesteps
+
+abund_mat1 <- timesteps %*% slopes1
+abund_mat2 <- timesteps %*% slopes2
+
+abund_mat1 <- apply(abund_mat1, MARGIN = 1, FUN = function(a_row, starting_vals) return(a_row + starting_vals),
+                   starting_vals = starting_vals_seg1)
+abund_mat2 <- apply(abund_mat2, MARGIN = 1, FUN = function(a_row, starting_vals) return(a_row + starting_vals),
+                   starting_vals = starting_vals_seg2)
+
+changepoint_location <- sample.int(ntimesteps, size = 1)
+
+abund_mat <- cbind(abund_mat1[,1:changepoint_location], abund_mat2[, (changepoint_location + 1):ntimesteps])
+
+abund_mat <- apply(abund_mat, MARGIN = c(1,2), FUN = function(val) return(max(0, val * runif(n = 1, min = 1 - err_prop, max = 1 + err_prop))))
+abund_mat <- t(floor(abund_mat))
+
+relabund <- abund_mat %>%
+  as.data.frame() %>%
+  mutate(timestep = row_number(), 
+         total_abundance = rowSums(abund_mat)) %>%
+  tidyr::gather(-timestep, -total_abundance, key = "species", value = "abundance") %>%
+  mutate(rel_abund = abundance / total_abundance) %>%
+  select(-total_abundance, -abundance)
+
+relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Relative abundances") +
+  theme(legend.position = "bottom")
+relabund_plot
+
+#write.csv(abund_mat, file = here::here("data", "directional_changepoint.csv"), row.names = F)
+
+rm(abund_mat)
+rm(abund_mat1)
+rm(abund_mat2)
+rm(slopes1)
+rm(slopes2)
+
+```
+
+## Results
+
+### Directional + changepoint
+
+```{r load sim}
+library(drake)
+
+## Set up the cache and config
+db <- DBI::dbConnect(RSQLite::SQLite(), here::here("drake", "drake-cache-sim.sqlite"))
+cache <- storr::storr_dbi("datatable", "keystable", db)
+
+cachedstuff <- cached(cache= cache)
+
+loadd(composite_ll_rdat_directional_changepoint, cache = cache)
+
+```
+
+```{r plot directional changepoint}
+
+composite_ll_rdat_directional_changepoint <- composite_ll_rdat_directional_changepoint %>%
+  mutate(k = as.factor(k),
+         ncpt = as.factor(ncpt),
+         seed = as.factor(seed))
+
+all_var <- ggplot(data = composite_ll_rdat_directional_changepoint, aes(x = k, y = sum_ll, color = seed)) +
+  geom_boxplot() +
+  #  geom_jitter(aes(shape = seed), alpha = .5) +
+  facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
+  theme_bw() +
+  scale_color_viridis_d(begin = .01, end = .2)
+
+all_var
+```
+
+```{r plot dc means}
+
+smooth_draws <- composite_ll_rdat_directional_changepoint %>%
+  group_by(k, seed, form, ncpt) %>%
+  summarize(mean_llik = mean(sum_ll)) %>%
+  ungroup() 
+
+sd_plot <- ggplot(data = smooth_draws, aes(x = k, y = mean_llik, color = seed)) +
+  geom_jitter(height = 0, width = .1) +
+  facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
+  theme_bw() +
+  scale_color_viridis_d(begin = .01, end = .2)
+
+
+sd_plot
+```
+
+```{r best}
+
+best_ll <- smooth_draws %>%
+  arrange(desc(mean_llik)) %>%
+  mutate(rank = row_number()) %>%
+  filter(rank <= 10)
+
+best_llplot <- ggplot(data = best_ll, aes(x = k, y = mean_llik, color = seed)) +
+  geom_point(alpha = .5) +
+  geom_point(data = filter(best_ll, rank == 1), alpha = 1) +
+  facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
+  theme_bw() +
+  scale_color_viridis_d(begin = .01, end = .2) 
+
+best_llplot
+```
+
+The best model looks like it's 0 changepoints, 2 topics, ~timestep. 
+
+
+Looking at it:
+
+```{r best lda}
+
+loadd(models_4_2_0_time_dat_10L_rdat_directional_changepoint, cache = cache)
+
+plot(models_4_2_0_time_dat_10L_rdat_directional_changepoint$lda[[1]])
+```
+
+
+LOL.
+
+It has effectively modeled a changepoint *without modeling a changepoint* by saying there's one topic pre changepoint and another post. 
+
+```{r plot ts}
+
+plot(models_4_2_0_time_dat_10L_rdat_directional_changepoint$ts[[1]])
+
+```
+```{r generate species predictions, fig.height = 6, fig.width = 10}
+source(here::here("fxns", "lda_wrapper.R"))
+betas <- exp(models_4_2_0_time_dat_10L_rdat_directional_changepoint$lda[[1]]@beta)
+
+thetas <- get_loo_theta(ts_model = models_4_2_0_time_dat_10L_rdat_directional_changepoint$ts[[1]], full_cov = data.frame(timestep = 1:30), sim = 1)
+
+species <- thetas %*% betas
+
+species <- as.data.frame(species)
+
+species$timestep <- 1:30
+
+predabund <- species %>%
+  tidyr::gather(-timestep, key = "species", value = "pred_rel_abund")
+
+predabund_plot <- ggplot(data = predabund, aes(x = timestep, y = pred_rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Predicted relative abundances") +
+  theme(legend.position = "bottom")
+
+
+gridExtra::grid.arrange(grobs = list(relabund_plot, predabund_plot), nrow = 1)
+
+
+```
