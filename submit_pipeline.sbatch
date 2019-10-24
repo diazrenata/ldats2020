@@ -4,7 +4,7 @@
 #SBATCH --mail-user=diaz.renata@ufl.edu   # Where to send mail
 #SBATCH --account=ewhite
 #SBATCH --qos=ewhite-b
-#SBATCH --ntasks=20                 # Number of MPI ranks
+#SBATCH --ntasks=50                 # Number of MPI ranks
 #SBATCH --cpus-per-task=1            # Number of cores per MPI rank
 #SBATCH --mem-per-cpu=8GB
 #SBATCH --time=24:00:00       #Time limit hrs:min:sec
