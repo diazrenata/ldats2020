@@ -9,24 +9,17 @@ expose_imports(MATSS)
 expose_imports(matssldats)
 
 
-#seed <- seq(from = 2, to = 4, by = 2)
-# ncpts <- c(0, 1)
-# 
-# ntopics <- c(2, 3, 4, 7)
-# 
-# forms <- c("intercept", "time")
+seed <- seq(from = 2, to = 4, by = 2)
+ncpts <- c(0, 1)
 
-seed <- 2
-ncpts <- 0
+ntopics <- c(2, 3, 4, 7)
 
-ntopics <- c(2, 3)
-
-forms <- c("intercept")
+forms <- c("intercept", "time")
 
 
 dats_touse <- list.files(path = here::here("data"), full.names = FALSE)
 dats_touse <- unlist(strsplit(dats_touse, split = ".csv"))
-dats_touse <- dats_touse[1]
+dats_touse <- dats_touse[c(1, 2)]
 
 
 njobs <- length(seed) * length(ncpts) * length(ntopics) * length(forms) * length(dats_touse) * 30
