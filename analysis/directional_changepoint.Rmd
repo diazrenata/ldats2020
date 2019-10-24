@@ -12,78 +12,30 @@ library(ggplot2)
 library(matssldats)
 ```
 
-## Some ground parameters
-
-```{r statevars, echo = T}
-nspp <- 7
-ntimesteps <- 30
-mean_nind <- 200
-err_prop <- .2
-```
-
-```{r static}
-set.seed(1977)
-abundance_proportions_mete <- meteR::meteESF(S0 = nspp, N0 = mean_nind)
-abundance_proportions_sad <- meteR::sad(abundance_proportions_mete)
-abundance_proportions <- abundance_proportions_sad$r(n = nspp)
-abundance_proportions <- abundance_proportions / sum(abundance_proportions)
-```
-
 ## Directional change with a changepoint
 
 ```{r directional changepoint}
 
-starting_vals_seg1 <- sort(abundance_proportions_sad$r(n = nspp))
-starting_vals_seg2 <- abundance_proportions_sad$r(n = nspp)
+abund_mat <- read.csv(file = here::here("data", "directional_changepoint.csv"), stringsAsFactors = F)
 
-slopes1 <- matrix(nrow = 1, data = runif(n = nspp, min = -2, max = 2))
-
-slopes1[1,1] <- abs(slopes1[1,1])
-
-slopes2 <- matrix(nrow = 1, data = runif(n = nspp, min = -2, max = 2))
-
-timesteps <- 1:ntimesteps
-
-abund_mat1 <- timesteps %*% slopes1
-abund_mat2 <- timesteps %*% slopes2
-
-abund_mat1 <- apply(abund_mat1, MARGIN = 1, FUN = function(a_row, starting_vals) return(a_row + starting_vals),
-                   starting_vals = starting_vals_seg1)
-abund_mat2 <- apply(abund_mat2, MARGIN = 1, FUN = function(a_row, starting_vals) return(a_row + starting_vals),
-                   starting_vals = starting_vals_seg2)
-
-changepoint_location <- sample.int(ntimesteps, size = 1)
-
-abund_mat <- cbind(abund_mat1[,1:changepoint_location], abund_mat2[, (changepoint_location + 1):ntimesteps])
-
-abund_mat <- apply(abund_mat, MARGIN = c(1,2), FUN = function(val) return(max(0, val * runif(n = 1, min = 1 - err_prop, max = 1 + err_prop))))
-abund_mat <- t(floor(abund_mat))
-
-relabund <- abund_mat %>%
+abund_mat <- abund_mat %>%
   as.data.frame() %>%
-  mutate(timestep = row_number(), 
-         total_abundance = rowSums(abund_mat)) %>%
-  tidyr::gather(-timestep, -total_abundance, key = "species", value = "abundance") %>%
-  mutate(rel_abund = abundance / total_abundance) %>%
-  select(-total_abundance, -abundance)
+  mutate(year = row_number()) %>%
+  tidyr::gather(-year, key = "species", value = "abundance") %>%
+  group_by(year) %>%
+  mutate(total_abund = sum(abundance)) %>%
+  ungroup() %>%
+  mutate(rel_abund = abundance / total_abund)
 
-relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color = species)) +
+true_ts <- ggplot(data = abund_mat, aes(x = year, y = rel_abund, color = species)) +
   geom_line() +
   theme_bw() +
-  scale_color_viridis_d(option = "plasma", end = .8) +
-  ggtitle("Relative abundances") +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "none") +
+  scale_color_viridis_d() +
+  ggtitle("Real TS data")+
   ylim(0,1)
-relabund_plot
 
-#write.csv(abund_mat, file = here::here("data", "directional_changepoint.csv"), row.names = F)
-
-rm(abund_mat)
-rm(abund_mat1)
-rm(abund_mat2)
-rm(slopes1)
-rm(slopes2)
-
+true_ts
 ```
 
 ## Results
