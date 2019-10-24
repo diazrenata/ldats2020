@@ -28,6 +28,9 @@ dats_touse <- list.files(path = here::here("data"), full.names = FALSE)
 dats_touse <- unlist(strsplit(dats_touse, split = ".csv"))
 dats_touse <- dats_touse[1]
 
+
+njobs <- length(seed) * length(ncpts) * length(ntopics) * length(forms) * length(dats_touse) * 30
+
 pipeline <- drake_plan(
   rdat = target(get_sim_dat(dat_to_use),
                 transform = map(dat_to_use = !!dats_touse)),
@@ -68,7 +71,7 @@ if(grepl("ufhpc", nodename)) {
        cache_log_file = here::here("drake", "cache_log.txt"),
        verbose = 2,
        parallelism = "future",
-       jobs = 50,
+       jobs = njobs,
        caching = "master") # Important for DBI caches!
 } else {
   # Run the pipeline on a single local core
