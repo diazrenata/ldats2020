@@ -11,6 +11,9 @@
 #SBATCH --output pipeline%j.out
 #SBATCH --error pipeline%j.err
 
+#Clean future
+rm -f -r .future
+
 #This is a generic R submission script
 module load R
 Rscript analysis/pipeline_sim.R
