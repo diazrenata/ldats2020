@@ -48,11 +48,14 @@ ldats_wrapper <- function(data_list, seed, ntopics, ncpts, formulas, nit = 100) 
   
   test_liks <- try(loo_ll(ts_model = thists[[1]], lda_model = thislda[[1]], data = data_list))
   
-  return(list(data = data_list,
+  models <- (list(data = data_list,
               lda = thislda,
               ts = thists,
               ts_lliks = test_liks))
   
+  models$ll_df <- get_timestep_ll(models)
+  
+  return(models)
 }
 
 loo_ll <- function(ts_model, lda_model, data) {
@@ -193,7 +196,11 @@ get_timestep_ll <- function(ts_result) {
                     ncpt = rep(nchange)))
 }
 
-combine_timestep_lls <- function(list_of_ll_dfs, ncombos = 10000) {
+combine_timestep_lls <- function(list_of_models, ncombos = 10000) {
+  
+  list_of_ll_dfs <- lapply(list_of_models, FUN = function(model_list) return(model_list$ll_df))
+  
+  rm(list_of_models)
   
   ndraws <- nrow(list_of_ll_dfs[[1]])
   

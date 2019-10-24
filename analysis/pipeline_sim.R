@@ -9,13 +9,20 @@ expose_imports(MATSS)
 expose_imports(matssldats)
 
 
-seed <- seq(from = 2, to = 4, by = 2)
+#seed <- seq(from = 2, to = 4, by = 2)
+# ncpts <- c(0, 1)
+# 
+# ntopics <- c(2, 3, 4, 7)
+# 
+# forms <- c("intercept", "time")
 
-ncpts <- c(0, 1)
+seed <- 2
+ncpts <- 0
 
-ntopics <- c(2, 3, 4, 7)
+ntopics <- c(2, 3)
 
-forms <- c("intercept", "time")
+forms <- c("intercept")
+
 
 dats_touse <- list.files(path = here::here("data"), full.names = FALSE)
 dats_touse <- unlist(strsplit(dats_touse, split = ".csv"))
@@ -26,13 +33,11 @@ pipeline <- drake_plan(
                 transform = map(dat_to_use = !!dats_touse)),
   dat = target(subset_data(rdat, n_segs = 30, sequential = T, buffer = 2, which_seg = this_seg),
                transform = cross(rdat, this_seg = !!c(1:30))),
-  models = target(ldats_wrapper(dat, seed = sd, ntopics = k, ncpts = cpts, formulas = form, nit = 1000),
+  model_lls = target(ldats_wrapper(dat, seed = sd, ntopics = k, ncpts = cpts, formulas = form, nit = 1000),
                   transform = cross(dat, sd = !!seed, k = !!ntopics,
                                     cpts = !!ncpts, form = !!forms)),
-  ll_dfs = target(get_timestep_ll(models),
-                  transform = map(models)), 
-  composite_ll = target(combine_timestep_lls(list(ll_dfs), ncombos = 10000),
-                        transform = combine(ll_dfs, .by = rdat)),
+  composite_ll = target(combine_timestep_lls(list(model_lls), ncombos = 10000),
+                        transform = combine(model_lls, .by = rdat)),
   list_ll = target(list(ll_dfs),
                    transform = combine(ll_dfs))
 )
