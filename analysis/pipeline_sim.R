@@ -37,9 +37,7 @@ pipeline <- drake_plan(
                   transform = cross(dat, sd = !!seed, k = !!ntopics,
                                     cpts = !!ncpts, form = !!forms)),
   composite_ll = target(combine_timestep_lls(list(model_lls), ncombos = 10000),
-                        transform = combine(model_lls, .by = rdat)),
-  list_ll = target(list(ll_dfs),
-                   transform = combine(ll_dfs))
+                        transform = combine(model_lls, .by = rdat))
 )
 
 
