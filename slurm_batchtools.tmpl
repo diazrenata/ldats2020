@@ -28,7 +28,7 @@ if (!"memory" %in% names(resources)) {
 #SBATCH --job-name=<%= "ls-make" %>
 #SBATCH --output=<%= log.file %>
 #SBATCH --error=<%= log.file %>
-#SBATCH --ntasks=1
+#SBATCH --ntasks=5
 
 #SBATCH --time=<%= 960 %>
 #SBATCH --cpus-per-task=<%= 1 %>
