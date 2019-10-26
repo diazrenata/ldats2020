@@ -19,10 +19,10 @@ forms <- c("intercept", "time")
 
 dats_touse <- list.files(path = here::here("data"), full.names = FALSE)
 dats_touse <- unlist(strsplit(dats_touse, split = ".csv"))
-dats_touse <- dats_touse[c(1, 2)]
+dats_touse <- dats_touse[c(1, 2, 3)]
 
 
-njobs <- min(length(seed) * length(ncpts) * length(ntopics) * length(forms) * length(dats_touse) * 30, 100)
+njobs <- 100
 
 pipeline <- drake_plan(
   rdat = target(get_sim_dat(dat_to_use),
