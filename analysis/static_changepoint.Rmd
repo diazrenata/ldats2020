@@ -12,11 +12,11 @@ library(ggplot2)
 library(matssldats)
 ```
 
-## Static (with error)
+## Static (with error) with changepoint
 
 ```{r static changepoint}
 
-abund_mat <- read.csv(file = here::here("data", "static.csv"), stringsAsFactors = F)
+abund_mat <- read.csv(file = here::here("data", "static_changepoint.csv"), stringsAsFactors = F)
 
 abund_mat <- abund_mat %>%
   as.data.frame() %>%
@@ -49,18 +49,18 @@ library(drake)
 db <- DBI::dbConnect(RSQLite::SQLite(), here::here("drake", "drake-cache-sim.sqlite"))
 cache <- storr::storr_dbi("datatable", "keystable", db)
 
-loadd(composite_ll_rdat_static, cache = cache)
+loadd(composite_ll_rdat_static_changepoint, cache = cache)
 
 ```
 
 ```{r plot static changepoint}
 
-composite_ll_rdat_static <- composite_ll_rdat_static %>%
+composite_ll_rdat_static_changepoint <- composite_ll_rdat_static_changepoint %>%
   mutate(k = as.factor(k),
          ncpt = as.factor(ncpt),
          seed = as.factor(seed))
 
-all_var <- ggplot(data = composite_ll_rdat_static, aes(x = k, y = sum_ll, color = seed)) +
+all_var <- ggplot(data = composite_ll_rdat_static_changepoint, aes(x = k, y = sum_ll, color = seed)) +
   geom_boxplot() +
   #  geom_jitter(aes(shape = seed), alpha = .5) +
   facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
@@ -72,7 +72,7 @@ all_var
 
 ```{r plot dc means}
 
-smooth_draws <- composite_ll_rdat_static %>%
+smooth_draws <- composite_ll_rdat_static_changepoint %>%
   group_by(k, seed, form, ncpt) %>%
   summarize(mean_llik = mean(sum_ll)) %>%
   ungroup() 
@@ -99,34 +99,34 @@ best_llplot <- ggplot(data = best_ll, aes(x = k, y = mean_llik, color = seed)) +
   geom_point(data = filter(best_ll, rank == 1), alpha = 1) +
   facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
   theme_bw() +
-  scale_color_viridis_d(begin = .01, end = .2) 
+  scale_color_viridis_d(begin = .01, end = .5) 
 
 best_llplot
 ```
 
-The best model looks like it's 0 changepoints, 2 topics, ~intercept. 
+The best model looks like it's 0 changepoints, 4 topics, ~time 
 
 
 Looking at it:
 
 ```{r best lda}
 
-loadd(model_lls_2_2_0_intercept_dat_10L_rdat_static, cache = cache)
+loadd(model_lls_2_4_0_time_dat_10L_rdat_static_changepoint, cache = cache)
 
-plot(model_lls_2_2_0_intercept_dat_10L_rdat_static$lda[[1]])
+plot(model_lls_2_4_0_time_dat_10L_rdat_static_changepoint$lda[[1]])
 ```
 
 
 ```{r plot ts}
 
-plot(model_lls_2_2_0_intercept_dat_10L_rdat_static$ts[[1]])
+plot(model_lls_2_4_0_time_dat_10L_rdat_static_changepoint$ts[[1]])
 
 ```
 ```{r generate species predictions, fig.height = 6, fig.width = 10}
 source(here::here("fxns", "lda_wrapper.R"))
-betas <- exp(model_lls_2_2_0_intercept_dat_10L_rdat_static$lda[[1]]@beta)
+betas <- exp(model_lls_2_4_0_time_dat_10L_rdat_static_changepoint$lda[[1]]@beta)
 
-thetas <- get_loo_theta(ts_model = model_lls_2_2_0_intercept_dat_10L_rdat_static$ts[[1]], full_cov = data.frame(timestep = 1:30), sim = 50)
+thetas <- get_loo_theta(ts_model = model_lls_2_4_0_time_dat_10L_rdat_static_changepoint$ts[[1]], full_cov = data.frame(timestep = 1:30), sim = 50)
 
 species <- thetas %*% betas
 
