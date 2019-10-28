@@ -22,7 +22,7 @@ dats_touse <- unlist(strsplit(dats_touse, split = ".csv"))
 #dats_touse <- dats_touse[c(1, 2, 4, 5)]
 
 
-njobs <- 100
+njobs <- 200
 
 pipeline <- drake_plan(
   rdat = target(get_sim_dat(dat_to_use),
