@@ -150,3 +150,9 @@ gridExtra::grid.arrange(grobs = list(true_ts, predabund_plot), nrow = 1)
 
 
 ```
+
+```{r etas}
+
+model_lls_2_4_0_time_dat_10L_rdat_static_changepoint$ts[[1]]$eta_summary
+
+```
