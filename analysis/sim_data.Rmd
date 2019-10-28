@@ -52,7 +52,7 @@ relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color 
   ggtitle("Relative abundances")
 relabund_plot
 
-write.csv(abund_mat, file = here::here("data", "static.csv"), row.names = F)
+#write.csv(abund_mat, file = here::here("data", "static.csv"), row.names = F)
 
 rm(relabund, abund_mat, abundance_proportions, N)
 ```
@@ -97,7 +97,7 @@ relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color 
   ggtitle("Relative abundances")
 relabund_plot
 
-write.csv(abund_mat, file = here::here("data", "directional.csv"), row.names = F)
+#write.csv(abund_mat, file = here::here("data", "directional.csv"), row.names = F)
 
 rm(starting_vals)
 rm(slopes)
@@ -143,7 +143,7 @@ relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color 
   ggtitle("Relative abundances")
 relabund_plot
 
-write.csv(abund_mat, file = here::here("data", "static_changepoint.csv"), row.names = F)
+#write.csv(abund_mat, file = here::here("data", "static_changepoint.csv"), row.names = F)
 
 rm(abundance_proportions_seg1)
 rm(abundance_proportions_seg2)
@@ -201,7 +201,7 @@ relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color 
   ggtitle("Relative abundances")
 relabund_plot
 
-write.csv(abund_mat, file = here::here("data", "directional_changepoint.csv"), row.names = F)
+#write.csv(abund_mat, file = here::here("data", "directional_changepoint.csv"), row.names = F)
 
 rm(abund_mat)
 rm(abund_mat1)
@@ -215,6 +215,7 @@ rm(slopes2)
 ## Noise
 
 ```{r noise}
+set.seed(1994)
 N <- matrix(nrow = 1, data = rnorm(n = ntimesteps, mean = mean_nind, sd = .25 * mean_nind))
 
 mean_abund <- mean_nind / nspp
