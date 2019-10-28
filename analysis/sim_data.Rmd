@@ -215,7 +215,7 @@ rm(slopes2)
 ## Noise
 
 ```{r noise}
-set.seed(1994)
+set.seed(20)
 N <- matrix(nrow = 1, data = rnorm(n = ntimesteps, mean = mean_nind, sd = .25 * mean_nind))
 
 mean_abund <- mean_nind / nspp

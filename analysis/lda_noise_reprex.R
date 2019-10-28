@@ -46,3 +46,46 @@ lda_rdat_10_k8 <- LDATS::LDA_set(document_term_table = rdat_10$abundance, topics
 lda_rdat_10_k6 <- LDATS::LDA_set(document_term_table = rdat_10$abundance, topics = 6, nseeds = 1)
 
 
+### Trying to find one that won't fail
+
+rm(list=ls())
+nspp <- 7
+ntimesteps <- 30
+mean_nind <- 200
+source(here::here("fxns", "lda_wrapper.R"))
+library(matssldats)
+
+for(i in 1:500){
+
+set.seed(i)
+N <- matrix(nrow = 1, data = rnorm(n = ntimesteps, mean = mean_nind, sd = .25 * mean_nind))
+
+mean_abund <- mean_nind / nspp
+
+abund_mat <- matrix(nrow = nspp, ncol = ntimesteps, data = rnorm(n = nspp * ntimesteps, mean = mean_abund, sd = .5 * mean_abund))
+
+abund_mat <- t(floor(abund_mat))
+
+sim_dat <- list(abundance = abund_mat, covariates = data.frame(timestep = 1:ntimesteps), metadata = list(timename = "timestep"))
+
+rdat <- lapply(as.list(1:30), FUN = subset_data, data = sim_dat, n_segs = 30, sequential = T, buffer = 2)
+
+ldas <- (lapply(rdat, FUN = function(dat_list) return(
+  topicmodels::LDA(dat_list$abundance, k = 2, control = list(seed = 2)))))
+ldas2 <- (lapply(rdat, FUN = function(dat_list) return(
+  topicmodels::LDA(dat_list$abundance, k = 2, control = list(seed = 4)))))
+success <- TRUE
+for(j in 1:30) {
+  if(any(is.list(ldas[[j]]), is.list(ldas2[[j]]))) {
+    success <- FALSE
+  }
+}
+
+if(success) {
+  print(i)
+  break
+}
+
+}
+
+# seed 20 works
