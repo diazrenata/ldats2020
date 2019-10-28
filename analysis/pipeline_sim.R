@@ -19,7 +19,7 @@ forms <- c("intercept", "time")
 
 dats_touse <- list.files(path = here::here("data"), full.names = FALSE)
 dats_touse <- unlist(strsplit(dats_touse, split = ".csv"))
-dats_touse <- dats_touse[c(1, 2, 4, 5)]
+#dats_touse <- dats_touse[c(1, 2, 4, 5)]
 
 
 njobs <- 100
