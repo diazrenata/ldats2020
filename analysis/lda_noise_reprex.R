@@ -74,9 +74,27 @@ ldas <- (lapply(rdat, FUN = function(dat_list) return(
   topicmodels::LDA(dat_list$abundance, k = 2, control = list(seed = 2)))))
 ldas2 <- (lapply(rdat, FUN = function(dat_list) return(
   topicmodels::LDA(dat_list$abundance, k = 2, control = list(seed = 4)))))
+
+ldask3 <- (lapply(rdat, FUN = function(dat_list) return(
+  topicmodels::LDA(dat_list$abundance, k = 3, control = list(seed = 2)))))
+ldas2k3 <- (lapply(rdat, FUN = function(dat_list) return(
+  topicmodels::LDA(dat_list$abundance, k = 3, control = list(seed = 4)))))
+
+ldask4 <- (lapply(rdat, FUN = function(dat_list) return(
+  topicmodels::LDA(dat_list$abundance, k = 4, control = list(seed = 2)))))
+ldas2k4 <- (lapply(rdat, FUN = function(dat_list) return(
+  topicmodels::LDA(dat_list$abundance, k = 4, control = list(seed = 4)))))
+
+ldask7 <- (lapply(rdat, FUN = function(dat_list) return(
+  topicmodels::LDA(dat_list$abundance, k = 7, control = list(seed = 2)))))
+ldas2k7 <- (lapply(rdat, FUN = function(dat_list) return(
+  topicmodels::LDA(dat_list$abundance, k = 7, control = list(seed = 4)))))
 success <- TRUE
 for(j in 1:30) {
-  if(any(is.list(ldas[[j]]), is.list(ldas2[[j]]))) {
+  if(any(is.list(ldas[[j]]), is.list(ldas2[[j]]),
+         is.list(ldask3[[j]]), is.list(ldas2k3[[j]]),
+         is.list(ldask4[[j]]), is.list(ldas2k4[[j]]),
+         is.list(ldask7[[j]]), is.list(ldas2k7[[j]]))) {
     success <- FALSE
   }
 }
