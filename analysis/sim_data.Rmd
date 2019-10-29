@@ -215,7 +215,7 @@ rm(slopes2)
 ## Noise
 
 ```{r noise}
-set.seed(37)
+set.seed(1)
 N <- matrix(nrow = 1, data = rnorm(n = ntimesteps, mean = mean_nind, sd = .25 * mean_nind))
 
 mean_abund <- mean_nind / nspp
@@ -223,6 +223,8 @@ mean_abund <- mean_nind / nspp
 abund_mat <- matrix(nrow = nspp, ncol = ntimesteps, data = rnorm(n = nspp * ntimesteps, mean = mean_abund, sd = .5 * mean_abund))
 
 abund_mat <- t(floor(abund_mat))
+abund_mat <- apply(abund_mat, MARGIN=c(1,2), FUN = function(val) return(max(val, 0)))
+
 
 relabund <- abund_mat %>%
   as.data.frame() %>%
@@ -239,6 +241,6 @@ relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color 
   ggtitle("Relative abundances")
 relabund_plot
 
-write.csv(abund_mat, file = here::here("data", "noise.csv"), row.names = F)
+write.csv(abund_mat, file = here::here("data", "noise_seed1.csv"), row.names = F)
 
 ```
