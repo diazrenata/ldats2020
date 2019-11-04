@@ -102,7 +102,6 @@ for(j in 1:30) {
 
 if(success) {
   print(i)
-  break
 }
 
 }

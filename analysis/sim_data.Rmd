@@ -241,6 +241,6 @@ relabund_plot <- ggplot(data = relabund, aes(x = timestep, y = rel_abund, color 
   ggtitle("Relative abundances")
 relabund_plot
 
-write.csv(abund_mat, file = here::here("data", "noise_seed1.csv"), row.names = F)
+#write.csv(abund_mat, file = here::here("data", "noise_seed1.csv"), row.names = F)
 
 ```

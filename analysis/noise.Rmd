@@ -1,0 +1,155 @@
+---
+title: "Generating sim data"
+output: github_document
+date: 10/1/2019
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(LDATS)
+library(dplyr)
+library(ggplot2)
+library(matssldats)
+```
+
+## Noise
+
+```{r noise}
+
+abund_mat <- read.csv(file = here::here("data", "noise_seed1.csv"), stringsAsFactors = F)
+
+abund_mat <- abund_mat %>%
+  as.data.frame() %>%
+  mutate(year = row_number()) %>%
+  tidyr::gather(-year, key = "species", value = "abundance") %>%
+  group_by(year) %>%
+  mutate(total_abund = sum(abundance)) %>%
+  ungroup() %>%
+  mutate(rel_abund = abundance / total_abund)
+
+true_ts <- ggplot(data = abund_mat, aes(x = year, y = rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  scale_color_viridis_d() +
+  ggtitle("Real TS data")+
+  ylim(0,1)
+
+true_ts
+```
+
+## Results
+
+### Directional + changepoint
+
+```{r load sim}
+library(drake)
+
+## Set up the cache and config
+db <- DBI::dbConnect(RSQLite::SQLite(), here::here("drake", "drake-cache-sim.sqlite"))
+cache <- storr::storr_dbi("datatable", "keystable", db)
+
+cachedstuff <- cached(cache= cache)
+
+loadd(composite_ll_rdat_noise_seed1, cache = cache)
+
+```
+
+```{r plot directional changepoint}
+
+composite_ll_rdat_noise_seed1 <- composite_ll_rdat_noise_seed1 %>%
+  mutate(k = as.factor(k),
+         ncpt = as.factor(ncpt),
+         seed = as.factor(seed))
+
+all_var <- ggplot(data = composite_ll_rdat_noise_seed1, aes(x = k, y = sum_ll, color = seed)) +
+  geom_boxplot() +
+  #  geom_jitter(aes(shape = seed), alpha = .5) +
+  facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
+  theme_bw() +
+  scale_color_viridis_d(begin = .01, end = .2)
+
+all_var
+```
+
+```{r plot dc means}
+
+smooth_draws <- composite_ll_rdat_noise_seed1 %>%
+  group_by(k, seed, form, ncpt) %>%
+  summarize(mean_llik = mean(sum_ll)) %>%
+  ungroup() 
+
+sd_plot <- ggplot(data = smooth_draws, aes(x = k, y = mean_llik, color = seed)) +
+  geom_jitter(height = 0, width = .1) +
+  facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
+  theme_bw() +
+  scale_color_viridis_d(begin = .01, end = .2)
+
+
+sd_plot
+```
+
+```{r best}
+
+best_ll <- smooth_draws %>%
+  arrange(desc(mean_llik)) %>%
+  mutate(rank = row_number()) %>%
+  filter(rank <= 10)
+
+best_llplot <- ggplot(data = best_ll, aes(x = k, y = mean_llik, color = seed)) +
+  geom_point(alpha = .5) +
+  geom_point(data = filter(best_ll, rank == 1), alpha = 1) +
+  facet_grid(rows = vars(form), cols = vars(ncpt), switch = "y") +
+  theme_bw() +
+  scale_color_viridis_d(begin = .01, end = .2) 
+
+best_llplot
+```
+
+The best model looks like it's 0 changepoints, 2 topics, ~timestep. 
+
+
+Looking at it:
+
+```{r best lda}
+
+loadd(model_lls_2_2_0_intercept_dat_10L_rdat_noise_seed1, cache = cache)
+
+plot(model_lls_2_2_0_intercept_dat_10L_rdat_noise_seed1$lda[[1]])
+```
+
+
+
+```{r plot ts}
+
+plot(model_lls_2_2_0_intercept_dat_10L_rdat_noise_seed1$ts[[1]])
+
+```
+```{r generate species predictions, fig.height = 6, fig.width = 10}
+source(here::here("fxns", "lda_wrapper.R"))
+betas <- exp(model_lls_2_2_0_intercept_dat_10L_rdat_noise_seed1$lda[[1]]@beta)
+
+thetas <- get_loo_theta(ts_model = model_lls_2_2_0_intercept_dat_10L_rdat_noise_seed1$ts[[1]], full_cov = data.frame(timestep = 1:30), sim = 50)
+
+species <- thetas %*% betas
+
+species <- as.data.frame(species)
+
+species$timestep <- 1:30
+
+predabund <- species %>%
+  tidyr::gather(-timestep, key = "species", value = "pred_rel_abund")
+
+predabund_plot <- ggplot(data = predabund, aes(x = timestep, y = pred_rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(option = "plasma", end = .8) +
+  ggtitle("Predicted relative abundances") +
+  theme(legend.position = "bottom") +
+  ylim(0,1)
+
+
+gridExtra::grid.arrange(grobs = list(true_ts, predabund_plot), nrow = 1)
+
+
+```
