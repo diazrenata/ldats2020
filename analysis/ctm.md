@@ -7,9 +7,6 @@ directional changepoint data
 ``` r
 directional_changepoint <- read.csv(here::here("data", "directional_changepoint.csv"), stringsAsFactors = F)
 
-
-
-
 abund_mat <- directional_changepoint %>%
   as.data.frame() %>%
   mutate(year = row_number()) %>%
@@ -97,3 +94,144 @@ plot(LDATS::LDA_set_user_seeds(directional_changepoint, 3, 4))
     ## Running LDA with 3 topics (seed 4)
 
 ![](ctm_files/figure-markdown_github/everything-4.png)
+
+``` r
+dc <- get_sim_dat("directional_changepoint")
+
+LDA_CTM <- LDA_2
+LDA_CTM@gamma <- CTM_2@gamma
+LDA_CTM@beta <- CTM_2@beta
+
+library(LDATS)
+plot(LDA_CTM)
+```
+
+![](ctm_files/figure-markdown_github/ts%20model-1.png)
+
+``` r
+CTM_TS <- TS_on_LDA(LDA_CTM, document_covariate_table = dc$covariates, formulas =  c(~timestep, ~1), nchangepoints = c(0, 1), weights = document_weights(dc$abundance), timename = "timestep")
+```
+
+    ## Running TS model with 0 changepoints and equation gamma ~ timestep on LDA model
+
+    ## Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model
+
+    ## Running TS model with 1 changepoints and equation gamma ~ timestep on LDA model
+
+    ##   Estimating changepoint distribution
+
+    ##   Estimating regressor distribution
+
+    ## Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model
+
+    ##   Estimating changepoint distribution
+
+    ##   Estimating regressor distribution
+
+``` r
+for(i in 1:length(CTM_TS)) {
+  print(names(CTM_TS)[[i]])
+  plot(CTM_TS[[i]])
+}
+```
+
+    ## [1] ", gamma ~ timestep, 0 changepoints"
+
+![](ctm_files/figure-markdown_github/ts%20model-2.png)
+
+    ## [1] ", gamma ~ 1, 0 changepoints"
+
+![](ctm_files/figure-markdown_github/ts%20model-3.png)
+
+    ## [1] ", gamma ~ timestep, 1 changepoints"
+
+![](ctm_files/figure-markdown_github/ts%20model-4.png)
+
+    ## [1] ", gamma ~ 1, 1 changepoints"
+
+![](ctm_files/figure-markdown_github/ts%20model-5.png)
+
+``` r
+selected_ctm <- (LDATS::select_TS(CTM_TS))
+
+print(selected_ctm$formula)
+```
+
+    ## gamma ~ 1
+    ## <environment: 0x7ffb4583dae8>
+
+``` r
+print(selected_ctm$nchangepoints)
+```
+
+    ## [1] 1
+
+``` r
+plot(selected_ctm)
+```
+
+![](ctm_files/figure-markdown_github/selected%20ctm-1.png)
+
+``` r
+LDA2_TS <- TS_on_LDA(LDA_2, document_covariate_table = dc$covariates, formulas =  c(~timestep, ~1), nchangepoints = c(0, 1), weights = document_weights(dc$abundance), timename = "timestep")
+```
+
+    ## Running TS model with 0 changepoints and equation gamma ~ timestep on LDA model
+
+    ## Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model
+
+    ## Running TS model with 1 changepoints and equation gamma ~ timestep on LDA model
+
+    ##   Estimating changepoint distribution
+
+    ##   Estimating regressor distribution
+
+    ## Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model
+
+    ##   Estimating changepoint distribution
+
+    ##   Estimating regressor distribution
+
+``` r
+for(i in 1:length(LDA2_TS)) {
+  print(names(LDA2_TS)[[i]])
+  plot(LDA2_TS[[i]])
+}
+```
+
+    ## [1] ", gamma ~ timestep, 0 changepoints"
+
+![](ctm_files/figure-markdown_github/compared%20to%20on%20LDA-1.png)
+
+    ## [1] ", gamma ~ 1, 0 changepoints"
+
+![](ctm_files/figure-markdown_github/compared%20to%20on%20LDA-2.png)
+
+    ## [1] ", gamma ~ timestep, 1 changepoints"
+
+![](ctm_files/figure-markdown_github/compared%20to%20on%20LDA-3.png)
+
+    ## [1] ", gamma ~ 1, 1 changepoints"
+
+![](ctm_files/figure-markdown_github/compared%20to%20on%20LDA-4.png)
+
+``` r
+selected_lda <- (LDATS::select_TS(LDA2_TS))
+
+print(selected_lda$formula)
+```
+
+    ## gamma ~ timestep
+    ## <environment: 0x7ffb4c4dd1b8>
+
+``` r
+print(selected_lda$nchangepoints)
+```
+
+    ## [1] 0
+
+``` r
+plot(selected_lda)
+```
+
+![](ctm_files/figure-markdown_github/compared%20to%20on%20LDA-5.png)
