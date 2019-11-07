@@ -1,0 +1,73 @@
+---
+title: "CTM"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+
+library(dplyr)
+library(topicmodels)
+library(ggplot2)
+```
+
+# directional changepoint data
+
+```{r everything}
+
+directional_changepoint <- read.csv(here::here("data", "directional_changepoint.csv"), stringsAsFactors = F)
+
+
+
+
+abund_mat <- directional_changepoint %>%
+  as.data.frame() %>%
+  mutate(year = row_number()) %>%
+  tidyr::gather(-year, key = "species", value = "abundance") %>%
+  group_by(year) %>%
+  mutate(total_abund = sum(abundance)) %>%
+  ungroup() %>%
+  mutate(rel_abund = abundance / total_abund)
+
+true_ts <- ggplot(data = abund_mat, aes(x = year, y = rel_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  scale_color_viridis_d() +
+  ggtitle("Real TS data")+
+  ylim(0,1)
+
+true_ts
+
+directional_changepoint <- as.matrix(directional_changepoint)
+
+
+CTM_2 <- CTM(directional_changepoint, 3, control = list(seed = 4))
+CTM_2@beta
+
+LDA_2 <- LDA(directional_changepoint,3, control = list(seed = 4))
+LDA_2@beta
+
+ctm_gammas <- CTM_2@gamma %>%
+  as.data.frame() %>%
+  mutate(timestep = row_number()) %>%
+  tidyr::gather(-timestep, key = "topic", value = "gamma")
+
+ggplot(data = ctm_gammas, aes(x = timestep, y = gamma, color = topic)) + 
+  geom_line() +
+  ggtitle("CTM gammas") + 
+  theme_bw()
+
+
+lda_gammas <- LDA_2@gamma %>%
+  as.data.frame() %>%
+  mutate(timestep = row_number()) %>%
+  tidyr::gather(-timestep, key = "topic", value = "gamma")
+
+ggplot(data = lda_gammas, aes(x = timestep, y = gamma, color = topic)) + 
+  geom_line() +
+  ggtitle("LDA gammas") + theme_bw()
+
+
+plot(LDATS::LDA_set_user_seeds(directional_changepoint, 3, 4))
+
+```
