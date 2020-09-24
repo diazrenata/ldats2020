@@ -1,0 +1,52 @@
+---
+title: "LDATS on Hartland"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(LDATS)
+library(MATSS)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r load community data}
+
+datasets <- build_bbs_datasets_plan()
+
+h <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # hartland
+
+hartland <- eval(unlist(datasets$command[h][[1]]))
+
+```
+
+This community has a total of `r ncol(hartland$abundance)` species surveyed in `r nrow(hartland$abundance)` years from `r min(hartland$covariates$year)` to `r max(hartland$covariates$year)`.
+
+```{r plot hartland}
+
+hartland_long <- hartland$abundance %>%
+  mutate(year = hartland$covariates$year,
+         totalannual = rowSums(hartland$abundance))  %>%
+  tidyr::pivot_longer(c(-year, -totalannual),names_to = "species", values_to = "abundance") %>%
+  mutate(propannual = abundance / totalannual)
+
+
+ggplot(hartland_long, aes(year, propannual, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d() +
+  theme(legend.position = "none") +
+  ggtitle("Proportional abundance of all species")
+```
+
+First let's fit an LDA + TS as we might have once upon a time.
+
+```{r LDATS on hartland}
+# takes forever to run
+# hartland_LDAs <- LDA_set(hartland$abundance, topics = c(2:20, c(25, 30, 40, 50, 70, 90)), nseeds = 20)
+
+hartland_LDAs <- readRDS(here::here("hartland_ldas.Rds"))
+
+
+```
