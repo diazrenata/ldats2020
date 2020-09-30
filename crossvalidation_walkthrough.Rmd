@@ -282,7 +282,7 @@ ggplot(ll_comparison, aes(x = loglik, group = as.factor(cpts), color = as.factor
 
 K, let's plot these as panels...
 
-```{r panel plots, fig.dim = c(3,4)}
+```{r panel plots, fig.dim = c(4,6)}
 
 ts_bottom_plot <- function (x, cols = set_TS_summary_plot_cols(), bin_width = 1, 
   xname = NULL, border = NA, selection = "median", LDATS = FALSE) 
@@ -300,14 +300,14 @@ ts_bottom_plot <- function (x, cols = set_TS_summary_plot_cols(), bin_width = 1,
 plot_panels <- function(section_index = 1, no_cpt_list, one_cpt_list){
   
   plot(no_cpt_list[[section_index]]$fitted_lda)
-  ts_bottom_plot(no_cpt_list[[section_index]]$fitted_ts)
-  ts_bottom_plot(one_cpt_list[[section_index]]$fitted_ts, selection = "mode")
+ # ts_bottom_plot(no_cpt_list[[section_index]]$fitted_ts)
+ # ts_bottom_plot(one_cpt_list[[section_index]]$fitted_ts, selection = "mode")
 }
-# }
-# 
-# for(i in 1:23) {
-# plot_panels(i, ldats_0_cpts, ldats_1_cpts)
-# }
+
+
+for(i in 1:23) {
+plot_panels(i, ldats_0_cpts, ldats_1_cpts)
+}
 
 
 ```
@@ -339,5 +339,28 @@ ggplot(all_thetas, aes(timestep, V1, group = sim)) +
   theme_bw() +
   theme(legend.position = "none") +
   ylim(0, 1)
+
+```
+
+### How do the betas vary over time?
+
+```{r all ldas}
+
+extract_betas <- function(ldats_fit) {
+  betas_t <- as.data.frame(t(ldats_fit$fitted_lda@beta))
+  colnames(betas_t) <- c("t1", "t2")
+  betas_t$species <- 1:nrow(betas_t)
+betas_t  
+}
+
+
+betas <- lapply(ldats_0_cpts, extract_betas)
+
+betas <- bind_rows(betas, .id = "tstep")
+
+ggplot(betas, aes(tstep, t1)) +
+  geom_point() +
+  geom_point(aes(tstep, t2), color = "blue") +
+  facet_wrap(vars(as.factor(species)))
 
 ```

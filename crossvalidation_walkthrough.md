@@ -568,15 +568,17 @@ ts_bottom_plot <- function (x, cols = set_TS_summary_plot_cols(), bin_width = 1,
 plot_panels <- function(section_index = 1, no_cpt_list, one_cpt_list){
   
   plot(no_cpt_list[[section_index]]$fitted_lda)
-  ts_bottom_plot(no_cpt_list[[section_index]]$fitted_ts)
-  ts_bottom_plot(one_cpt_list[[section_index]]$fitted_ts, selection = "mode")
+ # ts_bottom_plot(no_cpt_list[[section_index]]$fitted_ts)
+ # ts_bottom_plot(one_cpt_list[[section_index]]$fitted_ts, selection = "mode")
 }
-# }
-# 
-# for(i in 1:23) {
-# plot_panels(i, ldats_0_cpts, ldats_1_cpts)
-# }
+
+
+for(i in 1:23) {
+plot_panels(i, ldats_0_cpts, ldats_1_cpts)
+}
 ```
+
+![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-1.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-2.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-3.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-4.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-5.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-6.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-7.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-8.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-9.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-10.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-11.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-12.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-13.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-14.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-15.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-16.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-17.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-18.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-19.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-20.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-21.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-22.png)<!-- -->![](crossvalidation_walkthrough_files/figure-gfm/panel%20plots-23.png)<!-- -->
 
 ``` r
 one_with_cpt <- ldats_1_cpts[[2]]$fitted_ts
