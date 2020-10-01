@@ -4,6 +4,9 @@ sudo: false
 warnings_are_errors: false
 git:
   depth: false
-  
+
+install:
+  - Rscript fluff.R
+
 script:
   - Rscript testthat.R

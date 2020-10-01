@@ -209,6 +209,19 @@ get_one_test_loglik <- function(
   return(test_loglik)
 }
 
+#' Get abundance probabilities
+#' 
+#' Get probabilities of abundances for each species at each time step as predicted by a TS model. 
+#' 
+#' Gets one matrix of probabiltiies for each draw from the posterior for estimates of changepoint locations and model parameters (in this case just the intercept)
+#'
+#' @param subsetted_dataset_item dat
+#' @param fitted_lda fitted lda
+#' @param fitted_ts fitted ts
+#'
+#' @return list of abund prob matrices for each draw from posterior
+#' @export
+#'
 get_abund_probabilities <- function(
   subsetted_dataset_item,
   fitted_lda,
