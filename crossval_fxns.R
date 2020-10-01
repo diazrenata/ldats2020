@@ -1,10 +1,31 @@
-
+#' Subset data - all subsets
+#'
+#' Wrapper for `subset_data_one` to create a list of all data subsets using 1 timestep of test data per subset and a buffer on either side
+#'
+#' @param full_dataset MATSS-style dataset. A list with elements `$abundance`, `$covariates`
+#' @param buffer_size number of timesteps to withold on either side of the test timestep. Defaults 2
+#'
+#' @return a list of ntimesteps lists, if ntimesteps is the number of timesteps in `full_dataset`. each list in the list is the output of `subset_data_one` with the test timestep as one of the timesteps in the full dataset. 
+#' @export
+#'
 subset_data_all <- function(full_dataset, buffer_size = 2) {
   
   subsetted_data = lapply(1:nrow(full_dataset$abundance), FUN = subset_data_one, full_dataset = full_dataset, buffer_size = buffer_size)
   
 }
 
+#' Subset data - one subset
+#' 
+#' Creates a *single* training/test subset for a dataset. 
+#' Witholds a single timestep for testing, and a buffer of timesteps around that timestep.
+#'
+#' @param full_dataset MATSS style dataset. A list with elements `$abundance`, `$covariates`
+#' @param test_timestep Which timestep (row) to withold and use for test
+#' @param buffer_size How many rows to withold on either side (not used for test)
+#'
+#' @return list with elements train (list of $abundance, $covariates), test (list of $abundance, $covariates), full (unaltered full_dataset), test_timestep (which tstep is the test one), buffer_size (buffer size)
+#' @export
+#'
 subset_data_one <- function(full_dataset, test_timestep, buffer_size) {
   
   timesteps_to_withold <- c((test_timestep - 2):(test_timestep + 2))
@@ -35,6 +56,59 @@ subset_data_one <- function(full_dataset, test_timestep, buffer_size) {
   
 }
 
+#' Subset an LDA model
+#'
+#' Takes an LDA model fit to an ENTIRE dataset and strips it down to the rows present in the TRAIN data for a subsetted data item
+#'
+#' @param fitted_lda lda fit to FULL dataset
+#' @param subsetted_dataset_item result of subset_data_one, test and train
+#'
+#' @return fitted_lda cut and pasted to be just the rows present in the train data
+#' @export
+#'
+subset_lda <- function(fitted_lda, subsetted_dataset_item) {
+  
+  keep_rows <- subsetted_dataset_item$full$covariates$year %in% subsetted_dataset_item$train$covariates$year
+  
+  fitted_lda@gamma <- fitted_lda@gamma[ which(keep_rows), ]
+  
+  fitted_lda@wordassignments <- NULL
+  
+  fitted_lda@Dim[1] <- sum(keep_rows)
+  
+  fitted_lda@loglikelihood <- fitted_lda@loglikelihood[ which(keep_rows)]
+  
+  return(fitted_lda)
+}
+
+#' Run LDATs on a single subsetted dataset
+#'
+#' This is the big wrapper function.
+#' 
+#' Fits an LDA to a subsetted dataset item.
+#' 
+#' IF fit_to_train, fits LDA to the train data. IF fit_to_train == FALSE, fits LDA to FULL dataset.
+#' 
+#' IF fit_to_train == FALSE, then SUBSETS the lda to contain only the gammas (and loglikelihoods) for the timesteps in the TRAIN dataset.
+#'
+#' Fits a TS model with specified ncpts, nit
+#' 
+#' Extracts from TS, predicted abundances (as multinom probability distribution) for each species at each timestep. There is a matrix of abundance probabilities *for every draw in the posterior, so nit*
+#' 
+#' Calculates the *loglikelihood of the test row* given abundance probabiltiies. There is a test loglikelihood for every draw in the posterior, so nit.
+#' 
+#' 
+#'
+#' @param subsetted_dataset_item result of subset_data_one
+#' @param k ntopics for lda
+#' @param seed seed for lda. only use even numbers.
+#' @param cpts how many changepoints for ts?
+#' @param nit how many iterations? (draws from posterior)
+#' @param fit_to_train fit LDA to TRAINING DATA ONLY (default) or set to FALSE to fit to ALL DATA and then subset
+#'
+#' @return list. subsetted_dataset_item with the following appended. fitted_lda; fitted_ts; abund_probabilities; test_logliks, model_info
+#' @export
+#'
 ldats_subset_one <- function(subsetted_dataset_item, 
                              k,
                              seed,
@@ -56,15 +130,7 @@ ldats_subset_one <- function(subsetted_dataset_item,
       topics = k,
       seed = seed)[[1]]
     
-    keep_rows <- subsetted_dataset_item$full$covariates$year %in% subsetted_dataset_item$train$covariates$year
-    
-    fitted_lda@gamma <- fitted_lda@gamma[ which(keep_rows), ]
-    
-    fitted_lda@wordassignments <- NULL
-    
-    fitted_lda@Dim[1] <- sum(keep_rows)
-    
-    fitted_lda@loglikelihood <- fitted_lda@loglikelihood[ which(keep_rows)]
+    fitted_lda <- subset_lda(fitted_lda, subsetted_dataset_item)
     
   } 
   
@@ -97,6 +163,16 @@ ldats_subset_one <- function(subsetted_dataset_item,
 }
 
 
+#' Get test loglikelihood (all)
+#'
+#' Wrapper for get_one_test_loglik. Gets loglikelihood estimate for every draw from the posterior.
+#'
+#' @param subsetted_dataset_item result of subset_data_one
+#' @param abund_probabilities list of abund_probabilities; one element for every draw from posterior
+#'
+#' @return vector of loglikelihood of test data given every abund_probability estimate
+#' @export
+#'
 get_test_loglik <- function(
   subsetted_dataset_item,
   abund_probabilities
@@ -109,6 +185,16 @@ get_test_loglik <- function(
 }
 
 
+#' Get test row logliklihood (for one draw)
+#' 
+#' Get loglikelihood of observed abundances for test row given abundance probabilties. For one draw from the posterior
+#'
+#' @param subsetted_dataset_item result of subset_data_one
+#' @param abund_probabilities_one ONE matrix of abundance probabilities
+#'
+#' @return loglikelihood of obs abundances in test row given abund_probabilities
+#' @export
+#'
 get_one_test_loglik <- function(
   subsetted_dataset_item,
   abund_probabilities_one
