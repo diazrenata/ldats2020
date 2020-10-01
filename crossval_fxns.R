@@ -237,6 +237,17 @@ get_abund_probabilities <- function(
   abund_probabilities <- lapply(thetas, FUN = function(theta, betas) return(theta %*% betas), betas = betas)
 }
 
+#' Get one theta matrix
+#' 
+#' The theta matrix is the predicted proportions of each LDA topic at each time step. There is one theta matrix for every estimate of Eta (model pars) and rho (changepoint locations). This gets the theta matrix for *one* estimate.
+#'
+#' @param subsetted_dataset_item dat
+#' @param fitted_ts fitted ts to get thetas from
+#' @param sim which draw from posterior
+#'
+#' @return matrix of predicted proportions for each LDA topic at each timestep
+#' @export
+#'
 get_one_theta <- function(subsetted_dataset_item,
                           fitted_ts,
                           sim = 1) {
@@ -274,6 +285,19 @@ get_one_theta <- function(subsetted_dataset_item,
   return(Theta)
 }
 
+#' Stitch together aggregate loglik over a TS
+#' 
+#' Given a list of length ntimesteps,
+#' 
+#' where each element in the list is the vector of length ndraws of test logliklihoods for a model fit to a train/test subset focused on a single timestep,
+#' 
+#' stitch together a ts of loglikelihoods by randomly drawing one loglikelihood for each time step.
+#'
+#' @param many_fits list described above
+#'
+#' @return summed loglik across entire ts
+#' @export
+#'
 compose_ts_loglik <- function(many_fits) {
   
   nsims <- many_fits[[1]]$model_info$nit
@@ -282,6 +306,14 @@ compose_ts_loglik <- function(many_fits) {
   
 }
 
+#' Repeatedly estimate loglik for a ts fit
+#' 
+#' Wrapper for compose_ts_loglik to get many estimates fo the loglikelihood for a TS fit.
+#' 
+#' @param many_fits list, one element per timestep, of loglik estimates for the ts model fit with that timestep as the test timestep
+#' @param nests how many estimates to generate 
+#'
+#' @return vector of nests estimated aggregate logliks
 estimate_ts_loglik <- function(many_fits, nests) {
   
   return(list(
@@ -291,6 +323,16 @@ estimate_ts_loglik <- function(many_fits, nests) {
 
 
 
+#' Bundle loglilihood estimates into a df
+#'
+#' Wrapper for make_ll_df
+#' 
+#' @param list_of_lls 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 bundle_lls <- function(list_of_lls) {
   
   ll_dfs <- lapply(list_of_lls, make_ll_df)
