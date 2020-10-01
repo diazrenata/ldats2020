@@ -1,0 +1,216 @@
+---
+title: "LDATS on a dataset that likes lots of topics"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(LDATS)
+library(MATSS)
+library(dplyr)
+library(ggplot2)
+source("crossval_fxns.R")
+```
+
+```{r load community data}
+
+datasets <- build_bbs_datasets_plan()
+
+m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
+
+dat <- eval(unlist(datasets$command[m][[1]]))
+
+```
+
+This community has a total of `r ncol(dat$abundance)` species surveyed in `r nrow(dat$abundance)` years from `r min(dat$covariates$year)` to `r max(dat$covariates$year)`.
+
+```{r plot dat}
+
+dat_long <- dat$abundance %>%
+  mutate(year = dat$covariates$year,
+         totalannual = rowSums(dat$abundance))  %>%
+  tidyr::pivot_longer(c(-year, -totalannual),names_to = "species", values_to = "abundance") %>%
+  mutate(propannual = abundance / totalannual)
+
+
+ggplot(dat_long, aes(year, propannual, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d() +
+  theme(legend.position = "none") +
+  ggtitle("Proportional abundance of all species")
+```
+
+### Training/test subsetting
+
+From this data structure, we want to split it into [many] training/test subsets.
+
+For now, I will allow *each timestep* to be a test year. For the subset for which a given year is the test year, I will additionally withhold 2 timesteps on either side as a buffer.
+
+Each training/test object must have the following components:
+
+- Training data + covariates table/vector
+- Test data + covariates table/vector
+
+```{r subset into training and test data}
+
+
+subsetted_dat <- subset_data_all(dat)
+
+```
+
+
+### Fitting a LDA + TS model to every subset
+
+```{r fitting model fxns}
+
+```
+
+```{r run, eval = F}
+ldats_one <- ldats_subset_one(subsetted_dat[[1]], 2, 2, 0, 100)
+
+ldats_all <- lapply(subsetted_dat, FUN = ldats_subset_one, k = 2, seed = 2, cpts = 0, nit = 100)
+
+ldats_all_logliks <- estimate_ts_loglik(ldats_all, nests = 100)
+
+ldats_all_logliks
+
+```
+
+```{r comparison}
+
+ldats_0_cpts <- lapply(subsetted_dat, FUN = ldats_subset_one, k = 2, seed = 2, cpts = 0, nit = 100, fit_to_train = F)
+
+ldats_0_cpts_ll <- estimate_ts_loglik(ldats_0_cpts, nests = 1000)
+
+ldats_1_cpts <- lapply(subsetted_dat, FUN = ldats_subset_one, k = 2, seed = 2, cpts = 1, nit = 100, fit_to_train = F)
+
+ldats_1_cpts_ll <- estimate_ts_loglik(ldats_1_cpts, nests = 1000)
+
+
+ldats_2_cpts <- lapply(subsetted_dat, FUN = ldats_subset_one, k = 2, seed = 2, cpts = 2, nit = 100)
+
+ldats_2_cpts_ll <- estimate_ts_loglik(ldats_2_cpts, nests = 1000)
+
+
+
+bundle_lls <- function(list_of_lls) {
+  
+  ll_dfs <- lapply(list_of_lls, make_ll_df)
+  
+  bind_rows(ll_dfs)
+}
+
+make_ll_df <- function(ll) {
+  
+  cbind(data.frame(loglik = ll$loglik_ests), as.data.frame(ll$model_info))
+  
+}
+
+ll_comparison <- bundle_lls(list(ldats_0_cpts_ll, ldats_1_cpts_ll))
+
+
+library(ggplot2)
+
+ggplot(ll_comparison, aes(x = loglik, group = as.factor(cpts), color = as.factor(cpts))) +
+  geom_density() +
+  theme_bw()
+
+```
+
+K, let's plot these as panels...
+
+```{r panel plots, fig.dim = c(3,4)}
+
+ts_bottom_plot <- function (x, cols = set_TS_summary_plot_cols(), bin_width = 1, 
+                            xname = NULL, border = NA, selection = "median", LDATS = FALSE) 
+{
+  rc <- cols$rho
+  rho_cols <- set_rho_hist_colors(x$rhos, rc$cols, rc$option, 
+                                  rc$alpha)
+  rho_hist(x, rho_cols, bin_width, xname, border, TRUE, LDATS)
+  gc <- cols$gamma
+  gamma_cols <- set_gamma_colors(x, gc$cols, gc$option, gc$alpha)
+  gamma_plot(x, selection, gamma_cols, xname, TRUE, 
+                     LDATS)
+}
+
+plot_panels <- function(section_index = 1, no_cpt_list, one_cpt_list, two_cpt_list = NULL){
+  
+  plot(no_cpt_list[[section_index]]$fitted_lda)
+  plot.new()
+   ts_bottom_plot(no_cpt_list[[section_index]]$fitted_ts)
+   plot.new()
+   ts_bottom_plot(one_cpt_list[[section_index]]$fitted_ts, selection = "mode")
+   if(!is.null(two_cpt_list)) {
+     plot.new()
+        ts_bottom_plot(two_cpt_list[[section_index]]$fitted_ts, selection = "mode")
+
+   }
+}
+
+
+
+for(i in 1:23) {
+  plot_panels(i, ldats_0_cpts, ldats_1_cpts, ldats_2_cpts)
+}
+
+
+plot(LDA_set_user_seeds(
+      document_term_table = dat$abundance,
+      topics = 2,
+      seed = 2)[[1]])
+```
+
+```{r trying to do ts plots}
+
+one_with_cpt <- ldats_1_cpts[[2]]$fitted_ts
+
+plot(one_with_cpt)
+
+all_thetas <- (lapply(1:100, FUN =  get_one_theta, subsetted_dataset_item = subsetted_dat[[2]], fitted_ts = one_with_cpt))
+for(i in 1:length(all_thetas)) {
+  all_thetas[[i]] <- as.data.frame(all_thetas[[i]])
+  all_thetas[[i]]$timestep = dat$covariates$year
+  all_thetas[[i]]$sim = i
+}
+
+
+names(all_thetas) <- 1:100
+all_thetas <- bind_rows(all_thetas) 
+
+all_thetas <- all_thetas %>%
+  mutate(sim = as.factor(sim)) #%>%
+# tidyr::pivot_longer(cols = c(V1, V2), names_to = "topic", values_to = "prop")
+
+ggplot(all_thetas, aes(timestep, V1, group = sim)) +
+  geom_line(alpha = .1, size = 2) +
+  geom_line(aes(timestep, V2, group = sim), alpha = .1, size = 2, color = "green") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylim(0, 1)
+
+```
+
+### How do the betas vary over time?
+
+```{r all ldas}
+
+extract_betas <- function(ldats_fit) {
+  betas_t <- as.data.frame(t(ldats_fit$fitted_lda@beta))
+  colnames(betas_t) <- c("t1", "t2")
+  betas_t$species <- 1:nrow(betas_t)
+  betas_t  
+}
+
+
+betas <- lapply(ldats_0_cpts, extract_betas)
+
+betas <- bind_rows(betas, .id = "tstep")
+
+ggplot(betas, aes(tstep, t1)) +
+  geom_point() +
+  geom_point(aes(tstep, t2), color = "blue") +
+  facet_wrap(vars(as.factor(species)))
+
+```

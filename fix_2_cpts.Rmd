@@ -1,0 +1,109 @@
+---
+title: "LDATS on a dataset that likes lots of topics"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(LDATS)
+library(MATSS)
+library(dplyr)
+library(ggplot2)
+source("crossval_fxns.R")
+```
+
+```{r load community data}
+
+datasets <- build_bbs_datasets_plan()
+
+m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
+
+dat <- eval(unlist(datasets$command[m][[1]]))
+
+```
+
+This community has a total of `r ncol(dat$abundance)` species surveyed in `r nrow(dat$abundance)` years from `r min(dat$covariates$year)` to `r max(dat$covariates$year)`.
+
+```{r plot dat}
+
+dat_long <- dat$abundance %>%
+  mutate(year = dat$covariates$year,
+         totalannual = rowSums(dat$abundance))  %>%
+  tidyr::pivot_longer(c(-year, -totalannual),names_to = "species", values_to = "abundance") %>%
+  mutate(propannual = abundance / totalannual)
+
+
+ggplot(dat_long, aes(year, propannual, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d() +
+  theme(legend.position = "none") +
+  ggtitle("Proportional abundance of all species")
+```
+
+### Training/test subsetting
+
+From this data structure, we want to split it into [many] training/test subsets.
+
+For now, I will allow *each timestep* to be a test year. For the subset for which a given year is the test year, I will additionally withhold 2 timesteps on either side as a buffer.
+
+Each training/test object must have the following components:
+
+- Training data + covariates table/vector
+- Test data + covariates table/vector
+
+```{r subset into training and test data}
+
+
+subsetted_dat <- subset_data_all(dat)
+
+```
+
+
+### Fitting a LDA + TS model to every subset
+
+```{r fitting model fxns}
+
+```
+
+```{r run, eval = F}
+ ldats_one <- ldats_subset_one(subsetted_dat[[1]], 2, 2, 0, 100, FALSE)
+
+ldats_two <- ldats_subset_one(subsetted_dat[[1]], 2, 2, 2, 100, FALSE)
+
+
+# 
+# ldats_all <- lapply(subsetted_dat, FUN = ldats_subset_one, k = 2, seed = 2, cpts = 0, nit = 100)
+# 
+# ldats_all_logliks <- estimate_ts_loglik(ldats_all, nests = 100)
+# 
+# ldats_all_logliks
+
+```
+
+```{r comparison}
+
+ldats_0_cpts <- lapply(subsetted_dat, FUN = ldats_subset_one, k = 2, seed = 2, cpts = 0, nit = 100, fit_to_train = F)
+
+ldats_0_cpts_ll <- estimate_ts_loglik(ldats_0_cpts, nests = 10000)
+
+ldats_1_cpts <- lapply(subsetted_dat, FUN = ldats_subset_one, k = 2, seed = 2, cpts = 1, nit = 100, fit_to_train = F)
+
+ldats_1_cpts_ll <- estimate_ts_loglik(ldats_1_cpts, nests = 10000)
+
+ldats_2_cpts <- lapply(subsetted_dat, FUN = ldats_subset_one, k = 2, seed = 2, cpts = 2, nit = 100, fit_to_train = F)
+
+ldats_2_cpts_ll <- estimate_ts_loglik(ldats_2_cpts, nests = 10000)
+
+
+ll_comparison <- bundle_lls(list(ldats_0_cpts_ll, ldats_1_cpts_ll, ldats_2_cpts_ll))
+
+
+library(ggplot2)
+
+ggplot(ll_comparison, aes(x = loglik, group = as.factor(cpts), color = as.factor(cpts))) +
+  geom_density() +
+  theme_bw()
+
+```
+
