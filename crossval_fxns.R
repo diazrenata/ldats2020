@@ -327,12 +327,11 @@ estimate_ts_loglik <- function(many_fits, nests) {
 #'
 #' Wrapper for make_ll_df
 #' 
-#' @param list_of_lls 
+#' @param list_of_lls multiple outputs of estimate_ts_loglik
 #'
-#' @return
+#' @return data frame of loglik, model info
 #' @export
 #'
-#' @examples
 bundle_lls <- function(list_of_lls) {
   
   ll_dfs <- lapply(list_of_lls, make_ll_df)
@@ -340,6 +339,14 @@ bundle_lls <- function(list_of_lls) {
   bind_rows(ll_dfs)
 }
 
+#' Title
+#'
+#' @param ll 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make_ll_df <- function(ll) {
   
   cbind(data.frame(loglik = ll$loglik_ests), as.data.frame(ll$model_info))
@@ -364,7 +371,7 @@ gamma_plot <- function (x, selection = "median", cols = set_gamma_colors(x),
   nrhos <- ncol(rhos)
   if (!is.null(nrhos)) {
     if (selection == "median") {
-      spec_rhos <- apply(rhos, 2, median)
+      spec_rhos <- ceiling(apply(rhos, 2, median))
     }
     else if (selection == "mode") {
       spec_rhos <- apply(rhos, 2, modalvalue)

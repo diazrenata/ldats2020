@@ -6,7 +6,7 @@ git:
   depth: false
 
 install:
-  - Rscript fluff.R
+  - Rscript install_packages.R
 
 script:
   - Rscript testthat.R
