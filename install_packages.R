@@ -1,5 +1,5 @@
-install.packages("remotes")
-remotes::install_github("weecology/LDATS@lda-set-user-seed")
-remotes::install_github("weecology/MATSS")
+install.packages("devtools")
+devtools::install_github("weecology/LDATS@lda-set-user-seed")
+devtools::install_github("weecology/MATSS")
 install.packages("dplyr")
 install.packages("ggplot2")
