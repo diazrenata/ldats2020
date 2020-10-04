@@ -10,7 +10,11 @@ abund_annual <- abund %>%
   ungroup() %>%
   mutate(year = as.numeric(year))
 
-abund_dat <- list(abundance = select(abund_annual, -year),
-                  covariates = as.data.frame(select(abund_annual, year)))
+abundance <- select(abund_annual, -year)
+covariates <- select(abund_annual, year) %>%
+  mutate(col2 = "dummycol")
+
+abund_dat <- list(abundance = abundance,
+                  covariates = covariates)
 
 save(abund_dat, file = "portal_annual.RData")
