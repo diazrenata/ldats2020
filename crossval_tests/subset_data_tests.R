@@ -12,7 +12,7 @@ test_that("portal dat is correct", {
   expect_true(!is.null(abund_dat$covariates))
   
   expect_true(is.data.frame(abund_dat$abundance))
-  expect_true(nrow(abund_dat$abundance) == 40)
+  expect_true(nrow(abund_dat$abundance) == 39)
   
   expect_true(ncol(abund_dat$abundance) == 21)
   
@@ -40,11 +40,11 @@ test_that("subset one works", {
   
   expect_true(all(y1_subset$test$abundance[1, ] == y1_subset$full$abundance[1, ]))
   
-  expect_true(all(y1_subset$train$abundance == y1_subset$full$abundance[4:40, ]))
+  expect_true(all(y1_subset$train$abundance == y1_subset$full$abundance[4:39, ]))
   
   expect_true(all(y1_subset$test$covariates[1] == y1_subset$full$covariates$year[1]))
   
-  expect_true(all(y1_subset$train$covariates == y1_subset$full$covariates[4:40, ]))
+  expect_true(all(y1_subset$train$covariates == y1_subset$full$covariates[4:39, ]))
   
   y5_subset <- subset_data_one(abund_dat, 5, 2)
   
@@ -58,11 +58,11 @@ test_that("subset one works", {
   
   expect_true(all(y5_subset$test$abundance[1, ] == y5_subset$full$abundance[5, ]))
   
-  expect_true(all(y5_subset$train$abundance == y5_subset$full$abundance[c(1:2, 8:40), ]))
+  expect_true(all(y5_subset$train$abundance == y5_subset$full$abundance[c(1:2, 8:39), ]))
   
   expect_true(all(y5_subset$test$covariates[1] == y5_subset$full$covariates$year[5]))
   
-  expect_true(all(y5_subset$train$covariates == y5_subset$full$covariates[c(1:2, 8:40), ]))
+  expect_true(all(y5_subset$train$covariates == y5_subset$full$covariates[c(1:2, 8:39), ]))
   
   
 })

@@ -1,0 +1,170 @@
+---
+title: "Results"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(drake)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r load dat}
+
+loadd(bbs_rtrg_1_4)
+
+totaln <- bbs_rtrg_1_4$abundance %>%
+  mutate(totaln = rowSums(.)) %>%
+  mutate(year = bbs_rtrg_1_4$covariates$year)
+
+abund_long <- totaln %>%
+  select(-totaln) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "count") %>%
+  left_join(select(totaln, year, totaln)) %>%
+  mutate(prop = count / totaln)
+
+ggplot(abund_long, aes(year, prop, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d() +
+  theme(legend.position = "none")
+
+
+```
+
+```{r}
+
+loadd(all_evals)
+
+all_evals <- all_evals %>%
+  mutate(k = as.factor(k),
+         seed = as.factor(seed),
+         cpts = as.factor(cpts),
+         cpts_seed_k = paste0(cpts, "_", seed, "_", k))
+
+
+ggplot(all_evals, aes(x = k, y = loglik, group = cpts_seed_k, color = cpts)) +
+  geom_violin() +
+#  facet_wrap(vars(cpts)) +
+  theme_bw() +
+  ggtitle("All models loglikelihood")
+
+all_evals_summary <- all_evals %>%
+  group_by(k, seed, cpts, cpts_seed_k) %>%
+  summarize(mean_ll = mean(loglik),
+            upper_97_ll = quantile(loglik, probs = .975),
+            lower_2_ll = quantile(loglik, probs = .025),
+            n_infinite = sum(is.infinite(loglik))) %>%
+  ungroup() %>%
+  arrange(desc(mean_ll))
+
+highest_low_95 = max(all_evals_summary$lower_2_ll)
+
+all_evals_summary <- all_evals_summary %>%
+  mutate(in_95 = upper_97_ll >= highest_low_95)
+
+head(all_evals_summary)
+
+all_evals_summary[1:15,]
+
+ggplot(filter(all_evals, cpts_seed_k %in% all_evals_summary$cpts_seed_k[1:25]), aes(x = k, y = loglik, group = cpts_seed_k, color = cpts)) +
+  geom_boxplot() +
+#  facet_wrap(vars(cpts)) +
+  theme_bw() +
+  ggtitle("Best 25 models loglikelihood")
+
+
+ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_seed_k), aes(x = k, y = loglik, group = cpts_seed_k, color = cpts)) +
+  geom_boxplot() +
+#  facet_wrap(vars(cpts)) +
+  theme_bw() +
+  ggtitle("Models w/LL overlapping top 95%")
+```
+
+
+```{r}
+
+#plot(ldas_only$`k: 14, seed: 8`)
+
+lda_2_6 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 2, 6)
+
+plot(lda_2_6)
+# 
+# loadd(ldats_fit_bbs_rtrg_1_11_2L_6_1L)
+# 
+# for(i in 1:23){
+#   plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_lda)
+# plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_ts, selection = "mode")
+# }
+
+ts_2_6_1 <- LDATS::TS_on_LDA(lda_2_6, as.data.frame(bbs_rtrg_1_4$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
+
+for(i in 1:3) {
+plot(ts_2_6_1[[i]])
+}
+# 
+# full_subset <- subset_data_one(bbs_rtrg_1_4, 1, 2)
+# full_subset$train <- full_subset$full
+# 
+# 
+# ts_pred_n <- get_abund_probabilities(full_subset, lda_2_6[[1]], ts_2_6_1[[1]])
+# 
+# ts_pred_n <- lapply(ts_pred_n, FUN = function(a_df) return (mutate(as.data.frame(a_df), year = bbs_rtrg_1_4$covariates$year)))
+# 
+# names(ts_pred_n) <- 1:length(ts_pred_n)
+# 
+# ts_pred_n <- bind_rows(ts_pred_n, .id = "sim")
+# 
+# colnames(ts_pred_n)[2:62] <- colnames(bbs_rtrg_1_4$abundance)
+# 
+# ts_pred_n <- ts_pred_n %>%
+#   mutate(sim_year = paste0(year, "_", sim)) %>%
+#   select(-sim, -year) %>%
+#   tidyr::pivot_longer(-sim_year, names_to = "species", values_to = "predicted_prop") %>%
+#   mutate(year = as.numeric(substr(sim_year, 0, 4)))
+# 
+# ts_pred_n <- left_join(ts_pred_n, abund_long, by = c("species", "year"))
+# 
+# top_ten_spp <- names(sort(apply(bbs_rtrg_1_4$abundance, 2, FUN = mean), decreasing = T)[1:10])
+# 
+# ggplot(filter(ts_pred_n, species=="sp4740"), aes(year, predicted_prop)) +
+#   geom_point() +
+#   geom_line(aes(year, prop)) +
+#   theme_bw() +
+#   facet_wrap(vars(species), scales = "free_y")
+
+# 
+# ts_sample_sizes <- rowSums(full_subset$full$abundance)
+# 
+# ts_pred_abund <- as.data.frame(full_subset$train$abundance)
+# 
+# for(i in 1:nrow(ts_pred_abund)) {
+#   ts_pred_abund[i,] <- as.vector(rmultinom(n = 1, size = ts_sample_sizes[i], prob = ts_pred_n[[1]][i, ]))
+# }
+# 
+# ts_pred_abund <- ts_pred_abund %>%
+#   mutate(year = bbs_rtrg_1_4$covariates$year)\
+```
+
+```{r}
+
+lda_14_8 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 14, 8)
+
+plot(lda_14_8)
+# 
+# loadd(ldats_fit_bbs_rtrg_1_11_2L_6_1L)
+# 
+# for(i in 1:23){
+#   plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_lda)
+# plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_ts, selection = "mode")
+# }
+
+ts_14_8 <- LDATS::TS_on_LDA(lda_14_8, as.data.frame(bbs_rtrg_1_4$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
+
+for(i in 1:length(ts_14_8)) {
+  plot(ts_14_8[[i]])
+}
+
+
+```

@@ -278,7 +278,7 @@ get_one_theta <- function(subsetted_dataset_item,
   
   Theta <- LDATS::sim_TS_data(X, Eta_matrix, rho, time_span, err = 0)
   
-  Theta <- softmax(Theta)
+  #Theta <- softmax(Theta)
   
   Theta <- Theta [ which(tD %in% time_span),]
   
@@ -423,3 +423,21 @@ gamma_plot <- function (x, selection = "median", cols = set_gamma_colors(x),
   }
 }
 
+
+fit_ldats_crossval <- function(dataset, buffer = 2, k, seed, cpts, nit, fit_to_train = FALSE) {
+  
+  all_subsets <- subset_data_all(dataset, buffer_size = buffer)
+  
+  all_ldats_fits <- lapply(all_subsets, FUN = ldats_subset_one, k = k, seed = seed, cpts = cpts, nit = nit, fit_to_train = fit_to_train)
+  
+  return(all_ldats_fits)
+}
+
+eval_ldats_crossval <- function(ldats_fits, nests = 100) {
+  estimates <- estimate_ts_loglik(ldats_fits, nests = nests)
+  
+  ll_df <- make_ll_df(estimates)
+  
+  return(ll_df)
+  
+}

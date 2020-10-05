@@ -40,6 +40,7 @@ test_that("lda subset works", {
   
   })
 
+subsetted_lda <- subset_lda(lda_on_full, abund_dat_subset)
 
 # Fit a TS
 

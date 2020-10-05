@@ -8,7 +8,8 @@ abund_annual <- abund %>%
   group_by(year) %>%
   summarize_all(sum) %>%
   ungroup() %>%
-  mutate(year = as.numeric(year))
+  mutate(year = as.numeric(year)) %>%
+  filter(year != 1994)
 
 abundance <- select(abund_annual, -year)
 covariates <- select(abund_annual, year) %>%
