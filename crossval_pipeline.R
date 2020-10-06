@@ -43,39 +43,29 @@ workflow <- dplyr::bind_rows(
 ## Set up the cache and config
 db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache.sqlite"))
 cache <- storr::storr_dbi("datatable", "keystable", db)
-cache$del(key = "lock", namespace = "session")
-
-# 
-# ## Visualize how the targets depend on one another
-# if (interactive())
-# {
-#   config <- drake_config(workflow)
-#   sankey_drake_graph(config, build_times = "none", targets_only = TRUE)  # requires "networkD3" package
-#   vis_drake_graph(config, build_times = "none", targets_only = TRUE)     # requires "visNetwork" package
-# }
 
 ## Run the pipeline
 nodename <- Sys.info()["nodename"]
-#if(grepl("ufhpc", nodename)) {
-if(FALSE) { 
- print("I know I am on the HiPerGator!")
+if(grepl("ufhpc", nodename)) {
+  print("I know I am on the HiPerGator!")
   library(clustermq)
-  options(clustermq.scheduler = "slurm", clustermq.template = here::here("slurm_clustermq.tmpl"))
+  options(clustermq.scheduler = "slurm", clustermq.template = "slurm_clustermq.tmpl")
   ## Run the pipeline parallelized for HiPerGator
   make(workflow,
        force = TRUE,
        cache = cache,
-       cache_log_file = here::here("analysis", "drake", "log.txt"),
+       cache_log_file = here::here("analysis", "drake", "cache_log.txt"),
        verbose = 2,
        parallelism = "clustermq",
-       jobs = 20,
-       caching = "master") # Important for DBI caches!
+       jobs = 50,
+       caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
 } else {
-  # library(clustermq)
-  # options(clustermq.scheduler = "multicore")
+  library(clustermq)
+  options(clustermq.scheduler = "multicore")
   # Run the pipeline on multiple local cores
-  system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "log.txt")))
+  system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log.txt"), parallelism = "clustermq", jobs = 2))
 }
+
 
 loadd(all_evals, cache = cache)
 write.csv(all_evals, "all_evals.csv")
