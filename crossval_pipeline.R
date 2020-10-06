@@ -45,23 +45,24 @@ db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-c
 cache <- storr::storr_dbi("datatable", "keystable", db)
 cache$del(key = "lock", namespace = "session")
 
-
-## Visualize how the targets depend on one another
-if (interactive())
-{
-  config <- drake_config(workflow)
-  sankey_drake_graph(config, build_times = "none", targets_only = TRUE)  # requires "networkD3" package
-  vis_drake_graph(config, build_times = "none", targets_only = TRUE)     # requires "visNetwork" package
-}
+# 
+# ## Visualize how the targets depend on one another
+# if (interactive())
+# {
+#   config <- drake_config(workflow)
+#   sankey_drake_graph(config, build_times = "none", targets_only = TRUE)  # requires "networkD3" package
+#   vis_drake_graph(config, build_times = "none", targets_only = TRUE)     # requires "visNetwork" package
+# }
 
 ## Run the pipeline
 nodename <- Sys.info()["nodename"]
-if(grepl("ufhpc", nodename)) {
-  print("I know I am on the HiPerGator!")
+#if(grepl("ufhpc", nodename)) {
+if(FALSE) { 
+ print("I know I am on the HiPerGator!")
   library(clustermq)
   options(clustermq.scheduler = "slurm", clustermq.template = here::here("slurm_clustermq.tmpl"))
   ## Run the pipeline parallelized for HiPerGator
-  make(all,
+  make(workflow,
        force = TRUE,
        cache = cache,
        cache_log_file = here::here("analysis", "drake", "log.txt"),
@@ -73,7 +74,7 @@ if(grepl("ufhpc", nodename)) {
   # library(clustermq)
   # options(clustermq.scheduler = "multicore")
   # Run the pipeline on multiple local cores
-  system.time(make(all, cache = cache, cache_log_file = here::here("analysis", "drake", "log.txt")))
+  system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "log.txt")))
 }
 
 loadd(all_evals, cache = cache)
