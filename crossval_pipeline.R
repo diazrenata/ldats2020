@@ -76,6 +76,9 @@ if(grepl("ufhpc", nodename)) {
   system.time(make(all, cache = cache, cache_log_file = here::here("analysis", "drake", "log.txt")))
 }
 
+loadd(all_evals, cache = cache)
+write.csv(all_evals, "all_evals.csv")
+
 DBI::dbDisconnect(db)
 rm(cache)
 
