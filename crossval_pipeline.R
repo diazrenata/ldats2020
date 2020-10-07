@@ -43,6 +43,7 @@ workflow <- dplyr::bind_rows(
 ## Set up the cache and config
 db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache.sqlite"))
 cache <- storr::storr_dbi("datatable", "keystable", db)
+cache$del(key = "lock", namespace = "session")
 
 ## Run the pipeline
 nodename <- Sys.info()["nodename"]
