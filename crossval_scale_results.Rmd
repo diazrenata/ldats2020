@@ -8,6 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(drake)
 library(ggplot2)
 library(dplyr)
+source("crossval_fxns.R")
 ```
 
 ```{r load dat}
@@ -89,7 +90,7 @@ ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_
 
 lda_2_6 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 2, 6)
 
-plot(lda_2_6)
+plot_lda_year(lda_2_6, bbs_rtrg_1_4$covariates$year)
 # 
 # loadd(ldats_fit_bbs_rtrg_1_11_2L_6_1L)
 # 
@@ -101,7 +102,7 @@ plot(lda_2_6)
 ts_2_6_1 <- LDATS::TS_on_LDA(lda_2_6, as.data.frame(bbs_rtrg_1_4$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
 
 for(i in 1:3) {
-plot(ts_2_6_1[[i]])
+plot(ts_2_6_1[[i]], selection = "mode")
 }
 # 
 # full_subset <- subset_data_one(bbs_rtrg_1_4, 1, 2)
@@ -151,7 +152,7 @@ plot(ts_2_6_1[[i]])
 
 lda_14_8 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 14, 8)
 
-plot(lda_14_8)
+plot_lda_year(lda_14_8, bbs_rtrg_1_4$covariates$year)
 # 
 # loadd(ldats_fit_bbs_rtrg_1_11_2L_6_1L)
 # 

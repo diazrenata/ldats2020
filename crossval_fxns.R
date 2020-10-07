@@ -441,3 +441,24 @@ eval_ldats_crossval <- function(ldats_fits, nests = 100) {
   return(ll_df)
   
 }
+
+plot_lda_year <- function(fitted_lda, covariate_data) {
+  
+  lda_preds <- data.frame(fitted_lda[[1]]@gamma)
+  
+  colnames(lda_preds) <- c(1:ncol(lda_preds))
+  
+  stopifnot(nrow(lda_preds) == length(covariate_data))
+  
+  lda_preds$year <- covariate_data
+  
+  lda_preds <- tidyr::pivot_longer(lda_preds, -year, names_to = "topic",values_to = "proportion")
+  
+  
+  pred_plot <- ggplot(lda_preds, aes(year, proportion, color = topic)) +
+    geom_line(size = 2) +
+    theme_bw() +
+    scale_color_viridis_d(end = .7)
+  
+  return(pred_plot)
+  }

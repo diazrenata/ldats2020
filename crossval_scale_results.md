@@ -132,7 +132,7 @@ lda_2_6 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 2, 6)
     ## Running LDA with 2 topics (seed 6)
 
 ``` r
-plot(lda_2_6)
+plot_lda_year(lda_2_6, bbs_rtrg_1_4$covariates$year)
 ```
 
 ![](crossval_scale_results_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
@@ -165,7 +165,7 @@ ts_2_6_1 <- LDATS::TS_on_LDA(lda_2_6, as.data.frame(bbs_rtrg_1_4$covariates), ti
 
 ``` r
 for(i in 1:3) {
-plot(ts_2_6_1[[i]])
+plot(ts_2_6_1[[i]], selection = "mode")
 }
 ```
 
@@ -223,7 +223,7 @@ lda_14_8 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 14, 8)
     ## Running LDA with 14 topics (seed 8)
 
 ``` r
-plot(lda_14_8)
+plot_lda_year(lda_14_8, bbs_rtrg_1_4$covariates$year)
 ```
 
 ![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
