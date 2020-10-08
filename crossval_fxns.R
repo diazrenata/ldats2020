@@ -442,6 +442,24 @@ eval_ldats_crossval <- function(ldats_fits, nests = 100) {
   
 }
 
+plot_lda_comp <- function(fitted_lda) {
+ 
+  lda_betas <- data.frame(t(fitted_lda[[1]]@beta))
+  
+  colnames(lda_betas) <- c(1:ncol(lda_betas))
+  
+  lda_betas$species <- (unlist(fitted_lda[[1]]@terms))
+  
+  lda_betas <- tidyr::pivot_longer(lda_betas, -species, names_to = "topic", values_to = "beta")
+  
+  lda_betas$beta <- exp(lda_betas$beta)
+  
+  betas_plot <- ggplot(lda_betas, aes(species, beta, fill = topic)) +
+    geom_col(position = "stack") +
+    theme_void() +
+    scale_fill_viridis_d(end = .7)
+}
+
 plot_lda_year <- function(fitted_lda, covariate_data) {
   
   lda_preds <- data.frame(fitted_lda[[1]]@gamma)
