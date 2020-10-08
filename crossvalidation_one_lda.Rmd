@@ -17,8 +17,10 @@ source("crossval_fxns.R")
 datasets <- build_bbs_datasets_plan()
 
 m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
+n <- which(grepl(datasets$target, pattern = "rtrg_1_4")) # wants many topics
 
 dat <- eval(unlist(datasets$command[m][[1]]))
+dat2 <-  eval(unlist(datasets$command[n][[1]]))
 
 ```
 

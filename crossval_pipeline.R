@@ -11,7 +11,7 @@ source("crossval_fxns.R")
 datasets <- build_bbs_datasets_plan()
 
 
-m <- which(grepl(datasets$target, pattern = "rtrg_1_4")) # wants many topics
+m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
 
 datasets <- datasets[m,]
 
@@ -29,7 +29,7 @@ methods <- drake::drake_plan(
                        transform = map(ldats_fit)
   ),
   all_evals = target(dplyr::bind_rows(ldats_eval),
-                     transform = combine(ldats_eval))
+                     transform = combine(ldats_eval, .by = dataset))
 )  
   
 

@@ -132,6 +132,8 @@ lda_2_6 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 2, 6)
     ## Running LDA with 2 topics (seed 6)
 
 ``` r
+plot_lda_comp(lda_2_6)
+
 plot_lda_year(lda_2_6, bbs_rtrg_1_4$covariates$year)
 ```
 
@@ -145,7 +147,9 @@ plot_lda_year(lda_2_6, bbs_rtrg_1_4$covariates$year)
 #   plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_lda)
 # plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_ts, selection = "mode")
 # }
+```
 
+``` r
 ts_2_6_1 <- LDATS::TS_on_LDA(lda_2_6, as.data.frame(bbs_rtrg_1_4$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
 ```
 
@@ -169,7 +173,7 @@ plot(ts_2_6_1[[i]], selection = "mode")
 }
 ```
 
-![](crossval_scale_results_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-2-3.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-2-4.png)<!-- -->
+![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->
 
 ``` r
 # 
@@ -223,10 +227,12 @@ lda_14_8 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 14, 8)
     ## Running LDA with 14 topics (seed 8)
 
 ``` r
+plot_lda_comp(lda_14_8)
+
 plot_lda_year(lda_14_8, bbs_rtrg_1_4$covariates$year)
 ```
 
-![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](crossval_scale_results_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ``` r
 # 
@@ -260,4 +266,4 @@ for(i in 1:length(ts_14_8)) {
 }
 ```
 
-![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-4.png)<!-- -->
+![](crossval_scale_results_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-4-4.png)<!-- -->

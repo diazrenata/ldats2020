@@ -225,14 +225,27 @@ get_one_test_loglik <- function(
 get_abund_probabilities <- function(
   subsetted_dataset_item,
   fitted_lda,
-  fitted_ts
+  fitted_ts,
+  max_sims = NULL
 ) {
   
   betas <- exp(fitted_lda@beta)
   
   nsims = nrow(fitted_ts$etas)
   
-  thetas <- lapply(1:nsims, FUN = get_one_theta, subsetted_dataset_item = subsetted_dataset_item, fitted_ts = fitted_ts)
+  these_sims <- 1:nsims
+  
+  if(!is.null(max_sims)) {
+    
+    if(nsims > max_sims) {
+      
+      these_sims <- sample.int(nsims, max_sims, FALSE)
+      
+    }
+  } 
+  
+  
+  thetas <- lapply(these_sims, FUN = get_one_theta, subsetted_dataset_item = subsetted_dataset_item, fitted_ts = fitted_ts)
   
   abund_probabilities <- lapply(thetas, FUN = function(theta, betas) return(theta %*% betas), betas = betas)
 }
@@ -354,7 +367,7 @@ make_ll_df <- function(ll) {
 }
 
 gamma_plot <- function (x, selection = "median", cols = set_gamma_colors(x), 
-          xname = NULL, together = FALSE, LDATS = FALSE) 
+                        xname = NULL, together = FALSE, LDATS = FALSE) 
 {
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar))
@@ -443,7 +456,7 @@ eval_ldats_crossval <- function(ldats_fits, nests = 100) {
 }
 
 plot_lda_comp <- function(fitted_lda) {
- 
+  
   lda_betas <- data.frame(t(fitted_lda[[1]]@beta))
   
   colnames(lda_betas) <- c(1:ncol(lda_betas))
@@ -479,4 +492,4 @@ plot_lda_year <- function(fitted_lda, covariate_data) {
     scale_color_viridis_d(end = .7)
   
   return(pred_plot)
-  }
+}

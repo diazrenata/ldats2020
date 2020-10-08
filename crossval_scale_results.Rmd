@@ -13,11 +13,11 @@ source("crossval_fxns.R")
 
 ```{r load dat}
 
-loadd(bbs_rtrg_1_4)
+loadd(bbs_rtrg_1_11)
 
-totaln <- bbs_rtrg_1_4$abundance %>%
+totaln <- bbs_rtrg_1_11$abundance %>%
   mutate(totaln = rowSums(.)) %>%
-  mutate(year = bbs_rtrg_1_4$covariates$year)
+  mutate(year = bbs_rtrg_1_11$covariates$year)
 
 abund_long <- totaln %>%
   select(-totaln) %>%
@@ -88,9 +88,11 @@ ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_
 
 #plot(ldas_only$`k: 14, seed: 8`)
 
-lda_2_6 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 2, 6)
+lda_2_6 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, 2, 6)
 
-plot_lda_year(lda_2_6, bbs_rtrg_1_4$covariates$year)
+plot_lda_comp(lda_2_6)
+
+plot_lda_year(lda_2_6, bbs_rtrg_1_11$covariates$year)
 # 
 # loadd(ldats_fit_bbs_rtrg_1_11_2L_6_1L)
 # 
@@ -98,26 +100,27 @@ plot_lda_year(lda_2_6, bbs_rtrg_1_4$covariates$year)
 #   plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_lda)
 # plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_ts, selection = "mode")
 # }
-
-ts_2_6_1 <- LDATS::TS_on_LDA(lda_2_6, as.data.frame(bbs_rtrg_1_4$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
+```
+```{r}
+ts_2_6_1 <- LDATS::TS_on_LDA(lda_2_6, as.data.frame(bbs_rtrg_1_11$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
 
 for(i in 1:3) {
 plot(ts_2_6_1[[i]], selection = "mode")
 }
 # 
-# full_subset <- subset_data_one(bbs_rtrg_1_4, 1, 2)
+# full_subset <- subset_data_one(bbs_rtrg_1_11, 1, 2)
 # full_subset$train <- full_subset$full
 # 
 # 
 # ts_pred_n <- get_abund_probabilities(full_subset, lda_2_6[[1]], ts_2_6_1[[1]])
 # 
-# ts_pred_n <- lapply(ts_pred_n, FUN = function(a_df) return (mutate(as.data.frame(a_df), year = bbs_rtrg_1_4$covariates$year)))
+# ts_pred_n <- lapply(ts_pred_n, FUN = function(a_df) return (mutate(as.data.frame(a_df), year = bbs_rtrg_1_11$covariates$year)))
 # 
 # names(ts_pred_n) <- 1:length(ts_pred_n)
 # 
 # ts_pred_n <- bind_rows(ts_pred_n, .id = "sim")
 # 
-# colnames(ts_pred_n)[2:62] <- colnames(bbs_rtrg_1_4$abundance)
+# colnames(ts_pred_n)[2:62] <- colnames(bbs_rtrg_1_11$abundance)
 # 
 # ts_pred_n <- ts_pred_n %>%
 #   mutate(sim_year = paste0(year, "_", sim)) %>%
@@ -127,7 +130,7 @@ plot(ts_2_6_1[[i]], selection = "mode")
 # 
 # ts_pred_n <- left_join(ts_pred_n, abund_long, by = c("species", "year"))
 # 
-# top_ten_spp <- names(sort(apply(bbs_rtrg_1_4$abundance, 2, FUN = mean), decreasing = T)[1:10])
+# top_ten_spp <- names(sort(apply(bbs_rtrg_1_11$abundance, 2, FUN = mean), decreasing = T)[1:10])
 # 
 # ggplot(filter(ts_pred_n, species=="sp4740"), aes(year, predicted_prop)) +
 #   geom_point() +
@@ -145,14 +148,15 @@ plot(ts_2_6_1[[i]], selection = "mode")
 # }
 # 
 # ts_pred_abund <- ts_pred_abund %>%
-#   mutate(year = bbs_rtrg_1_4$covariates$year)\
+#   mutate(year = bbs_rtrg_1_11$covariates$year)\
 ```
 
 ```{r}
 
-lda_14_8 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_4$abundance, 14, 8)
+lda_14_8 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, 14, 8)
+plot_lda_comp(lda_14_8)
 
-plot_lda_year(lda_14_8, bbs_rtrg_1_4$covariates$year)
+plot_lda_year(lda_14_8, bbs_rtrg_1_11$covariates$year)
 # 
 # loadd(ldats_fit_bbs_rtrg_1_11_2L_6_1L)
 # 
@@ -161,7 +165,7 @@ plot_lda_year(lda_14_8, bbs_rtrg_1_4$covariates$year)
 # plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_ts, selection = "mode")
 # }
 
-ts_14_8 <- LDATS::TS_on_LDA(lda_14_8, as.data.frame(bbs_rtrg_1_4$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
+ts_14_8 <- LDATS::TS_on_LDA(lda_14_8, as.data.frame(bbs_rtrg_1_11$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
 
 for(i in 1:length(ts_14_8)) {
   plot(ts_14_8[[i]])
