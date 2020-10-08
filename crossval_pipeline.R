@@ -16,22 +16,38 @@ m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
 datasets <- datasets[m,]
 
 
+if(FALSE){
+  methods <- drake::drake_plan(
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 100, fit_to_train = FALSE),
+                       transform = cross(
+                         dataset = !!rlang::syms(datasets$target),
+                         ks = !!c(2:5, 10:15),
+                         seeds = !!seq(2, 20, by = 2),
+                         cpts = !!c(0:2)
+                       )),
+    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 100),
+                        transform = map(ldats_fit)
+    ),
+    all_evals = target(dplyr::bind_rows(ldats_eval),
+                       transform = combine(ldats_eval, .by = dataset))
+  )  
+} else {
+  methods <- drake::drake_plan(
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 100, fit_to_train = FALSE),
+                       transform = cross(
+                         dataset = !!rlang::syms(datasets$target),
+                         ks = !!c(2:15),
+                         seeds = !!seq(2, 200, by = 2),
+                         cpts = !!c(0:2)
+                       )),
+    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 100),
+                        transform = map(ldats_fit)
+    ),
+    all_evals = target(dplyr::bind_rows(ldats_eval),
+                       transform = combine(ldats_eval, .by = dataset))
+  )
+}
 
-methods <- drake::drake_plan(
-  ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 10000, fit_to_train = FALSE),
-                     transform = cross(
-                       dataset = !!rlang::syms(datasets$target),
-                       ks = !!c(2:15),
-                       seeds = !!seq(2, 200, by = 2),
-                       cpts = !!c(0:2)
-                     )),
-  ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 100),
-                       transform = map(ldats_fit)
-  ),
-  all_evals = target(dplyr::bind_rows(ldats_eval),
-                     transform = combine(ldats_eval, .by = dataset))
-)  
-  
 
 ## The full workflow
 workflow <- dplyr::bind_rows(
@@ -61,10 +77,9 @@ if(grepl("ufhpc", nodename)) {
        jobs = 50,
        caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
 } else {
-  library(clustermq)
-  options(clustermq.scheduler = "multicore")
+ 
   # Run the pipeline on multiple local cores
-  system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log.txt"), parallelism = "clustermq", jobs = 2))
+  system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log.txt")))
 }
 
 

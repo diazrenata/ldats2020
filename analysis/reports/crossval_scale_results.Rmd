@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(drake)
 library(ggplot2)
 library(dplyr)
-source("crossval_fxns.R")
+source(here::here("crossval_fxns.R"))
 ```
 
 ```{r load dat}
