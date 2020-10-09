@@ -15,12 +15,14 @@ m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
 
 datasets <- datasets[m,]
 
+if(FALSE) {
   methods <- drake::drake_plan(
     ldats_fit = target(fit_full_lda_ts(dataset, k = ks, seed = seeds, cpts = cpts, nit = 100),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
-                         ks = !!c(2:5, 10:15),
-                         seeds = !!seq(2, 20, by = 2),
+                         # ks = !!c(2:5, 10:15),
+                         ks = !!(c(2:5)),
+                         seeds = !!seq(2, 4, by = 2),
                          cpts = !!c(0:2)
                        )),
     ldats_eval = target(extract_model_info(ldats_fit),
@@ -28,7 +30,24 @@ datasets <- datasets[m,]
     ),
     all_evals = target(dplyr::bind_rows(ldats_eval),
                        transform = combine(ldats_eval, .by = dataset))
-  )  
+  )
+} else {
+  methods <- drake::drake_plan(
+    
+    ldats_fit = target(fit_full_lda_ts(dataset, k = ks, seed = seeds, cpts = cpts, nit = 100),
+                       transform = cross(
+                         dataset = !!rlang::syms(datasets$target),
+                         ks = !!c(2:15),
+                         seeds = !!seq(2, 200, by = 2),
+                         cpts = !!c(0:2)
+                       )),
+    ldats_eval = target(extract_model_info(ldats_fit),
+                        transform = map(ldats_fit)
+    ),
+    all_evals = target(dplyr::bind_rows(ldats_eval),
+                       transform = combine(ldats_eval, .by = dataset))
+  )
+}
 
 
 
@@ -60,7 +79,7 @@ if(grepl("ufhpc", nodename)) {
        jobs = 50,
        caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
 } else {
- 
+  
   # Run the pipeline on multiple local cores
   system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log_aic.txt")))
 }

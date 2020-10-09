@@ -16,7 +16,7 @@ fit_full_lda_ts <- function(dataset, k, seed, cpts, nit) {
   model_info <- data.frame(
     k = k,
     seed = seed,
-    ncpts = ncpts,
+    ncpts = cpts,
     nit = nit,
     aicc = ts_aicc
   )
