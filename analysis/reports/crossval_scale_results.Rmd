@@ -121,6 +121,11 @@ for(i in 1:3) {
 plot(ts_2_106[[i]], selection = "mode")
 }
 
+select_w_aicc <- LDATS::select_TS(ts_2_106, control = list(LDATS::TS_control(measurer = "AICc")))
+
+library(LDATS)
+
+plot(select_w_aicc)
 
 ```
 

@@ -1,0 +1,34 @@
+---
+title: "AIC"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+load("ldats_fits_portal.RData")
+
+```
+
+```{r}
+
+extract_aic_one <- function(a_fit) {
+  LDATS::AICc(a_fit$fitted_ts)
+}
+
+extract_aic_all <- function(list_of_fits) {
+  
+  aic <- data.frame(
+    year = vapply(list_of_fits, FUN = function(a_fit) return(a_fit$test$covariates$year[1]), FUN.VALUE = 1980),
+    aicc = vapply(list_of_fits, extract_aic_one, FUN.VALUE = 100)
+  )
+  
+  aic
+}
+
+t <- extract_aic_all(ldats_fit_100)
+
+
+```

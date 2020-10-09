@@ -1,0 +1,71 @@
+---
+title: "Nb iterations"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Does increasing the number of iterations reduce the variation in the model loglikelihood?
+
+Using **portal annual data**.
+
+```{r load portal annual}
+
+library(MATSS)
+library(dplyr)
+library(ggplot2)
+library(LDATS)
+source("crossval_fxns.R")
+
+load("portal_annual.RData")
+
+```
+
+
+```{r}
+
+ldats_fit_100 <- fit_ldats_crossval(abund_dat, k= 2, seed = 10, cpts = 1, nit = 100, fit_to_train = F)
+
+eval_100_100x <- eval_ldats_crossval(ldats_fit_100, nests = 100)
+eval_100_1000x <- eval_ldats_crossval(ldats_fit_100, nests = 1000)
+eval_100_10000x <- eval_ldats_crossval(ldats_fit_100, nests = 10000)
+
+
+ldats_fit_1000 <- fit_ldats_crossval(abund_dat, k= 2, seed = 10, cpts = 1, nit = 1000, fit_to_train = F)
+
+
+eval_1000_100x <- eval_ldats_crossval(ldats_fit_1000, nests = 100)
+eval_1000_1000x <- eval_ldats_crossval(ldats_fit_1000, nests = 1000)
+eval_1000_10000x <- eval_ldats_crossval(ldats_fit_1000, nests = 10000)
+
+
+
+ldats_fit_10000 <- fit_ldats_crossval(abund_dat, k= 2, seed = 10, cpts = 1, nit = 10000, fit_to_train = F)
+
+
+
+eval_10000_100x <- eval_ldats_crossval(ldats_fit_10000, nests = 100)
+eval_10000_1000x <- eval_ldats_crossval(ldats_fit_10000, nests = 1000)
+eval_10000_10000x <- eval_ldats_crossval(ldats_fit_10000, nests = 10000)
+
+# save(ldats_fit_100, ldats_fit_1000, ldats_fit_10000, file = "ldats_fits_portal.RData")
+
+all_evals <- list(eval_100_100x,eval_100_1000x,eval_100_10000x,
+                  eval_1000_100x,eval_1000_1000x,eval_1000_10000x,
+                  eval_10000_100x,eval_10000_1000x,eval_10000_10000x)
+
+all_evals <- lapply(all_evals, FUN= function(eval_df) return(mutate(eval_df, nevals = nrow(eval_df))))
+
+all_evals <- bind_rows(all_evals)
+```
+
+```{r}
+
+ggplot(all_evals, aes(x = as.factor(nit), y = loglik, color = as.factor(nevals))) +
+  geom_boxplot() +
+  theme_bw()
+
+
+```
