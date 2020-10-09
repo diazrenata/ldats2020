@@ -1,0 +1,90 @@
+---
+title: "AIC"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(MATSS)
+library(dplyr)
+library(ggplot2)
+# 
+# 
+# ## Set up the cache and config
+# db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache-aic.sqlite"))
+# cache <- storr::storr_dbi("datatable", "keystable", db)
+# cache$del(key = "lock", namespace = "session")
+# 
+# loadd(bbs_rtrg_1_11)
+```
+
+```{r}
+aic_evals <- read.csv(here::here("all_evals_bbs_rtrg_1_11_aicc.csv")) %>%
+  select(-X) %>%
+  rename(cpts = ncpts)
+ll_evals <- read.csv(here::here("all_evals_bbs_rtrg_1_11.csv"))
+
+ll_evals <- left_join(ll_evals, aic_evals) %>%
+  filter(!is.na(aicc))
+
+all_evals <- ll_evals %>%
+  mutate(k = as.factor(k),
+         seed = as.factor(seed),
+         cpts = as.factor(cpts),
+         cpts_seed_k = paste0(cpts, "_", seed, "_", k),
+         cpts_k = paste0(k, "_", cpts))
+
+# 
+# ggplot(all_evals, aes(x = k, y = loglik, group = cpts_seed_k, color = cpts)) +
+#   geom_boxplot() +
+#   theme_bw() +
+#   ggtitle("All models loglikelihood")
+
+all_evals_summary <- all_evals %>%
+  group_by(k, seed, cpts, cpts_seed_k, cpts_k, aicc) %>%
+  summarize(mean_ll = mean(loglik),
+            upper_97_ll = quantile(loglik, probs = .975),
+            lower_2_ll = quantile(loglik, probs = .025),
+            n_infinite = sum(is.infinite(loglik))) %>%
+  ungroup() %>%
+  arrange(desc(mean_ll))
+
+ggplot(all_evals_summary, aes(x = cpts, y = mean_ll, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models loglikelihood")
+
+ggplot(all_evals_summary, aes(x = cpts, y = aicc, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models AICc")
+
+
+highest_low_95 = max(all_evals_summary$lower_2_ll)
+
+all_evals_summary <- all_evals_summary %>%
+  mutate(in_95 = upper_97_ll >= highest_low_95)
+
+head(all_evals_summary)
+
+ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_seed_k), aes(x = k, y = loglik, group = cpts_seed_k, color = cpts)) +
+  geom_boxplot() +
+#  facet_wrap(vars(cpts)) +
+  theme_bw() +
+  ggtitle("Models w/LL overlapping top 95%")
+
+
+
+
+ggplot(distinct(select(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_seed_k), k, aicc, cpts_seed_k, cpts)), aes(x = cpts, y = aicc, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k)) +
+  theme_bw() +
+  ggtitle("Models w/LL overlapping top 95%")
+```
