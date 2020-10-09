@@ -129,6 +129,19 @@ ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_
 
 ![](crossval_scale_results_files/figure-gfm/unnamed-chunk-1-3.png)<!-- -->
 
+First note the considerable spread. Looks like 2 topics wins handily,
+but that 0, 1, or 2 changepoints perform similarly. Increasing the
+number of iterations and/or aggregate estimates might decrease some of
+this spread. Increasing `nit` gives the model the chance to find the
+best place to put the changepoints. These models are run with just 100
+iterations, for speed/debugging reasons, but 1000 or 10000 may be
+preferable. (Just a thought, for speed reasons - seems like another
+99000 iterations will not make the k = 14 models do better; so once you
+narrow down to a general state space you could scale up the iterations
+dramatically to choose among changepoint models). Increasing `nevals` -
+especially once you have more iterations - might refine the sampling
+around the LL for any given model.
+
 The highest mean LL is for the model: 2\_106\_2
 
 2 changepoints, seed 106, 2 topics.
@@ -152,6 +165,11 @@ plot_lda_year(lda_2_106, bbs_rtrg_1_11$covariates$year)
 ```
 
 ![](crossval_scale_results_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
+
+Most of the difference between topics seems to come in the details -
+both have a big contribution, close to 50-50, from some really common
+species. Then there are several rare species that are all topic 1 or
+topic 2. There might be a way to quantify this.
 
 ``` r
 ts_2_106 <- LDATS::TS_on_LDA(lda_2_106, as.data.frame(bbs_rtrg_1_11$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
@@ -178,6 +196,9 @@ plot(ts_2_106[[i]], selection = "mode")
 ```
 
 ![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->
+
+Note that the uncertainty around the cpt locations corresponds mostly to
+the gappyness of the time series.
 
 ``` r
 # 

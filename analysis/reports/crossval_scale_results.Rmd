@@ -94,9 +94,11 @@ ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_
   ggtitle("Models w/LL overlapping top 95%")
 ```
 
+First note the considerable spread. Looks like 2 topics wins handily, but that 0, 1, or 2 changepoints perform similarly. Increasing the number of iterations and/or aggregate estimates might decrease some of this spread. Increasing `nit` gives the model the chance to find the best place to put the changepoints. These models are run with just 100 iterations, for speed/debugging reasons, but 1000 or 10000 may be preferable. (Just a thought, for speed reasons - seems like another 99000 iterations will not make the k = 14 models do better; so once you narrow down to a general state space you could scale up the iterations dramatically to choose among changepoint models). Increasing `nevals` - especially once you have more iterations - might refine the sampling around the LL for any given model. 
+
 The highest mean LL is for the model: `r filter(all_evals_summary, mean_ll == max(all_evals_summary$mean_ll))$cpts_seed_k`
 
-2 changepoints, seed 106, 2 topics. 
+2 changepoints, seed 106, 2 topics.
 
 ```{r}
 
@@ -109,9 +111,9 @@ plot_lda_comp(lda_2_106)
 plot_lda_year(lda_2_106, bbs_rtrg_1_11$covariates$year)
 
 
-
-
 ```
+
+Most of the difference between topics seems to come in the details - both have a big contribution, close to 50-50, from some really common species. Then there are several rare species that are all topic 1 or topic 2. There might be a way to quantify this.
 ```{r}
 ts_2_106 <- LDATS::TS_on_LDA(lda_2_106, as.data.frame(bbs_rtrg_1_11$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000))
 
@@ -121,6 +123,9 @@ plot(ts_2_106[[i]], selection = "mode")
 
 
 ```
+
+Note that the uncertainty around the cpt locations corresponds mostly to the gappyness of the time series. 
+
 
 ```{r}
 # 
