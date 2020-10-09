@@ -23,7 +23,7 @@ library(ggplot2)
 ```
 
 ```{r}
-aic_evals <- read.csv("all_evals_bbs_rtrg_1_11_aic.csv") %>%
+aic_evals <- read.csv("all_evals_bbs_rtrg_1_11_aicc.csv") %>%
   select(-X) %>%
   rename(cpts = ncpts)
 ll_evals <- read.csv("all_evals_bbs_rtrg_1_11.csv")
@@ -38,17 +38,11 @@ all_evals <- ll_evals %>%
          cpts_seed_k = paste0(cpts, "_", seed, "_", k),
          cpts_k = paste0(k, "_", cpts))
 
-
-ggplot(all_evals, aes(x = k, y = loglik, group = cpts_seed_k, color = cpts)) +
-  geom_boxplot() +
-  theme_bw() +
-  ggtitle("All models loglikelihood")
-
-
-ggplot(all_evals, aes(x = k, y = aicc, group = cpts_seed_k, color = cpts)) +
-  geom_boxplot() +
-  theme_bw() +
-  ggtitle("All models AICc")
+# 
+# ggplot(all_evals, aes(x = k, y = loglik, group = cpts_seed_k, color = cpts)) +
+#   geom_boxplot() +
+#   theme_bw() +
+#   ggtitle("All models loglikelihood")
 
 all_evals_summary <- all_evals %>%
   group_by(k, seed, cpts, cpts_seed_k, cpts_k, aicc) %>%
@@ -58,6 +52,19 @@ all_evals_summary <- all_evals %>%
             n_infinite = sum(is.infinite(loglik))) %>%
   ungroup() %>%
   arrange(desc(mean_ll))
+
+ggplot(all_evals_summary, aes(x = cpts, y = mean_ll, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models loglikelihood")
+
+ggplot(all_evals_summary, aes(x = cpts, y = aicc, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models AICc")
+
 
 highest_low_95 = max(all_evals_summary$lower_2_ll)
 
@@ -72,4 +79,12 @@ ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_
   theme_bw() +
   ggtitle("Models w/LL overlapping top 95%")
 
+
+
+
+ggplot(distinct(select(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_seed_k), k, aicc, cpts_seed_k, cpts)), aes(x = cpts, y = aicc, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k)) +
+  theme_bw() +
+  ggtitle("Models w/LL overlapping top 95%")
 ```
