@@ -83,8 +83,8 @@ if(grepl("ufhpc", nodename)) {
 }
 
 
-loadd(all_evals, cache = cache)
-write.csv(all_evals, "all_evals.csv")
+loadd(all_evals_bbs_rtrg_1_11, cache = cache)
+write.csv(all_evals_bbs_rtrg_1_11, "all_evals_bbs_rtrg_1_11.csv")
 
 DBI::dbDisconnect(db)
 rm(cache)

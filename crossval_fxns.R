@@ -471,6 +471,8 @@ plot_lda_comp <- function(fitted_lda) {
     geom_col(position = "stack") +
     theme_void() +
     scale_fill_viridis_d(end = .7)
+  
+  return(betas_plot)
 }
 
 plot_lda_year <- function(fitted_lda, covariate_data) {
