@@ -352,6 +352,17 @@ bundle_lls <- function(list_of_lls) {
   bind_rows(ll_dfs)
 }
 
+singular_ll <- function(many_fits) {
+  
+  nsims <- many_fits[[1]]$model_info$nit
+  
+  timestep_means <- lapply(many_fits, FUN = function(fit) return(mean(fit$test_logliks)))
+  
+  one_ll <- sum(unlist(lapply(many_fits, FUN = function(fits) return(mean(fits$test_logliks)))))
+  
+  cbind(data.frame(mean_loglik = one_ll), as.data.frame(many_fits[[1]]$model_info))
+}
+
 #' Title
 #'
 #' @param ll 
@@ -450,6 +461,10 @@ eval_ldats_crossval <- function(ldats_fits, nests = 100) {
   estimates <- estimate_ts_loglik(ldats_fits, nests = nests)
   
   ll_df <- make_ll_df(estimates)
+  
+  single_ll <- singular_ll(ldats_fits)
+  
+  ll_df <- dplyr::left_join(ll_df, single_ll)
   
   return(ll_df)
   

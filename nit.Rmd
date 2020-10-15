@@ -26,14 +26,16 @@ load("portal_annual.RData")
 
 ```{r}
 
-ldats_fit_100 <- fit_ldats_crossval(abund_dat, k= 2, seed = 10, cpts = 1, nit = 100, fit_to_train = F)
+load("ldats_fits_portal.RData")
+
+#ldats_fit_100 <- fit_ldats_crossval(abund_dat, k= 2, seed = 10, cpts = 1, nit = 100, fit_to_train = F)
 
 eval_100_100x <- eval_ldats_crossval(ldats_fit_100, nests = 100)
 eval_100_1000x <- eval_ldats_crossval(ldats_fit_100, nests = 1000)
 eval_100_10000x <- eval_ldats_crossval(ldats_fit_100, nests = 10000)
 
 
-ldats_fit_1000 <- fit_ldats_crossval(abund_dat, k= 2, seed = 10, cpts = 1, nit = 1000, fit_to_train = F)
+#ldats_fit_1000 <- fit_ldats_crossval(abund_dat, k= 2, seed = 10, cpts = 1, nit = 1000, fit_to_train = F)
 
 
 eval_1000_100x <- eval_ldats_crossval(ldats_fit_1000, nests = 100)
@@ -42,7 +44,7 @@ eval_1000_10000x <- eval_ldats_crossval(ldats_fit_1000, nests = 10000)
 
 
 
-ldats_fit_10000 <- fit_ldats_crossval(abund_dat, k= 2, seed = 10, cpts = 1, nit = 10000, fit_to_train = F)
+#ldats_fit_10000 <- fit_ldats_crossval(abund_dat, k= 2, seed = 10, cpts = 1, nit = 10000, fit_to_train = F)
 
 
 
@@ -65,6 +67,11 @@ all_evals <- bind_rows(all_evals)
 
 ggplot(all_evals, aes(x = as.factor(nit), y = loglik, color = as.factor(nevals))) +
   geom_boxplot() +
+  theme_bw()
+
+ggplot(all_evals, aes(x = loglik)) +
+  geom_density() +
+  facet_wrap(vars(as.factor(nit), as.factor(nevals))) +
   theme_bw()
 
 

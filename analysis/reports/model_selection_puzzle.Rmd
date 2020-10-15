@@ -1,0 +1,137 @@
+---
+title: "Model selection problem"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+
+aic_evals <- read.csv(here::here("all_evals_bbs_rtrg_1_11_aicc.csv")) %>%
+  select(-X) %>%
+  rename(cpts = ncpts)
+ll_evals <- read.csv(here::here("all_evals_bbs_rtrg_1_11.csv"))
+
+ll_evals <- left_join(ll_evals, aic_evals) %>%
+  filter(!is.na(aicc))
+
+all_evals <- ll_evals %>%
+  mutate(k = as.factor(k),
+         seed = as.factor(seed),
+         cpts = as.factor(cpts),
+         cpts_seed_k = paste0(cpts, "_", seed, "_", k),
+         cpts_k = paste0(k, "_", cpts))
+
+# 
+# ggplot(all_evals, aes(x = k, y = loglik, group = cpts_seed_k, color = cpts)) +
+#   geom_boxplot() +
+#   theme_bw() +
+#   ggtitle("All models loglikelihood")
+
+all_evals_summary <- all_evals %>%
+  group_by(k, seed, cpts, cpts_seed_k, cpts_k, aicc) %>%
+  summarize(mean_ll = mean(loglik),
+            upper_97_ll = quantile(loglik, probs = .975),
+            lower_2_ll = quantile(loglik, probs = .025),
+            n_infinite = sum(is.infinite(loglik))) %>%
+  ungroup() %>%
+  arrange(desc(mean_ll))
+
+
+```
+
+So I don't know what to do with this.
+
+* If we select an LDA + TS combo based **only** on AICc, I worry that we fall into overfitting:
+
+```{r aicc results}
+ggplot(all_evals_summary, aes(x = cpts, y = aicc, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models AICc")
+
+```
+
+Specifically, for k = up to 7 things maybe make sense:
+
+```{r}
+
+ggplot(filter(all_evals_summary, as.numeric(k) <= 4), aes(x = cpts, y = aicc, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models AICc")
+
+ggplot(filter(all_evals_summary, as.numeric(k) <= 6), aes(x = cpts, y = aicc, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models AICc")
+
+```
+
+For relatively few topics, I almost feel OK using AICc. 
+
+As we expand to large numbers of topics, though:
+
+```{r}
+ggplot(all_evals_summary, aes(x = cpts, y = aicc, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models AICc")
+```
+
+We start to get 8 or 12 topic models that have *extremely low* AICc. We also start to see 10-15 topic models that are doing better than the 2-4 topic models.
+
+This makes me suspicious.
+
+```{r}
+
+dat <- get_bbs_route_region_data(path = "C:\\\\Users\\\\diaz.renata\\\\Documents\\\\Datasets/breed-bird-survey-prepped/route1region11.RDS")
+
+lda_8 <- LDATS::LDA_set_user_seeds(dat$abundance, topics = 8, seed = 184)
+
+plot(lda_8)
+
+ts_8 <- LDATS::TS_on_LDA(lda_8[[1]], as.data.frame(dat$covariates), formulas = ~1, nchangepoints = c(0:2), timename = "year", control = TS_control(nit = 100))
+
+for(i in 1:3){ 
+plot(ts_8[[i]])
+}
+```
+
+
+We had invoked cross validation to try and do model selection based on how well the model is able to predict withheld data. The goal there was to avoid overfitting, and particularly a tendency to overfit by assigning a different LDA topic to each timestep or each species. 
+
+When using cross validation, high-k models do indeed do poorly:
+
+```{r}
+ggplot(all_evals_summary, aes(x = cpts, y = mean_ll, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models loglikelihood")
+```
+
+But it's difficult to distinguish between **changepoint** models:
+
+```{r}
+highest_low_95 = max(all_evals_summary$lower_2_ll)
+
+all_evals_summary <- all_evals_summary %>%
+  mutate(in_95 = upper_97_ll >= highest_low_95)
+
+head(all_evals_summary)
+ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_seed_k), aes(x = k, y = loglik, group = cpts_seed_k, color = cpts)) +
+  geom_boxplot() +
+#  facet_wrap(vars(cpts)) +
+  theme_bw() +
+  ggtitle("Models w/LL overlapping top 95%")
+```
+
+I have not seen this improve by increasing nit.
+
+I think it has to do with the fact we're aggregating over models fit to different subsets, and some subsets are inherently harder to fit. 
