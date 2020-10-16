@@ -1,3 +1,4 @@
+library(dplyr)
 #' Subset data - all subsets
 #'
 #' Wrapper for `subset_data_one` to create a list of all data subsets using 1 timestep of test data per subset and a buffer on either side
@@ -245,268 +246,367 @@ get_abund_probabilities <- function(
   } 
   
   
-  thetas <- lapply(these_sims, FUN = get_one_theta, subsetted_dataset_item = subsetted_dataset_item, fitted_ts = fitted_ts)
+  thetas <- lapply(these_sims, FUN = get_one_mn_theta, subsetted_dataset_item = subsetted_dataset_item, fitted_ts = fitted_ts)
   
   abund_probabilities <- lapply(thetas, FUN = function(theta, betas) return(theta %*% betas), betas = betas)
+  
+  na_probs <- vector()
+  for(i in 1:length(abund_probabilities)) {
+    if(anyNA(abund_probabilities[[i]])) {
+      na_probs <- c(na_probs, i)
+  }
+}
+  
+  if(length(na_probs) > 0) {
+  abund_probabilities <- abund_probabilities[-na_probs]
+  }
+  return(abund_probabilities)
 }
 
-#' Get one theta matrix
+#' #' Get one theta matrix
+#' #' 
+#' #' The theta matrix is the predicted proportions of each LDA topic at each time step. There is one theta matrix for every estimate of Eta (model pars) and rho (changepoint locations). This gets the theta matrix for *one* estimate.
+#' #'
+#' #' @param subsetted_dataset_item dat
+#' #' @param fitted_ts fitted ts to get thetas from
+#' #' @param sim which draw from posterior
+#' #'
+#' #' @return matrix of predicted proportions for each LDA topic at each timestep
+#' #' @export
+#' #'
+#' get_one_theta <- function(subsetted_dataset_item,
+#'                           fitted_ts,
+#'                           sim = 1) {
+#'   covars <- subsetted_dataset_item$full$covariates$year
+#'   
+#'   ncovar <- 1
+#'   
+#'   nseg <- ifelse(is.null(fitted_ts$rhos), 1, ncol(fitted_ts$rhos) + 1)
+#'   
+#'   ntopics <- ncol(fitted_ts$data$gamma)
+#'   
+#'   ndocs <- nrow(subsetted_dataset_item$full$covariates)
+#'   
+#'   time_span <- min(subsetted_dataset_item$full$covariates$year):max(subsetted_dataset_item$full$covariates$year)
+#'   
+#'   time_span_length <- length(time_span)
+#'   
+#'   X <- matrix(nrow = time_span_length, ncol = ncovar, data = time_span, byrow = FALSE)
+#'   
+#'   # model_Eta <- fitted_ts$etas[sim, ]
+#'   # 
+#'   # Eta_matrix <- matrix(nrow = ncovar  * nseg, ncol = ntopics,
+#'   #                      data = c(rep(0, times = ncovar * nseg), model_Eta), byrow = FALSE)
+#'   # 
+#'   rho = fitted_ts$rhos[sim,]
+#'   
+#'   tD <- unlist(subsetted_dataset_item$full$covariates$year)
+#'   
+#'   Theta <- multinom_theta(X, rho, time_span)
+#'   
+#'   Theta <- select(Theta, -year)
+#'   
+#'   Theta <- as.matrix(Theta)
+#'   #Theta <- softmax(Theta)
+#'   
+#'   Theta <- Theta [ which(tD %in% time_span),]
+#'   
+#'   return(Theta)
+#' }
 #' 
-#' The theta matrix is the predicted proportions of each LDA topic at each time step. There is one theta matrix for every estimate of Eta (model pars) and rho (changepoint locations). This gets the theta matrix for *one* estimate.
-#'
-#' @param subsetted_dataset_item dat
-#' @param fitted_ts fitted ts to get thetas from
-#' @param sim which draw from posterior
-#'
-#' @return matrix of predicted proportions for each LDA topic at each timestep
-#' @export
-#'
-get_one_theta <- function(subsetted_dataset_item,
-                          fitted_ts,
-                          sim = 1) {
-  covars <- subsetted_dataset_item$full$covariates$year
+#' 
+
+get_one_mn_theta <- function(subsetted_dataset_item,
+                             fitted_ts,
+                             sim = 1) {
   
-  ncovar <- 1
   
-  nseg <- ifelse(is.null(fitted_ts$rhos), 1, ncol(fitted_ts$rhos) + 1)
+  Theta <- multinom_theta(subsetted_dataset_item, fitted_ts, sim)
   
-  ntopics <- ncol(fitted_ts$data$gamma)
+  Theta <- dplyr::filter(Theta, year %in% subsetted_dataset_item$full$covariates$year)
   
-  ndocs <- nrow(subsetted_dataset_item$full$covariates)
+  Theta <- dplyr::select(Theta, -year)
   
-  time_span <- min(subsetted_dataset_item$full$covariates$year):max(subsetted_dataset_item$full$covariates$year)
+  Theta <- as.matrix(Theta)
   
-  time_span_length <- length(time_span)
-  
-  X <- matrix(nrow = time_span_length, ncol = ncovar, data = time_span, byrow = FALSE)
-  
-  model_Eta <- fitted_ts$etas[sim, ]
-  
-  Eta_matrix <- matrix(nrow = ncovar  * nseg, ncol = ntopics,
-                       data = c(rep(0, times = ncovar * nseg), model_Eta), byrow = FALSE)
-  
-  rho = fitted_ts$rhos[sim,]
-  
-  tD <- unlist(subsetted_dataset_item$full$covariates$year)
-  
-  Theta <- LDATS::sim_TS_data(X, Eta_matrix, rho, time_span, err = 0)
-  
-  #Theta <- softmax(Theta)
-  
-  Theta <- Theta [ which(tD %in% time_span),]
+  # Theta <- Theta [ which(year %in% time_span),]
   
   return(Theta)
 }
 
-#' Stitch together aggregate loglik over a TS
-#' 
-#' Given a list of length ntimesteps,
-#' 
-#' where each element in the list is the vector of length ndraws of test logliklihoods for a model fit to a train/test subset focused on a single timestep,
-#' 
-#' stitch together a ts of loglikelihoods by randomly drawing one loglikelihood for each time step.
-#'
-#' @param many_fits list described above
-#'
-#' @return summed loglik across entire ts
-#' @export
-#'
-compose_ts_loglik <- function(many_fits) {
-  
-  nsims <- many_fits[[1]]$model_info$nit
-  
-  ts_logliks <- sum(unlist(lapply(many_fits, FUN = function(fits, nsims) return(fits$test_logliks[ sample.int(n = nsims, size = 1)]), nsims = nsims)))
-  
-}
-
-#' Repeatedly estimate loglik for a ts fit
-#' 
-#' Wrapper for compose_ts_loglik to get many estimates fo the loglikelihood for a TS fit.
-#' 
-#' @param many_fits list, one element per timestep, of loglik estimates for the ts model fit with that timestep as the test timestep
-#' @param nests how many estimates to generate 
-#'
-#' @return vector of nests estimated aggregate logliks
-estimate_ts_loglik <- function(many_fits, nests) {
-  
-  return(list(
-    model_info = many_fits[[1]]$model_info,
-    loglik_ests = replicate(n = nests, compose_ts_loglik(many_fits), simplify = T)))
-}
-
-
-
-#' Bundle loglilihood estimates into a df
-#'
-#' Wrapper for make_ll_df
-#' 
-#' @param list_of_lls multiple outputs of estimate_ts_loglik
-#'
-#' @return data frame of loglik, model info
-#' @export
-#'
-bundle_lls <- function(list_of_lls) {
-  
-  ll_dfs <- lapply(list_of_lls, make_ll_df)
-  
-  bind_rows(ll_dfs)
-}
-
-singular_ll <- function(many_fits) {
-  
-  nsims <- many_fits[[1]]$model_info$nit
-  
-  timestep_means <- lapply(many_fits, FUN = function(fit) return(mean(fit$test_logliks)))
-  
-  one_ll <- sum(unlist(lapply(many_fits, FUN = function(fits) return(mean(fits$test_logliks)))))
-  
-  cbind(data.frame(mean_loglik = one_ll), as.data.frame(many_fits[[1]]$model_info))
-}
-
-#' Title
-#'
-#' @param ll 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-make_ll_df <- function(ll) {
-  
-  cbind(data.frame(loglik = ll$loglik_ests), as.data.frame(ll$model_info))
-  
-}
-
-gamma_plot <- function (x, selection = "median", cols = set_gamma_colors(x), 
-                        xname = NULL, together = FALSE, LDATS = FALSE) 
+multinom_theta <- function (subsetted_dataset_item, ts_model, sim = 1) 
 {
-  oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar))
-  if (LDATS) {
-    par(fig = c(0, 1, 0, 0.3), new = TRUE)
-  }
-  else if (together) {
-    par(fig = c(0, 1, 0, 0.52), new = TRUE)
-  }
-  else {
-    par(fig = c(0, 1, 0, 1))
-  }
-  rhos <- x$rhos
-  nrhos <- ncol(rhos)
-  if (!is.null(nrhos)) {
-    if (selection == "median") {
-      spec_rhos <- ceiling(apply(rhos, 2, median))
+  
+  rho <- ts_model$rhos[sim, ]
+  
+  x <- ts_model
+  
+  seg_mods <- LDATS::multinom_TS(x$data, x$formula, rho, x$timename, 
+                                 x$weights, x$control)
+  nsegs <- length(seg_mods[[1]])
+  
+  
+  full_timespan <- min(subsetted_dataset_item$full$covariates$year):
+    max(subsetted_dataset_item$full$covariates$year)
+  
+  full_segs <- data.frame(year = full_timespan,
+                          segment = NA)
+  
+  for(i in 1:nsegs) {
+    if(nsegs == 1) {
+      these_boundaries <- full_timespan
+    } else if(i == 1) {
+      these_boundaries <- 
+        min(full_timespan):
+        rho[1]
+    } else if (i == nsegs) {
+      these_boundaries <- (rho[i - 1]+1):max(full_timespan)
+    } else {
+      these_boundaries <- (rho[i - 1] + 1):rho[i]
     }
-    else if (selection == "mode") {
-      spec_rhos <- apply(rhos, 2, modalvalue)
+    
+    full_segs$segment[ which(full_segs$year %in% these_boundaries)] <- i
+  }
+    
+    segment_estimates <- list()
+    fitted_values <- list()
+    
+    for(i in 1:nsegs) {
+      
+      this_seg <- seg_mods[[1]][i]
+      
+      this_fit <- as.data.frame(this_seg[[1]]$fitted.values)
+      these_years <- (this_seg[[1]]$timevals)
+      
+      this_fit <- cbind(this_fit, year = these_years)
+      
+      fitted_values[[i]] <- this_fit
+      
+      segment_estimates[[i]] <- this_fit %>%
+        dplyr::mutate(segment = i) %>%
+        dplyr::select(-year) %>%
+        dplyr::distinct()
+    }
+    
+    fitted_values <- dplyr::bind_rows(fitted_values)
+    segment_estimates <- dplyr::bind_rows(segment_estimates)
+    
+    predicted_values <- dplyr::left_join(full_segs, segment_estimates) %>%
+      select(-segment)
+    
+    predicted_values
+  }
+  
+  
+  #' Stitch together aggregate loglik over a TS
+  #' 
+  #' Given a list of length ntimesteps,
+  #' 
+  #' where each element in the list is the vector of length ndraws of test logliklihoods for a model fit to a train/test subset focused on a single timestep,
+  #' 
+  #' stitch together a ts of loglikelihoods by randomly drawing one loglikelihood for each time step.
+  #'
+  #' @param many_fits list described above
+  #'
+  #' @return summed loglik across entire ts
+  #' @export
+  #'
+  compose_ts_loglik <- function(many_fits) {
+    
+    nsims <- many_fits[[1]]$model_info$nit
+    
+    ts_logliks <- sum(unlist(lapply(many_fits, FUN = function(fits, nsims) return(fits$test_logliks[ sample.int(n = nsims, size = 1)]), nsims = nsims)))
+    
+  }
+  
+  #' Repeatedly estimate loglik for a ts fit
+  #' 
+  #' Wrapper for compose_ts_loglik to get many estimates fo the loglikelihood for a TS fit.
+  #' 
+  #' @param many_fits list, one element per timestep, of loglik estimates for the ts model fit with that timestep as the test timestep
+  #' @param nests how many estimates to generate 
+  #'
+  #' @return vector of nests estimated aggregate logliks
+  estimate_ts_loglik <- function(many_fits, nests) {
+    
+    return(list(
+      model_info = many_fits[[1]]$model_info,
+      loglik_ests = replicate(n = nests, compose_ts_loglik(many_fits), simplify = T)))
+  }
+  
+  
+  
+  #' Bundle loglilihood estimates into a df
+  #'
+  #' Wrapper for make_ll_df
+  #' 
+  #' @param list_of_lls multiple outputs of estimate_ts_loglik
+  #'
+  #' @return data frame of loglik, model info
+  #' @export
+  #'
+  bundle_lls <- function(list_of_lls) {
+    
+    ll_dfs <- lapply(list_of_lls, make_ll_df)
+    
+    bind_rows(ll_dfs)
+  }
+  
+  singular_ll <- function(many_fits) {
+    
+    nsims <- many_fits[[1]]$model_info$nit
+    
+    timestep_means <- lapply(many_fits, FUN = function(fit) return(mean(fit$test_logliks)))
+    
+    one_ll <- sum(unlist(lapply(many_fits, FUN = function(fits) return(mean(fits$test_logliks)))))
+    
+    cbind(data.frame(mean_loglik = one_ll), as.data.frame(many_fits[[1]]$model_info))
+  }
+  
+  #' Title
+  #'
+  #' @param ll 
+  #'
+  #' @return
+  #' @export
+  #'
+  #' @examples
+  make_ll_df <- function(ll) {
+    
+    cbind(data.frame(loglik = ll$loglik_ests), as.data.frame(ll$model_info))
+    
+  }
+  
+  gamma_plot <- function (x, selection = "median", cols = set_gamma_colors(x), 
+                          xname = NULL, together = FALSE, LDATS = FALSE) 
+  {
+    oldpar <- par(no.readonly = TRUE)
+    on.exit(par(oldpar))
+    if (LDATS) {
+      par(fig = c(0, 1, 0, 0.3), new = TRUE)
+    }
+    else if (together) {
+      par(fig = c(0, 1, 0, 0.52), new = TRUE)
     }
     else {
-      stop("selection input not supported")
+      par(fig = c(0, 1, 0, 1))
     }
-  } else {
-    spec_rhos <- NULL
+    rhos <- x$rhos
+    nrhos <- ncol(rhos)
+    if (!is.null(nrhos)) {
+      if (selection == "median") {
+        spec_rhos <- ceiling(apply(rhos, 2, median))
+      }
+      else if (selection == "mode") {
+        spec_rhos <- apply(rhos, 2, modalvalue)
+      }
+      else {
+        stop("selection input not supported")
+      }
+    } else {
+      spec_rhos <- NULL
+    }
+    x$control$timename <- NULL
+    seg_mods <- multinom_TS(x$data, x$formula, spec_rhos, x$timename, 
+                            x$weights, x$control)
+    nsegs <- length(seg_mods[[1]])
+    t1 <- min(x$data[, x$timename])
+    t2 <- max(x$data[, x$timename])
+    if (is.null(xname)) {
+      xname <- x$timename
+    }
+    par(mar = c(4, 5, 1, 1))
+    plot(1, 1, type = "n", bty = "L", xlab = "", ylab = "", 
+         xaxt = "n", yaxt = "n", ylim = c(0, 1), xlim = c(t1 - 
+                                                            1, t2 + 1))
+    yax <- round(seq(0, 1, length.out = 5), 3)
+    axis(2, at = yax, las = 1)
+    axis(1)
+    mtext(side = 2, line = 3.5, cex = 1.25, "Proportion")
+    mtext(side = 1, line = 2.5, cex = 1.25, xname)
+    ntopics <- ncol(as.matrix(x$data[[x$control$response]]))
+    seg1 <- c(0, spec_rhos[-length(rhos)])
+    seg2 <- c(spec_rhos, t2)
+    time_obs <- rep(NA, nrow(x$data))
+    pred_vals <- matrix(NA, nrow(x$data), ntopics)
+    sp1 <- 1
+    for (i in 1:nsegs) {
+      mod_i <- seg_mods[[1]][[i]]
+      spec_vals <- sp1:(sp1 + nrow(mod_i$fitted.values) - 
+                          1)
+      pred_vals[spec_vals, ] <- mod_i$fitted.values
+      time_obs[spec_vals] <- mod_i$timevals
+      sp1 <- sp1 + nrow(mod_i$fitted.values)
+    }
+    for (i in 1:ntopics) {
+      points(time_obs, pred_vals[, i], type = "l", lwd = 3, 
+             col = cols[i])
+    }
+    if (!is.null(spec_rhos)) {
+      rho_lines(spec_rhos)
+    }
   }
-  x$control$timename <- NULL
-  seg_mods <- multinom_TS(x$data, x$formula, spec_rhos, x$timename, 
-                          x$weights, x$control)
-  nsegs <- length(seg_mods[[1]])
-  t1 <- min(x$data[, x$timename])
-  t2 <- max(x$data[, x$timename])
-  if (is.null(xname)) {
-    xname <- x$timename
+  
+  
+  fit_ldats_crossval <- function(dataset, buffer = 2, k, seed, cpts, nit, fit_to_train = FALSE) {
+    
+    all_subsets <- subset_data_all(dataset, buffer_size = buffer)
+    
+    all_ldats_fits <- lapply(all_subsets, FUN = ldats_subset_one, k = k, seed = seed, cpts = cpts, nit = nit, fit_to_train = fit_to_train)
+    
+    return(all_ldats_fits)
   }
-  par(mar = c(4, 5, 1, 1))
-  plot(1, 1, type = "n", bty = "L", xlab = "", ylab = "", 
-       xaxt = "n", yaxt = "n", ylim = c(0, 1), xlim = c(t1 - 
-                                                          1, t2 + 1))
-  yax <- round(seq(0, 1, length.out = 5), 3)
-  axis(2, at = yax, las = 1)
-  axis(1)
-  mtext(side = 2, line = 3.5, cex = 1.25, "Proportion")
-  mtext(side = 1, line = 2.5, cex = 1.25, xname)
-  ntopics <- ncol(as.matrix(x$data[[x$control$response]]))
-  seg1 <- c(0, spec_rhos[-length(rhos)])
-  seg2 <- c(spec_rhos, t2)
-  time_obs <- rep(NA, nrow(x$data))
-  pred_vals <- matrix(NA, nrow(x$data), ntopics)
-  sp1 <- 1
-  for (i in 1:nsegs) {
-    mod_i <- seg_mods[[1]][[i]]
-    spec_vals <- sp1:(sp1 + nrow(mod_i$fitted.values) - 
-                        1)
-    pred_vals[spec_vals, ] <- mod_i$fitted.values
-    time_obs[spec_vals] <- mod_i$timevals
-    sp1 <- sp1 + nrow(mod_i$fitted.values)
+  
+  eval_ldats_crossval <- function(ldats_fits, nests = 100) {
+    estimates <- estimate_ts_loglik(ldats_fits, nests = nests)
+    
+    ll_df <- make_ll_df(estimates)
+    
+    single_ll <- singular_ll(ldats_fits)
+    
+    ll_df <- dplyr::left_join(ll_df, single_ll)
+    
+    return(ll_df)
+    
   }
-  for (i in 1:ntopics) {
-    points(time_obs, pred_vals[, i], type = "l", lwd = 3, 
-           col = cols[i])
+  
+  plot_lda_comp <- function(fitted_lda) {
+    
+    lda_betas <- data.frame(t(fitted_lda[[1]]@beta))
+    
+    colnames(lda_betas) <- c(1:ncol(lda_betas))
+    
+    lda_betas$species <- (unlist(fitted_lda[[1]]@terms))
+    
+    lda_betas <- tidyr::pivot_longer(lda_betas, -species, names_to = "topic", values_to = "beta")
+    
+    lda_betas$beta <- exp(lda_betas$beta)
+    
+    betas_plot <- ggplot(lda_betas, aes(species, beta, fill = topic)) +
+      geom_col(position = "stack") +
+      theme_void() +
+      scale_fill_viridis_d(end = .7)
+    
+    return(betas_plot)
   }
-  if (!is.null(spec_rhos)) {
-    rho_lines(spec_rhos)
+  
+  plot_lda_year <- function(fitted_lda, covariate_data) {
+    
+    lda_preds <- data.frame(fitted_lda[[1]]@gamma)
+    
+    colnames(lda_preds) <- c(1:ncol(lda_preds))
+    
+    stopifnot(nrow(lda_preds) == length(covariate_data))
+    
+    lda_preds$year <- covariate_data
+    
+    lda_preds <- tidyr::pivot_longer(lda_preds, -year, names_to = "topic",values_to = "proportion")
+    
+    
+    pred_plot <- ggplot(lda_preds, aes(year, proportion, color = topic)) +
+      geom_line(size = 2) +
+      theme_bw() +
+      scale_color_viridis_d(end = .7)
+    
+    return(pred_plot)
   }
-}
-
-
-fit_ldats_crossval <- function(dataset, buffer = 2, k, seed, cpts, nit, fit_to_train = FALSE) {
-  
-  all_subsets <- subset_data_all(dataset, buffer_size = buffer)
-  
-  all_ldats_fits <- lapply(all_subsets, FUN = ldats_subset_one, k = k, seed = seed, cpts = cpts, nit = nit, fit_to_train = fit_to_train)
-  
-  return(all_ldats_fits)
-}
-
-eval_ldats_crossval <- function(ldats_fits, nests = 100) {
-  estimates <- estimate_ts_loglik(ldats_fits, nests = nests)
-  
-  ll_df <- make_ll_df(estimates)
-  
-  single_ll <- singular_ll(ldats_fits)
-  
-  ll_df <- dplyr::left_join(ll_df, single_ll)
-  
-  return(ll_df)
-  
-}
-
-plot_lda_comp <- function(fitted_lda) {
-  
-  lda_betas <- data.frame(t(fitted_lda[[1]]@beta))
-  
-  colnames(lda_betas) <- c(1:ncol(lda_betas))
-  
-  lda_betas$species <- (unlist(fitted_lda[[1]]@terms))
-  
-  lda_betas <- tidyr::pivot_longer(lda_betas, -species, names_to = "topic", values_to = "beta")
-  
-  lda_betas$beta <- exp(lda_betas$beta)
-  
-  betas_plot <- ggplot(lda_betas, aes(species, beta, fill = topic)) +
-    geom_col(position = "stack") +
-    theme_void() +
-    scale_fill_viridis_d(end = .7)
-  
-  return(betas_plot)
-}
-
-plot_lda_year <- function(fitted_lda, covariate_data) {
-  
-  lda_preds <- data.frame(fitted_lda[[1]]@gamma)
-  
-  colnames(lda_preds) <- c(1:ncol(lda_preds))
-  
-  stopifnot(nrow(lda_preds) == length(covariate_data))
-  
-  lda_preds$year <- covariate_data
-  
-  lda_preds <- tidyr::pivot_longer(lda_preds, -year, names_to = "topic",values_to = "proportion")
-  
-  
-  pred_plot <- ggplot(lda_preds, aes(year, proportion, color = topic)) +
-    geom_line(size = 2) +
-    theme_bw() +
-    scale_color_viridis_d(end = .7)
-  
-  return(pred_plot)
-}

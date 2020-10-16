@@ -90,13 +90,13 @@ This makes me suspicious.
 
 ```{r}
 
-dat <- get_bbs_route_region_data(path = "C:\\\\Users\\\\diaz.renata\\\\Documents\\\\Datasets/breed-bird-survey-prepped/route1region11.RDS")
+dat <- MATSS::get_bbs_route_region_data(path = "C:\\\\Users\\\\diaz.renata\\\\Documents\\\\Datasets/breed-bird-survey-prepped/route1region11.RDS")
 
 lda_8 <- LDATS::LDA_set_user_seeds(dat$abundance, topics = 8, seed = 184)
 
 plot(lda_8)
 
-ts_8 <- LDATS::TS_on_LDA(lda_8[[1]], as.data.frame(dat$covariates), formulas = ~1, nchangepoints = c(0:2), timename = "year", control = TS_control(nit = 100))
+ts_8 <- LDATS::TS_on_LDA(lda_8[[1]], as.data.frame(dat$covariates), formulas = ~1, nchangepoints = c(0:2), timename = "year", control = LDATS::TS_control(nit = 100))
 
 for(i in 1:3){ 
 plot(ts_8[[i]])
@@ -135,3 +135,49 @@ ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_
 I have not seen this improve by increasing nit.
 
 I think it has to do with the fact we're aggregating over models fit to different subsets, and some subsets are inherently harder to fit. 
+
+
+KKKKK So AIC is being calculated off of logliks that are the MEAN LOGLIK OVER ALL ITERATIONS so that's how you get 1 value per model.
+
+
+If one were feeling devilish one could illustrate the variability in AICcs achieved by using different iterations.
+
+ALTERNATIVELY one can explore using the logLiks achieved by taking the MEAN of ITERATIONS per timestep and SUMMING THOSE. 
+
+
+I think but am not sure that that is close to equivalent to taking the mean of all these stitched togeher ts.
+
+```{r}
+ggplot(filter(all_evals_summary, in_95), aes(x = cpts, y = mean_ll, color = cpts)) +
+  geom_point() +
+  geom_point( data = filter(all_evals_summary, mean_ll == max(all_evals_summary$mean_ll)), aes(x = cpts, y = mean_ll), color = "black")+
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models loglikelihood")
+
+
+ggplot(filter(all_evals_summary, in_95), aes(x = cpts, y = aicc, color = cpts)) +
+  geom_point() +
+facet_wrap(vars(k), nrow = 1) +
+  theme_bw() +
+  ggtitle("All models AICc")
+
+filter(all_evals_summary, mean_ll == max(all_evals_summary$mean_ll))
+
+
+```
+
+AICc is fit to the whole TS.
+
+logLik is calculated by taking logLiks of the TS fit to every training subset, predicting the test abundances. Then taking the mean logLik for each fit across all iterations. Then summing those mean fits. (Or, that's how it *will* be calculated.)
+
+Currently logLik is calculated by taking logLIks of the TS fit to every training subset and stitching together a TS as the summed logliks from one iteration drawn from every subsetted TS. The mean in these plots is then the mean of these summed LL.
+
+In the limit these should converge. Not sure if 100 is the limit, though.
+
+Also, based on my looking, the mean really isn't representative?
+
+
+```{r}
+
+```

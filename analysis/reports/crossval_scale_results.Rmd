@@ -59,8 +59,8 @@ all_evals <- all_evals %>%
 all_evals_summary <- all_evals %>%
   group_by(k, seed, cpts, cpts_seed_k, cpts_k) %>%
   summarize(mean_ll = mean(loglik),
-            upper_97_ll = quantile(loglik, probs = .975),
-            lower_2_ll = quantile(loglik, probs = .025),
+            upper_97_ll = quantile(loglik, probs = .975, na.rm= T),
+            lower_2_ll = quantile(loglik, probs = .025, na.rm =T),
             n_infinite = sum(is.infinite(loglik))) %>%
   ungroup() %>%
   arrange(desc(mean_ll))
