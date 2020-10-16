@@ -592,7 +592,11 @@ multinom_theta <- function (subsetted_dataset_item, ts_model, sim = 1)
   
   plot_lda_year <- function(fitted_lda, covariate_data) {
     
-    lda_preds <- data.frame(fitted_lda[[1]]@gamma)
+    if(is.list(fitted_lda)) {
+      fitted_lda <- fitted_lda[[1]]
+    }
+    
+    lda_preds <- data.frame(fitted_lda@gamma)
     
     colnames(lda_preds) <- c(1:ncol(lda_preds))
     

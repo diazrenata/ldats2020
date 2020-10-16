@@ -33,14 +33,14 @@ if(FALSE){
   )  
 } else {
   methods <- drake::drake_plan(
-    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 100, fit_to_train = FALSE),
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 1000, fit_to_train = FALSE),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
-                         ks = !!c(2:5),
+                         ks = !!c(2:5, 10:15),
                          seeds = !!seq(2, 200, by = 2),
-                         cpts = !!c(0:2)
+                         cpts = !!c(0:3)
                        )),
-    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 100),
+    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 1000),
                         transform = map(ldats_fit)
     ),
     all_evals = target(dplyr::bind_rows(ldats_eval),
