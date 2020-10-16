@@ -11,6 +11,7 @@ library(drake)
 library(ggplot2)
 library(dplyr)
 source(here::here("crossval_fxns.R"))
+source(here::here("more_fxns.R"))
 
 ## Set up the cache and config
 db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache.sqlite"))
@@ -95,106 +96,156 @@ ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_
 #  facet_wrap(vars(cpts)) +
   theme_bw() +
   ggtitle("Models w/LL overlapping top 95%")
+# 
+# some_ldas <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, topics = c(2:5), seed = 2)
+# 
+# for(i in 1:length(some_ldas)) {
+#   print(plot_lda_year(some_ldas[[i]], covariate_data = bbs_rtrg_1_11$covariates$year))
+# }
+```
 
-some_ldas <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, topics = c(2:5), seed = 2)
+# ```{r}
+#  loadd(ldats_fit_bbs_rtrg_1_11_2_2_1L, cache = cache)
+# loadd(ldats_eval_ldats_fit_bbs_rtrg_1_11_2_2_1L, cache = cache)
+# 
+# lls <- lapply(ldats_fit_bbs_rtrg_1_11_2_2_1L, FUN = function(alist)
+#   return(data.frame(ll = alist$test_logliks, timestep = alist$test_timestep)))
+# names(lls) <- 1:length(lls)
+# 
+# lls <- bind_rows(lls)
+# 
+# lls <- lls %>%
+#   group_by(timestep) %>%
+#   mutate(ts_mean = mean(ll))
+# 
+# lls_mean <- lls  %>%
+#   select(timestep, ts_mean) %>%
+#   distinct() %>%
+#   select(ts_mean) 
+# 
+# ggplot(lls, aes(timestep, ll, group = timestep)) +geom_boxplot() + geom_point(aes(timestep, ts_mean), color = "green") +
+#   geom_hline(yintercept = mean(lls_mean$ts_mean), color = "pink")
+# 
+# 
+# ggplot(ldats_eval_ldats_fit_bbs_rtrg_1_11_2_2_1L, aes(x = 1, y = loglik)) +
+#   geom_boxplot() +
+#   geom_hline(yintercept = mean(lls_mean$ts_mean) * 23, color = "pink")
+# 
+# ```
 
-for(i in 1:length(some_ldas)) {
-  print(plot_lda_year(some_ldas[[i]], covariate_data = bbs_rtrg_1_11$covariates$year))
-}
+<!-- ```{r random ts on lda} -->
+<!-- an_lda <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, 2, 1) -->
+<!-- a_ts <- LDATS::TS_on_LDA(an_lda, as.data.frame(bbs_rtrg_1_11$covariates), formulas = ~ 1, nchangepoints = c(0:3), timename = "year", control = LDATS::TS_control(nit = 100)) -->
+
+<!-- ts_lls <- lapply(a_ts, FUN = function(a_ts_fit) return(data.frame(cpts = a_ts_fit$nchangepoints, ll = a_ts_fit$lls))) -->
+
+<!-- ts_lls <- bind_rows(ts_lls) -->
+
+<!-- ts_lls <- ts_lls %>% -->
+<!--   group_by(cpts) %>% -->
+<!--   mutate(mean_ll = mean(ll), -->
+<!--             bottom2 = quantile(ll, probs = .025), -->
+<!--             top97 = quantile(ll, probs = .975)) %>% -->
+<!--   ungroup() -->
+
+<!-- ggplot(ts_lls, aes(x = cpts, y = ll, group = cpts)) + -->
+<!--   geom_boxplot() + -->
+<!--   geom_point(aes(cpts, bottom2), color = "red") + -->
+<!--   geom_point(aes(cpts, top97), color = "red") + -->
+<!--   geom_point(aes(cpts, mean_ll), color = "green") -->
+
+<!-- ``` -->
+
+<!-- So you do see, spread causing overlapping 95% intervals for the loglikelihoods for models that we would distinguish between using AIC. -->
+
+<!-- In this case I'm not confident using AIC or AICc for final selection because the models are not fit to the same data. -->
+
+<!-- However you could fit *another* TS model to the *full* ts to see if that lands you somewhere other than the highest mean ll on the crossval.  -->
+
+
+## Getting back to a single model 
+
+The best-fit from the ones run so far is 2 changepoints, 3 topics, seed = 30. However the best one **in my local cache right now** is for seed = 4. 
+
+```{r}
+
+loadd(ldats_fit_bbs_rtrg_1_11_3L_4_2L, cache= cache)
+loadd(ldats_eval_ldats_fit_bbs_rtrg_1_11_3L_4_2L, cache= cache)
+
+full_lda <- LDATS::LDA_set_user_seeds(ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]]$full$abundance, 3, 4)
+
+plot_lda_comp(full_lda)
+
+plot_lda_year(full_lda, covariate_data = ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]]$full$covariates$year)
+
+full_ts <- LDATS::TS_on_LDA(full_lda, as.data.frame(ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]]$full$covariates), ~1, 2, "year", control=LDATS::TS_control(nit=100))
+
+plot(full_ts[[1]])
 ```
 
 ```{r}
- loadd(ldats_fit_bbs_rtrg_1_11_2_2_1L, cache = cache)
-loadd(ldats_eval_ldats_fit_bbs_rtrg_1_11_2_2_1L, cache = cache)
 
-lls <- lapply(ldats_fit_bbs_rtrg_1_11_2_2_1L, FUN = function(alist)
-  return(data.frame(ll = alist$test_logliks, timestep = alist$test_timestep)))
-names(lls) <- 1:length(lls)
+full_rhos <- full_ts[[1]]$rhos
 
-lls <- bind_rows(lls)
+subset_rhos <- lapply(ldats_fit_bbs_rtrg_1_11_3L_4_2L, FUN = function(ldats_fit) return(cbind(ldats_fit$fitted_ts$rhos, ldats_fit$test$covariates$year[1])))
 
-lls <- lls %>%
-  group_by(timestep) %>%
-  mutate(ts_mean = mean(ll))
+subset_rhos <- lapply(subset_rhos, FUN = function(s_r) return(as.data.frame(s_r)))
 
-lls_mean <- lls  %>%
-  select(timestep, ts_mean) %>%
-  distinct() %>%
-  select(ts_mean) 
+names(subset_rhos) <- 1:length(subset_rhos)
 
-ggplot(lls, aes(timestep, ll, group = timestep)) +geom_boxplot() + geom_point(aes(timestep, ts_mean), color = "green") +
-  geom_hline(yintercept = mean(lls_mean$ts_mean), color = "pink")
+subset_rhos <- bind_rows(subset_rhos)
+
+subset_rhos <- subset_rhos %>%
+  rename(r1 = V1,
+         r2 = V2,
+         testyear = V3) %>%
+  tidyr::pivot_longer(-testyear, names_to = "cpt", values_to = "est") %>%
+  mutate(source = "subset")
 
 
-ggplot(ldats_eval_ldats_fit_bbs_rtrg_1_11_2_2_1L, aes(x = 1, y = loglik)) +
-  geom_boxplot() +
-  geom_hline(yintercept = mean(lls_mean$ts_mean) * 23, color = "pink")
+full_rhos <- as.data.frame(full_rhos) %>%
+  rename(r1 = V1,
+         r2 = V2) %>%
+  mutate(source = "full") %>%
+  tidyr::pivot_longer(-source, names_to = "cpt", values_to = "est") %>%
+  mutate(testyear = NA)
+
+
+all_rhos <- rbind(full_rhos, subset_rhos)
+
+ggplot(all_rhos, aes(est)) +
+  geom_histogram() +
+  facet_grid(rows = vars(source), cols = vars(cpt), scales = "free_y") 
+
+all_rhos %>%
+  group_by(source, cpt) %>%
+  summarize(mean_est = mean(est))
 
 ```
 
+In this case, if we take all the rho estimates across the subsetted models and compare them to the rho estimates from a single TS fit to the full TS, we get the same estimates for rho. 
 
-      
-
-<!-- First note the considerable spread. Looks like 2 topics wins handily, but that 0, 1, or 2 changepoints perform similarly. Increasing the number of iterations and/or aggregate estimates might decrease some of this spread. Increasing `nit` gives the model the chance to find the best place to put the changepoints. These models are run with just 100 iterations, for speed/debugging reasons, but 1000 or 10000 may be preferable. (Just a thought, for speed reasons - seems like another 99000 iterations will not make the k = 14 models do better; so once you narrow down to a general state space you could scale up the iterations dramatically to choose among changepoint models). Increasing `nevals` - especially once you have more iterations - might refine the sampling around the LL for any given model.  -->
-
-<!-- The highest mean LL is for the model: `r filter(all_evals_summary, mean_ll == max(all_evals_summary$mean_ll))$cpts_seed_k` -->
-
-<!-- 2 changepoints, seed 106, 2 topics. -->
-
-<!-- ```{r} -->
-
-<!-- #plot(ldas_only$`k: 14, seed: 8`) -->
-
-<!-- lda_2_106 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, 2, 106) -->
-
-<!-- plot_lda_comp(lda_2_106) -->
-
-<!-- plot_lda_year(lda_2_106, bbs_rtrg_1_11$covariates$year) -->
+```{r full ts pred}
 
 
-<!-- ``` -->
+full_preds <- lapply(1:100, FUN = get_preds, subsetted_dataset_item = ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]], fitted_ts = full_ts[[1]])
 
-<!-- Most of the difference between topics seems to come in the details - both have a big contribution, close to 50-50, from some really common species. Then there are several rare species that are all topic 1 or topic 2. There might be a way to quantify this. -->
-<!-- ```{r} -->
-<!-- ts_2_106 <- LDATS::TS_on_LDA(lda_2_106, as.data.frame(bbs_rtrg_1_11$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000)) -->
+full_preds <- bind_rows(full_preds)
 
-<!-- for(i in 1:3) { -->
-<!-- plot(ts_2_106[[i]], selection = "mode") -->
-<!-- } -->
+full_preds$topic_est <- paste0(full_preds$topic, full_preds$estimate)
 
-<!-- select_w_aicc <- LDATS::select_TS(ts_2_106, control = list(LDATS::TS_control(measurer = "AICc"))) -->
-
-<!-- library(LDATS) -->
-
-<!-- plot(select_w_aicc) -->
-
-<!-- ``` -->
-
-<!-- Note that the uncertainty around the cpt locations corresponds mostly to the gappyness of the time series.  -->
+ggplot(full_preds, aes(year, prop, color= topic, group = topic_est)) +
+  geom_line(alpha = .012)
 
 
-<!-- ```{r} -->
-<!-- #  -->
-<!-- # lda_14_8 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, 14, 8) -->
-<!-- # plot_lda_comp(lda_14_8) -->
-<!-- #  -->
-<!-- # plot_lda_year(lda_14_8, bbs_rtrg_1_11$covariates$year) -->
-<!-- # #  -->
-<!-- # # loadd(ldats_fit_bbs_rtrg_1_11_2L_6_1L) -->
-<!-- # #  -->
-<!-- # # for(i in 1:23){ -->
-<!-- # #   plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_lda) -->
-<!-- # # plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_ts, selection = "mode") -->
-<!-- # # } -->
-<!-- #  -->
-<!-- # ts_14_8 <- LDATS::TS_on_LDA(lda_14_8, as.data.frame(bbs_rtrg_1_11$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000)) -->
-<!-- #  -->
-<!-- # for(i in 1:length(ts_14_8)) { -->
-<!-- #   plot(ts_14_8[[i]]) -->
-<!-- # } -->
+rho_preds <- get_preds(subsetted_dataset_item = ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]], fitted_ts = full_ts[[1]], rho = c(1985, 2003))
 
 
-<!-- ``` -->
+ggplot(rho_preds, aes(year, prop, color= topic, group = topic)) +
+  geom_line() +
+  theme_bw()
+
+```
 
 ```{r close connection}
 
