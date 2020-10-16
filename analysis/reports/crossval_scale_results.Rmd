@@ -103,6 +103,38 @@ for(i in 1:length(some_ldas)) {
 }
 ```
 
+```{r}
+ loadd(ldats_fit_bbs_rtrg_1_11_2_2_1L, cache = cache)
+loadd(ldats_eval_ldats_fit_bbs_rtrg_1_11_2_2_1L, cache = cache)
+
+lls <- lapply(ldats_fit_bbs_rtrg_1_11_2_2_1L, FUN = function(alist)
+  return(data.frame(ll = alist$test_logliks, timestep = alist$test_timestep)))
+names(lls) <- 1:length(lls)
+
+lls <- bind_rows(lls)
+
+lls <- lls %>%
+  group_by(timestep) %>%
+  mutate(ts_mean = mean(ll))
+
+lls_mean <- lls  %>%
+  select(timestep, ts_mean) %>%
+  distinct() %>%
+  select(ts_mean) 
+
+ggplot(lls, aes(timestep, ll, group = timestep)) +geom_boxplot() + geom_point(aes(timestep, ts_mean), color = "green") +
+  geom_hline(yintercept = mean(lls_mean$ts_mean), color = "pink")
+
+
+ggplot(ldats_eval_ldats_fit_bbs_rtrg_1_11_2_2_1L, aes(x = 1, y = loglik)) +
+  geom_boxplot() +
+  geom_hline(yintercept = mean(lls_mean$ts_mean) * 23, color = "pink")
+
+```
+
+
+      
+
 <!-- First note the considerable spread. Looks like 2 topics wins handily, but that 0, 1, or 2 changepoints perform similarly. Increasing the number of iterations and/or aggregate estimates might decrease some of this spread. Increasing `nit` gives the model the chance to find the best place to put the changepoints. These models are run with just 100 iterations, for speed/debugging reasons, but 1000 or 10000 may be preferable. (Just a thought, for speed reasons - seems like another 99000 iterations will not make the k = 14 models do better; so once you narrow down to a general state space you could scale up the iterations dramatically to choose among changepoint models). Increasing `nevals` - especially once you have more iterations - might refine the sampling around the LL for any given model.  -->
 
 <!-- The highest mean LL is for the model: `r filter(all_evals_summary, mean_ll == max(all_evals_summary$mean_ll))$cpts_seed_k` -->
