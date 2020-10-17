@@ -139,104 +139,289 @@ ggplot(filter(all_evals, cpts_seed_k %in% filter(all_evals_summary, in_95)$cpts_
 ![](crossval_scale_results_files/figure-gfm/unnamed-chunk-1-3.png)<!-- -->
 
 ``` r
-some_ldas <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, topics = c(2:5), seed = 2)
+# 
+# some_ldas <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, topics = c(2:5), seed = 2)
+# 
+# for(i in 1:length(some_ldas)) {
+#   print(plot_lda_year(some_ldas[[i]], covariate_data = bbs_rtrg_1_11$covariates$year))
+# }
 ```
 
-    ## Running LDA with 2 topics (seed 2)
+# `{r} #  loadd(ldats_fit_bbs_rtrg_1_11_2_2_1L, cache = cache) # loadd(ldats_eval_ldats_fit_bbs_rtrg_1_11_2_2_1L, cache = cache) #  # lls <- lapply(ldats_fit_bbs_rtrg_1_11_2_2_1L, FUN = function(alist) #   return(data.frame(ll = alist$test_logliks, timestep = alist$test_timestep))) # names(lls) <- 1:length(lls) #  # lls <- bind_rows(lls) #  # lls <- lls %>% #   group_by(timestep) %>% #   mutate(ts_mean = mean(ll)) #  # lls_mean <- lls  %>% #   select(timestep, ts_mean) %>% #   distinct() %>% #   select(ts_mean)  #  # ggplot(lls, aes(timestep, ll, group = timestep)) +geom_boxplot() + geom_point(aes(timestep, ts_mean), color = "green") + #   geom_hline(yintercept = mean(lls_mean$ts_mean), color = "pink") #  #  # ggplot(ldats_eval_ldats_fit_bbs_rtrg_1_11_2_2_1L, aes(x = 1, y = loglik)) + #   geom_boxplot() + #   geom_hline(yintercept = mean(lls_mean$ts_mean) * 23, color = "pink") #  #`
 
-    ## Running LDA with 3 topics (seed 2)
+<!-- ```{r random ts on lda} -->
 
-    ## Running LDA with 4 topics (seed 2)
+<!-- an_lda <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, 2, 1) -->
 
-    ## Running LDA with 5 topics (seed 2)
+<!-- a_ts <- LDATS::TS_on_LDA(an_lda, as.data.frame(bbs_rtrg_1_11$covariates), formulas = ~ 1, nchangepoints = c(0:3), timename = "year", control = LDATS::TS_control(nit = 100)) -->
+
+<!-- ts_lls <- lapply(a_ts, FUN = function(a_ts_fit) return(data.frame(cpts = a_ts_fit$nchangepoints, ll = a_ts_fit$lls))) -->
+
+<!-- ts_lls <- bind_rows(ts_lls) -->
+
+<!-- ts_lls <- ts_lls %>% -->
+
+<!--   group_by(cpts) %>% -->
+
+<!--   mutate(mean_ll = mean(ll), -->
+
+<!--             bottom2 = quantile(ll, probs = .025), -->
+
+<!--             top97 = quantile(ll, probs = .975)) %>% -->
+
+<!--   ungroup() -->
+
+<!-- ggplot(ts_lls, aes(x = cpts, y = ll, group = cpts)) + -->
+
+<!--   geom_boxplot() + -->
+
+<!--   geom_point(aes(cpts, bottom2), color = "red") + -->
+
+<!--   geom_point(aes(cpts, top97), color = "red") + -->
+
+<!--   geom_point(aes(cpts, mean_ll), color = "green") -->
+
+<!-- ``` -->
+
+<!-- So you do see, spread causing overlapping 95% intervals for the loglikelihoods for models that we would distinguish between using AIC. -->
+
+<!-- In this case I'm not confident using AIC or AICc for final selection because the models are not fit to the same data. -->
+
+<!-- However you could fit *another* TS model to the *full* ts to see if that lands you somewhere other than the highest mean ll on the crossval.  -->
+
+## Getting back to a single model
+
+The best-fit from the ones run so far is 2 changepoints, 3 topics, seed
+= 30. However the best one **in my local cache right now** is for seed =
+4.
 
 ``` r
-for(i in 1:length(some_ldas)) {
-  print(plot_lda_year(some_ldas[[i]], covariate_data = bbs_rtrg_1_11$covariates$year))
-}
+loadd(ldats_fit_bbs_rtrg_1_11_3L_4_2L, cache= cache)
+loadd(ldats_eval_ldats_fit_bbs_rtrg_1_11_3L_4_2L, cache= cache)
+
+full_lda <- LDATS::LDA_set_user_seeds(ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]]$full$abundance, 3, 4)
 ```
 
-![](crossval_scale_results_files/figure-gfm/unnamed-chunk-1-4.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-1-5.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-1-6.png)<!-- -->![](crossval_scale_results_files/figure-gfm/unnamed-chunk-1-7.png)<!-- -->
+    ## Running LDA with 3 topics (seed 4)
 
-<!-- First note the considerable spread. Looks like 2 topics wins handily, but that 0, 1, or 2 changepoints perform similarly. Increasing the number of iterations and/or aggregate estimates might decrease some of this spread. Increasing `nit` gives the model the chance to find the best place to put the changepoints. These models are run with just 100 iterations, for speed/debugging reasons, but 1000 or 10000 may be preferable. (Just a thought, for speed reasons - seems like another 99000 iterations will not make the k = 14 models do better; so once you narrow down to a general state space you could scale up the iterations dramatically to choose among changepoint models). Increasing `nevals` - especially once you have more iterations - might refine the sampling around the LL for any given model.  -->
+``` r
+plot_lda_comp(full_lda)
+```
 
-<!-- The highest mean LL is for the model: 2_140_3 -->
+![](crossval_scale_results_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
-<!-- 2 changepoints, seed 106, 2 topics. -->
+``` r
+plot_lda_year(full_lda, covariate_data = ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]]$full$covariates$year)
+```
 
-<!-- ```{r} -->
+![](crossval_scale_results_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
 
-<!-- #plot(ldas_only$`k: 14, seed: 8`) -->
+``` r
+full_ts <- LDATS::TS_on_LDA(full_lda, as.data.frame(ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]]$full$covariates), ~1, 2, "year", control=LDATS::TS_control(nit=100))
+```
 
-<!-- lda_2_106 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, 2, 106) -->
+    ## Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model k: 3, seed: 4
 
-<!-- plot_lda_comp(lda_2_106) -->
+    ##   Estimating changepoint distribution
 
-<!-- plot_lda_year(lda_2_106, bbs_rtrg_1_11$covariates$year) -->
+    ##   Estimating regressor distribution
 
-<!-- ``` -->
+``` r
+plot(full_ts[[1]])
+```
 
-<!-- Most of the difference between topics seems to come in the details - both have a big contribution, close to 50-50, from some really common species. Then there are several rare species that are all topic 1 or topic 2. There might be a way to quantify this. -->
+![](crossval_scale_results_files/figure-gfm/unnamed-chunk-2-3.png)<!-- -->
 
-<!-- ```{r} -->
+``` r
+full_rhos <- full_ts[[1]]$rhos
 
-<!-- ts_2_106 <- LDATS::TS_on_LDA(lda_2_106, as.data.frame(bbs_rtrg_1_11$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000)) -->
+subset_rhos <- lapply(ldats_fit_bbs_rtrg_1_11_3L_4_2L, FUN = function(ldats_fit) return(cbind(ldats_fit$fitted_ts$rhos, ldats_fit$test$covariates$year[1])))
 
-<!-- for(i in 1:3) { -->
+subset_rhos <- lapply(subset_rhos, FUN = function(s_r) return(as.data.frame(s_r)))
 
-<!-- plot(ts_2_106[[i]], selection = "mode") -->
+names(subset_rhos) <- 1:length(subset_rhos)
 
-<!-- } -->
+subset_rhos <- bind_rows(subset_rhos)
 
-<!-- select_w_aicc <- LDATS::select_TS(ts_2_106, control = list(LDATS::TS_control(measurer = "AICc"))) -->
+subset_rhos <- subset_rhos %>%
+  rename(r1 = V1,
+         r2 = V2,
+         testyear = V3) %>%
+  tidyr::pivot_longer(-testyear, names_to = "cpt", values_to = "est") %>%
+  mutate(source = "subset")
 
-<!-- library(LDATS) -->
 
-<!-- plot(select_w_aicc) -->
+full_rhos <- as.data.frame(full_rhos) %>%
+  rename(r1 = V1,
+         r2 = V2) %>%
+  mutate(source = "full") %>%
+  tidyr::pivot_longer(-source, names_to = "cpt", values_to = "est") %>%
+  mutate(testyear = NA)
 
-<!-- ``` -->
 
-<!-- Note that the uncertainty around the cpt locations corresponds mostly to the gappyness of the time series.  -->
+all_rhos <- rbind(full_rhos, subset_rhos)
 
-<!-- ```{r} -->
+ggplot(all_rhos, aes(est)) +
+  geom_histogram() +
+  facet_grid(rows = vars(source), cols = vars(cpt), scales = "free_y") 
+```
 
-<!-- #  -->
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-<!-- # lda_14_8 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, 14, 8) -->
+![](crossval_scale_results_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-<!-- # plot_lda_comp(lda_14_8) -->
+``` r
+all_rhos %>%
+  group_by(source, cpt) %>%
+  summarize(mean_est = mean(est))
+```
 
-<!-- #  -->
+    ## `summarise()` regrouping output by 'source' (override with `.groups` argument)
 
-<!-- # plot_lda_year(lda_14_8, bbs_rtrg_1_11$covariates$year) -->
+<div class="kable-table">
 
-<!-- # #  -->
+| source | cpt | mean\_est |
+| :----- | :-- | --------: |
+| full   | r1  |  1985.970 |
+| full   | r2  |  2003.310 |
+| subset | r1  |  1985.498 |
+| subset | r2  |  2002.429 |
 
-<!-- # # loadd(ldats_fit_bbs_rtrg_1_11_2L_6_1L) -->
+</div>
 
-<!-- # #  -->
+In this case, if we take all the rho estimates across the subsetted
+models and compare them to the rho estimates from a single TS fit to the
+full TS, we get the same estimates for rho.
 
-<!-- # # for(i in 1:23){ -->
+``` r
+full_preds <- lapply(1:100, FUN = get_preds, subsetted_dataset_item = ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]], fitted_ts = full_ts[[1]])
+```
 
-<!-- # #   plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_lda) -->
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
+    ## Joining, by = "segment"
 
-<!-- # # plot(ldats_fit_bbs_rtrg_1_11_2L_6_1L[[i]]$fitted_ts, selection = "mode") -->
+``` r
+full_preds <- bind_rows(full_preds)
 
-<!-- # # } -->
+full_preds$topic_est <- paste0(full_preds$topic, full_preds$estimate)
 
-<!-- #  -->
+ggplot(full_preds, aes(year, prop, color= topic, group = topic_est)) +
+  geom_line(alpha = .012)
+```
 
-<!-- # ts_14_8 <- LDATS::TS_on_LDA(lda_14_8, as.data.frame(bbs_rtrg_1_11$covariates), timename = 'year', formulas = ~ 1, nchangepoints = c(0:2), control = LDATS::TS_control(nit = 1000)) -->
+![](crossval_scale_results_files/figure-gfm/full%20ts%20pred-1.png)<!-- -->
 
-<!-- #  -->
+``` r
+rho_preds <- get_preds(subsetted_dataset_item = ldats_fit_bbs_rtrg_1_11_3L_4_2L[[1]], fitted_ts = full_ts[[1]], rho = c(1985, 2003))
+```
 
-<!-- # for(i in 1:length(ts_14_8)) { -->
+    ## Joining, by = "segment"
 
-<!-- #   plot(ts_14_8[[i]]) -->
+``` r
+ggplot(rho_preds, aes(year, prop, color= topic, group = topic)) +
+  geom_line() +
+  theme_bw()
+```
 
-<!-- # } -->
-
-<!-- ``` -->
+![](crossval_scale_results_files/figure-gfm/full%20ts%20pred-2.png)<!-- -->
 
 ``` r
 DBI::dbDisconnect(db)
