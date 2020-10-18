@@ -36,9 +36,9 @@ if(FALSE){
     ldats_fit = target(fit_ldats_crossval(dataset, buffer = 4, k = ks, seed = seeds, cpts = cpts, nit = 1000, fit_to_train = FALSE),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
-                         ks = !!c(2:5, 10:14),
+                         ks = !!c(2:5),
                          seeds = !!seq(2, 50, by = 2),
-                         cpts = !!c(0:3)
+                         cpts = !!c(0:5)
                        )),
     ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 1000),
                         transform = map(ldats_fit)
