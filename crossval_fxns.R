@@ -29,7 +29,7 @@ subset_data_all <- function(full_dataset, buffer_size = 2) {
 #'
 subset_data_one <- function(full_dataset, test_timestep, buffer_size) {
   
-  timesteps_to_withold <- c((test_timestep - 2):(test_timestep + 2))
+  timesteps_to_withold <- c((test_timestep - buffer_size):(test_timestep + buffer_size))
   timesteps_to_withold <- timesteps_to_withold[ 
     which(timesteps_to_withold %in% 1:nrow(full_dataset$abundance))]
   
