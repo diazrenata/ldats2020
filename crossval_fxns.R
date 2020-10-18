@@ -413,9 +413,9 @@ multinom_theta <- function (subsetted_dataset_item, ts_model, sim = 1)
   #'
   compose_ts_loglik <- function(many_fits) {
     
-    nsims <- many_fits[[1]]$model_info$nit
+   # nsims <- many_fits[[1]]$model_info$nit
     
-    ts_logliks <- sum(unlist(lapply(many_fits, FUN = function(fits, nsims) return(fits$test_logliks[ sample.int(n = nsims, size = 1)]), nsims = nsims)))
+    ts_logliks <- sum(unlist(lapply(many_fits, FUN = function(fits) return(fits$test_logliks[ sample.int(n = length(fits$test_logliks), size = 1)]))))
     
   }
   
