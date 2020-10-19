@@ -41,7 +41,7 @@ datasets <- datasets[m,]
 
 #if(FALSE){
   methods <- drake::drake_plan(
-    ldats_fit = target(fit_ldats_crossval(dataset, use_folds = T, n_folds = 10, n_timesteps = 4, buffer = 1, k = ks, seed = seeds, cpts = cpts, nit = 500, fit_to_train = FALSE),
+    ldats_fit = target(fit_ldats_crossval(dataset, use_folds = T, n_folds = 10, n_timesteps = 2, buffer = 3, k = ks, seed = seeds, cpts = cpts, nit = 500, fit_to_train = FALSE),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2:10),
@@ -109,13 +109,41 @@ if(grepl("ufhpc", nodename)) {
 loadd(all_evals_bbs_rtrg_1_11, cache = cache)
 write.csv(all_evals_bbs_rtrg_1_11, "all_evals_bbs_rtrg_1_11_folds.csv")
 # 
-# ggplot(all_evals_bbs_rtrg_1_11, aes(cpts, group = cpts, y = sum_loglik)) + geom_boxplot()
-# ggplot(all_evals_bbs_rtrg_1_11, aes(cpts, group = cpts, y = sum_loglik, color = test_steps)) + geom_point()
+# all_evals_bbs_rtrg_1_11 <- read.csv("all_evals_bbs_rtrg_1_11_folds.csv")
 # 
-# all_evals_bbs_rtrg_1_11 %>%
-#   group_by(cpts) %>%
-#   summarize(mean_score = mean(sum_loglik))
-
+# 
+# all_evals_bbs_rtrg_1_11 <- all_evals_bbs_rtrg_1_11 %>%
+#   group_by(cpts, k, seed) %>%
+#   summarize(mean_sum_loglik = mean(sum_loglik)) %>%
+#   arrange(desc(mean_sum_loglik))
+# 
+#   head(all_evals_bbs_rtrg_1_11)
+# 
+# ggplot(filter(all_evals_bbs_rtrg_1_11), aes(cpts, group = cpts, y = mean_sum_loglik)) + geom_point() + facet_wrap(vars( k))
+# 
+# 
+# ggplot(filter(all_evals_bbs_rtrg_1_11), aes(cpts, group = cpts, y = mean_sum_loglik, color = as.factor(k))) + geom_point()
+# 
+# 
+# 
+# sd_score <- sd(all_evals_bbs_rtrg_1_11$mean_sum_loglik) / sqrt(nrow(all_evals_bbs_rtrg_1_11))
+# sd_cutoof <-  max(all_evals_bbs_rtrg_1_11$mean_sum_loglik) - 113
+# 
+# 
+# ggplot(filter(all_evals_bbs_rtrg_1_11), aes(cpts, group = cpts, y = mean_sum_loglik, color = as.factor(k))) + geom_point() + geom_hline(yintercept = c(sd_cutoof, quantile(all_evals_bbs_rtrg_1_11$mean_sum_loglik, probs = .95)))
+# 
+# 
+# ggplot(filter(all_evals_bbs_rtrg_1_11, mean_sum_loglik >sd_cutoof), aes(cpts, group = cpts, y = mean_sum_loglik, color = as.factor(k))) + geom_point()
+# 
+# ggplot(all_evals_bbs_rtrg_1_11, aes(cpts, group = cpts, y = mean_sum_loglik, color = test_steps)) + geom_point() 
+# 
+# summary <- all_evals_bbs_rtrg_1_11 %>%
+#   group_by(cpts, k) %>%
+#   summarize(mean_score = mean(mean_sum_loglik)) %>%
+#   arrange(desc(mean_score))
+# 
+# 
+# ggplot(filter(summary), aes(cpts, group = cpts, y = mean_score, color = as.factor(k))) + geom_point()
 
 DBI::dbDisconnect(db)
 rm(cache)
