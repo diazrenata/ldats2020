@@ -1,4 +1,5 @@
 library(dplyr)
+library(LDATS)
 #' Subset data - all subsets
 #'
 #' Wrapper for `subset_data_one` to create a list of all data subsets using 1 timestep of test data per subset and a buffer on either side
@@ -9,10 +10,15 @@ library(dplyr)
 #' @return a list of ntimesteps lists, if ntimesteps is the number of timesteps in `full_dataset`. each list in the list is the output of `subset_data_one` with the test timestep as one of the timesteps in the full dataset. 
 #' @export
 #'
-subset_data_all <- function(full_dataset, buffer_size = 2) {
+subset_data_all <- function(full_dataset, use_folds = FALSE, n_timesteps = 2, n_folds = 5, buffer_size = 2) {
   
+  if(!use_folds) {
   subsetted_data = lapply(1:nrow(full_dataset$abundance), FUN = subset_data_one, full_dataset = full_dataset, buffer_size = buffer_size)
+  }  else{
+   subsetted_data = replicate(n = n_folds, expr = subset_data_one_folds(full_dataset = full_dataset, n_timesteps = n_timesteps, buffer_size = buffer_size), simplify = F) 
+  }
   
+  return(subsetted_data)
 }
 
 #' Subset data - one subset
@@ -55,6 +61,124 @@ subset_data_one <- function(full_dataset, test_timestep, buffer_size) {
   
   return(subsetted_dataset)
   
+}
+
+#' Subset data - one subset
+#' 
+#' Creates a *single* training/test subset for a dataset. 
+#' Witholds a single timestep for testing, and a buffer of timesteps around that timestep.
+#'
+#' @param full_dataset MATSS style dataset. A list with elements `$abundance`, `$covariates`
+#' @param test_timestep Which timestep (row) to withold and use for test
+#' @param buffer_size How many rows to withold on either side (not used for test)
+#'
+#' @return list with elements train (list of $abundance, $covariates), test (list of $abundance, $covariates), full (unaltered full_dataset), test_timestep (which tstep is the test one), buffer_size (buffer size)
+#' @export
+#'
+subset_data_one_folds <- function(full_dataset, n_timesteps, buffer_size) {
+  test_timesteps <- vector()
+  
+  available_timesteps <- 1:nrow(full_dataset$abundance)
+  last_timestep <- nrow(full_dataset$abundance)
+  
+  ntries <- 0
+  
+  while(all(length(test_timesteps) < n_timesteps ,ntries < 100)){
+    candidate <- sample(available_timesteps, 1)
+    
+    candidate_buffer <- c((candidate - buffer_size):(candidate + buffer_size))
+    
+    candidate_buffer <- candidate_buffer[ which(candidate_buffer %in% 1:last_timestep)]
+    
+    if(all(candidate_buffer %in% available_timesteps)) {
+      available_timesteps <- available_timesteps[ which(!(available_timesteps %in% candidate_buffer))]
+      test_timesteps <- c(test_timesteps, candidate)
+    }
+    
+    ntries <- ntries + 1
+  }
+  
+  stopifnot(length(test_timesteps) == n_timesteps)
+  
+  timesteps_to_withold <- vector()
+  for(i in 1:length(test_timesteps)) {
+  timesteps_to_withold <- c(timesteps_to_withold, c((test_timesteps[i] - buffer_size):(test_timesteps[i] + buffer_size)))
+  }
+  
+  timesteps_to_withold <- timesteps_to_withold[ 
+    which(timesteps_to_withold %in% 1:nrow(full_dataset$abundance))]
+  
+  timesteps_to_keep <- 1:nrow(full_dataset$abundance)
+  timesteps_to_keep <- timesteps_to_keep[ which(!(timesteps_to_keep %in% timesteps_to_withold  ))]
+  
+  test_data <- list(
+    abundance = full_dataset$abundance[ test_timesteps, ],
+    covariates = full_dataset$covariates[ test_timesteps, ]
+  )
+  
+  train_data <- list(
+    abundance = full_dataset$abundance[ timesteps_to_keep, ],
+    covariates = full_dataset$covariates[ timesteps_to_keep, ])
+  
+  subsetted_dataset <- list(
+    train = train_data,
+    test = test_data,
+    full = full_dataset,
+    test_timestep = test_timesteps,
+    buffer_size = buffer_size
+  )
+  
+  return(subsetted_dataset)
+  
+}
+
+
+make_long_fold_loglik_df <- function(a_fold) {
+  
+  df <- data.frame(
+    test_steps = toString(a_fold$test_timestep),
+    ntests = length(a_fold$test_timestep),
+    log_lik = a_fold$test_logliks
+  )
+  
+  df
+}
+
+
+make_long_folds_loglik_df <- function(all_folds) {
+  
+  dfs <- lapply(all_folds, make_long_fold_loglik_df)
+  
+  dfs <- bind_rows(dfs)
+  
+  ll_df <- as.data.frame(all_folds[[1]]$model_info)
+  
+  ll_df$nfolds <- length(all_folds)
+
+  cbind(ll_df, dfs)
+  
+  }
+
+
+estimate_fold_loglik <- function(one_fold, summary = "mean") {
+  if(summary == "mean") {
+    return(mean(one_fold$test_logliks))
+  }
+}
+
+make_folds_loglik_df <- function(all_folds) {
+  
+  ll_df <- as.data.frame(all_folds[[1]]$model_info)
+  
+  ll_df$nfolds <- length(all_folds)
+  
+  sum_loglik <- vapply(all_folds, estimate_fold_loglik, FUN.VALUE = 100)
+  
+  ntests <- vapply(all_folds, FUN = function(a_fold) return(length(a_fold$test_timestep)), FUN.VALUE = 2)
+  
+  test_steps <- vapply(all_folds, FUN = function(a_fold) return(toString(a_fold$test_timestep)), FUN.VALUE = "1, 2")
+  
+  cbind(ll_df, sum_loglik, ntests, test_steps)
 }
 
 #' Subset an LDA model
@@ -205,7 +329,13 @@ get_one_test_loglik <- function(
   
   test_row_number <- subsetted_dataset_item$test_timestep
   
-  test_loglik <- dmultinom(x = test_dat, prob = abund_probabilities_one[test_row_number,], log = TRUE)
+  test_logliks <- vector()
+  
+  for(i in 1:length(test_row_number)) {
+    test_logliks <- c(test_logliks, dmultinom(x = test_dat[i, ], prob = abund_probabilities_one[test_row_number[i],], log = TRUE))
+  }
+  
+  test_loglik <- sum(test_logliks)
   
   return(test_loglik)
 }
@@ -548,24 +678,30 @@ multinom_theta <- function (subsetted_dataset_item, ts_model, sim = 1)
   }
   
   
-  fit_ldats_crossval <- function(dataset, buffer = 2, k, seed, cpts, nit, fit_to_train = FALSE) {
+  fit_ldats_crossval <- function(dataset, use_folds = F, n_folds = 5, n_timesteps = 2, buffer = 2, k, seed, cpts, nit, fit_to_train = FALSE, fold_seed = 1977) {
+    if(!is.null(fold_seed)) {
+    set.seed(fold_seed)
+    }
     
-    all_subsets <- subset_data_all(dataset, buffer_size = buffer)
+    all_subsets <- subset_data_all(dataset, use_folds = use_folds, n_folds = n_folds, n_timesteps = n_timesteps, buffer_size = buffer)
     
     all_ldats_fits <- lapply(all_subsets, FUN = ldats_subset_one, k = k, seed = seed, cpts = cpts, nit = nit, fit_to_train = fit_to_train)
     
     return(all_ldats_fits)
   }
   
-  eval_ldats_crossval <- function(ldats_fits, nests = 100) {
-    estimates <- estimate_ts_loglik(ldats_fits, nests = nests)
+  eval_ldats_crossval <- function(ldats_fits, nests = 100, use_folds = F) {
+    if(!use_folds) {
+      estimates <- estimate_ts_loglik(ldats_fits, nests = nests)
     
     ll_df <- make_ll_df(estimates)
     
     single_ll <- singular_ll(ldats_fits)
     
     ll_df <- dplyr::left_join(ll_df, single_ll)
-    
+    } else{
+      ll_df <- make_folds_loglik_df(ldats_fits)
+    }
     return(ll_df)
     
   }
@@ -614,3 +750,4 @@ multinom_theta <- function (subsetted_dataset_item, ts_model, sim = 1)
     
     return(pred_plot)
   }
+  
