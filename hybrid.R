@@ -29,11 +29,11 @@ datasets <- datasets[m,]
 
 #if(FALSE){
 methods <- drake::drake_plan(
-  ldats_fit = target(fit_ldats_hybrid(dataset, use_folds = T, n_folds = 20, n_timesteps = 2, buffer = 2, k = ks, seed = seeds, cpts = c(0:5), nit = 500),
+  ldats_fit = target(fit_ldats_hybrid(dataset, use_folds = T, n_folds = 20, n_timesteps = 2, buffer = 2, k = ks, seed = seeds, cpts = c(0:5), nit = 100),
                      transform = cross(
                        dataset = !!rlang::syms(datasets$target),
                        ks = !!c(2:10),
-                       seeds = !!seq(2, 10, by = 2)
+                       seeds = !!seq(2, 50, by = 2)
                        )),
   ldats_eval = target(eval_ldats_crossval(ldats_fit, use_folds = T),
                       transform = map(ldats_fit)
