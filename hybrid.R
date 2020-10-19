@@ -23,8 +23,8 @@ datasets <- build_bbs_datasets_plan()
 
 
 m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
-
-datasets <- datasets[m,]
+n <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # hartland
+datasets <- datasets[c(m, n),]
 
 
 #if(FALSE){

@@ -24,8 +24,16 @@ all_evals_bbs_rtrg_1_11_summary <- all_evals_bbs_rtrg_1_11 %>%
 
 head(all_evals_bbs_rtrg_1_11_summary)
 
+View(all_evals_bbs_rtrg_1_11_summary[1:25, ])
+
 ggplot(all_evals_bbs_rtrg_1_11_summary, aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) +
   geom_point()
+
+
+ggplot(all_evals_bbs_rtrg_1_11_summary, aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) +
+  geom_point(alpha = .2)
+
+
 
 
 load("bbs_1_11.RData")
