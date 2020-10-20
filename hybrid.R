@@ -20,7 +20,7 @@ library(LDATS)
 
 ## a Drake plan for creating the datasets
 #  - these are the default options, which don't include downloaded datasets
-#datasets <- build_bbs_datasets_plan()
+datasets <- build_bbs_datasets_plan()
 
 
 m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
