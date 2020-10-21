@@ -94,3 +94,31 @@ ts_fit <- LDATS::TS_on_LDA(lda_fit[[1]], as.data.frame(bbs_rtrg_102_18$covariate
 plot(lda_fit)
 plot(ts_fit[[1]])
 
+
+#####
+
+all_evals <- read.csv("all_evals_hybrid.csv")
+
+all_evals <- all_evals %>%
+  mutate(k_seed = paste(k,seed, sep = "_"))
+
+ggplot(all_evals, aes(as.factor(k), sum_loglik, color = as.factor(cpts), group = k_seed)) + geom_boxplot() + facet_wrap(vars(dataset), scales = "free_y")
+
+all_evals_summary <- all_evals %>%
+  group_by(dataset, k, seed, cpts) %>%
+  summarize(mean_sum_ll = mean(sum_loglik)) %>%
+  arrange(desc(mean_sum_ll)) %>%
+  group_by(dataset) %>%
+  mutate(dat_rank = row_number())
+
+
+View(filter(all_evals_summary, dat_rank < 6))
+
+ggplot(all_evals_bbs_rtrg_102_18_summary, aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) +
+  geom_point()
+
+
+ggplot(all_evals_bbs_rtrg_102_18_summary, aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) +
+  geom_point(alpha = .2)
+
+

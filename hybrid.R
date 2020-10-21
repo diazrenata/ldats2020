@@ -6,13 +6,6 @@ source(here::here("hybrid_fxns.R"))
 source(here::here("make_toy_data_objects.R"))
 library(MATSS)
 library(LDATS)
-# load("bbs_1_11.RData")
-# 
-# 
-# 
-# hybrid_fit <- fit_ldats_hybrid(bbs_rtrg_1_11, k = 2, cpts = c(0:1), seed = 2, nit = 100, use_folds = T, n_folds = 2, n_timesteps = 2, buffer = 2, fold_seed = 1977)
-# 
-# hybrid_eval <- eval_ldats_crossval(hybrid_fit, use_folds = T)
 
 ## include the functions in packages as dependencies
 #  - this is to help Drake recognize that targets need to be rebuilt if the
@@ -24,8 +17,17 @@ datasets <- build_bbs_datasets_plan()
 
 
 m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
-n <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # hartland
-datasets <- datasets[c(m, n),]
+
+stories_codes = c("rtrg_304_17",
+              "rtrg_102_18",
+              "rtrg_105_4",
+              "rtrg_133_6",
+              "rtrg_19_35",
+              "rtrg_172_14")
+
+stories_codes <- vapply(stories_codes, FUN = function(story) return(min(which(grepl(datasets$target, pattern = story)))), FUN.VALUE = 1)
+
+datasets <- datasets[c(m, stories_codes),]
 
 toy_dataset_files <- list.files(here::here("toy_datasets"), pattern= ".csv")
 toy_dataset_files <- unlist(strsplit(toy_dataset_files, split = ".csv"))
