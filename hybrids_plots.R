@@ -112,6 +112,10 @@ all_evals_summary <- all_evals %>%
   mutate(dat_rank = row_number())
 
 
+ggplot(filter(all_evals_summary, dat_rank < 10), aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) + geom_point() + facet_wrap(vars(dataset), scales = "free_y")
+
+
+
 View(filter(all_evals_summary, dat_rank < 6))
 
 ggplot(all_evals_bbs_rtrg_102_18_summary, aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) +
