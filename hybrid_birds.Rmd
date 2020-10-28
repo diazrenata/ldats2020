@@ -1,0 +1,137 @@
+---
+title: "Hybrid results 10/2020"
+output: github_document
+---
+
+Including history of the crossval approach, how I've arrived at a combined crossval + AIC approach, and what I see as paths from here....
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+library(LDATS)
+source(here::here("crossval_fxns.R"))
+source(here::here("hybrid_fxns.R"))
+```
+
+```{r}
+
+all_evals <- read.csv("all_evals_hybrid.csv")
+
+all_evals <- all_evals %>%
+  mutate(k_seed = paste(k,seed, sep = "_")) %>%
+  filter(grepl(dataset, pattern = "bbs"))
+  
+
+ggplot(all_evals, aes(as.factor(k), sum_loglik, color = as.factor(cpts), group = k_seed)) + geom_boxplot() + facet_wrap(vars(dataset), scales = "free_y")
+
+# there is a lot of spread per model, and overlap.
+# taking this as NOT problematic....precedent, AIC is often calculated off the mean.
+
+# look at the mean
+
+all_evals_summary <- all_evals %>%
+  group_by(dataset, k, seed, cpts) %>%
+  summarize(mean_sum_ll = mean(sum_loglik)) %>%
+  arrange(desc(mean_sum_ll)) %>%
+  group_by(dataset) %>%
+  mutate(dat_rank = row_number())
+
+
+ggplot(filter(all_evals_summary), aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) + 
+  geom_point() + 
+  facet_wrap(vars(dataset), scales = "free_y")
+
+# Some but not all have clear winners. 
+head(filter(all_evals_summary, dat_rank < 6))
+
+# all_evals_bbs_rtrg_304_17 seems tied between 2, 6, or 10 (!!!) topics
+# all_evals_bbs_rtrg_105_4 is an example of one with clear winners.
+
+#### load datasets ####
+load(here::here("hybrid_datasets.RData"))
+```
+
+## 105_4
+
+```{r 105 4}
+
+head(filter(all_evals_summary, dataset == "all_evals_bbs_rtrg_105_4"))
+
+# the winner for this dataset is 3 topics, seed = 12, 1 cpt.
+
+long_105_4 <- bbs_rtrg_105_4$abundance %>%
+  mutate(year = bbs_rtrg_105_4$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
+
+ggplot(long_105_4, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme(legend.position = "none") +
+  scale_color_viridis_d()
+
+lda_105_4 <- LDATS::LDA_set_user_seeds(bbs_rtrg_105_4$abundance, topics = 3, seed = 12)
+
+plot_lda_comp(lda_105_4)
+plot_lda_year(lda_105_4, bbs_rtrg_105_4$covariates$year) +
+  facet_wrap(vars(topic))
+
+ts_105_4 <- LDATS::TS_on_LDA(lda_105_4, as.data.frame(bbs_rtrg_105_4$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = LDATS::TS_control(nit = 100))
+
+gamma_plot(ts_105_4[[1]])
+rho_plot(ts_105_4[[1]])
+```
+
+### 304_17
+
+```{r 304 17}
+
+head(filter(all_evals_summary, dataset == "all_evals_bbs_rtrg_304_17"))
+
+# the winner for this dataset is 3 topics, seed = 12, 1 cpt.
+
+long_304_17 <- bbs_rtrg_304_17$abundance %>%
+  mutate(year = bbs_rtrg_304_17$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
+
+ggplot(long_304_17, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme(legend.position = "none") +
+  scale_color_viridis_d()
+
+lda_304_17_2<- LDATS::LDA_set_user_seeds(bbs_rtrg_304_17$abundance, topics = 2, seed = 8)
+lda_304_17_6<- LDATS::LDA_set_user_seeds(bbs_rtrg_304_17$abundance, topics = 6, seed = 10)
+lda_304_17_10<- LDATS::LDA_set_user_seeds(bbs_rtrg_304_17$abundance, topics = 10, seed = 10)
+
+
+
+
+ts_304_17_2 <- LDATS::TS_on_LDA(lda_304_17_2
+, as.data.frame(bbs_rtrg_304_17$covariates), formulas = ~1, nchangepoints = 0, timename = "year", control = LDATS::TS_control(nit = 100))
+
+ts_304_17_6 <- LDATS::TS_on_LDA(lda_304_17_6
+, as.data.frame(bbs_rtrg_304_17$covariates), formulas = ~1, nchangepoints = 0, timename = "year", control = LDATS::TS_control(nit = 100))
+
+
+ts_304_17_10 <- LDATS::TS_on_LDA(lda_304_17_10
+, as.data.frame(bbs_rtrg_304_17$covariates), formulas = ~1, nchangepoints = 0, timename = "year", control = LDATS::TS_control(nit = 100))
+
+
+plot_lda_comp(lda_304_17_2)
+plot_lda_year(lda_304_17_2, bbs_rtrg_304_17$covariates$year) +
+  facet_wrap(vars(topic))
+gamma_plot(ts_304_17_2[[1]])
+
+plot_lda_comp(lda_304_17_6)
+plot_lda_year(lda_304_17_6, bbs_rtrg_304_17$covariates$year) +
+  facet_wrap(vars(topic))
+gamma_plot(ts_304_17_6[[1]])
+
+plot_lda_comp(lda_304_17_10)
+plot_lda_year(lda_304_17_10, bbs_rtrg_304_17$covariates$year) +
+  facet_wrap(vars(topic))
+gamma_plot(ts_304_17_10[[1]])
+
+```
+
+I **think** this means things are too static/random to extract a strong temporal structure. Not sure though.

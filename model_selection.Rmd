@@ -1,0 +1,86 @@
+---
+title: "Model selection 10/2020"
+output: github_document
+---
+
+Including history of the crossval approach, how I've arrived at a combined crossval + AIC approach, and what I see as paths from here....
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+library(LDATS)
+source(here::here("crossval_fxns.R"))
+source(here::here("hybrid_fxns.R"))
+
+load(here::here("bbs_1_11.RData"))
+```
+
+As an example, working with this BBS dataset (`rtrg_1_11`):
+
+```{r plot bbs data}
+
+long_abund <- bbs_rtrg_1_11$abundance %>%
+  mutate(year = bbs_rtrg_1_11$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to ="abundance") %>%
+  group_by(year) %>%
+  mutate(total_abund = sum(abundance)) %>%
+  ungroup()%>%
+  mutate(prop_abund = abundance/total_abund)
+
+ggplot(long_abund, aes(year, prop_abund, color = species)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_d(end = .9) +
+  theme(legend.position = "none")
+
+```
+### Classic LDATS
+
+Initially, LDATs was set up to select a combination of an LDA and a TS model sequentially using AIC(c). First we fit many LDA models with a variety of `k` and `seed`, and select the best-fitting LDA model based on AIC. Then we use the topic proportions (`gamma`) from that model to fit several TS models with a variety of `nchangepoints` and `formula`. We select the best TS model based on AIC(c). 
+
+```{r classic LDATs LDAs, echo = T}
+
+classic_LDAs <- LDATS::LDA_set(bbs_rtrg_1_11$abundance, topics = c(2,3,5,6,9,11,13,15), nseeds = 1)
+
+classic_LDA_select <- LDATS::select_LDA(classic_LDAs)
+
+plot_lda_comp(classic_LDA_select)
+plot_lda_year(classic_LDA_select, bbs_rtrg_1_11$covariates$year)
+```
+
+Right away this illustrates an issue, which we did not have with Portal. The best-fitting LDA, using AIC, has **eleven** topics. This is dimensionality reduction from >80 species, which is what we start with in this dataset, but is still not intuitive. Also, as is evident from the plot of the gammas over time, the topics behave idiosyncratically over time and several topics appear to be precisely fit to one or a few time steps. These are **very complicated** temporal dynamics, and it's going to be hard for a changepoint model to distill any kind of pattern out of them:
+
+```{r classic LDATs TS}
+
+classic_TS <- LDATS::TS_on_LDA(classic_LDA_select, as.data.frame(bbs_rtrg_1_11$covariates), formulas = ~ 1, nchangepoints = c(0:3), timename = "year", control = LDATS::TS_control(nit = 100))
+
+classic_TS_select <- LDATS::select_TS(classic_TS)
+
+gamma_plot(classic_TS_select)
+
+```
+
+We don't catch any dynamics; the best the TS can do is to fit the intercept for every topic.
+
+This tendency is suboptimal for our purposes; we've got an over-fit LDA that then hamstrings our ability to get any kind of a meaningful TS fit. 
+
+We're really looking for a **combined** LDA + TS that allow us to give a reasonable summary of how species - by way of topics - are changing, without spurious complexity.
+
+This moved us into crossvalidation.
+
+### Crossvalidaton
+
+I set up a crossvalidation model selection pipeline where:
+
+* Withhold a section of timestep(s) + a buffer
+* Fit numerous LDA and TS combinations to the training data
+* Test the fitted model's performance as its ability to predict the withheld observations
+* Use many subsets per model specification and aggregate
+
+There are some variants and details in the crossvalidation methods:
+
+* A single LDA seed + number of topics, fit to slightly different subsets of a dataset, can lead to **very** different gamma and beta matrices. This makes it nonsensical to re-aggregate the models fit to the different subsets. I switched to 
+
+
