@@ -1,0 +1,144 @@
+---
+title: "Hybrid results 10/2020"
+output: github_document
+---
+
+Including history of the crossval approach, how I've arrived at a combined crossval + AIC approach, and what I see as paths from here....
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+library(LDATS)
+source(here::here("crossval_fxns.R"))
+source(here::here("hybrid_fxns.R"))
+```
+
+```{r}
+
+all_evals <- read.csv("all_evals_hybrid.csv")
+
+all_evals <- all_evals %>%
+  mutate(k_seed = paste(k,seed, sep = "_")) %>%
+  filter(grepl(dataset, pattern = "toy"))
+  
+
+ggplot(all_evals, aes(as.factor(k), sum_loglik, color = as.factor(cpts), group = k_seed)) + geom_boxplot() + facet_wrap(vars(dataset), scales = "free_y")
+
+# there is a lot of spread per model, and overlap.
+# taking this as NOT problematic....precedent, AIC is often calculated off the mean.
+
+# look at the mean
+
+all_evals_summary <- all_evals %>%
+  group_by(dataset, k, seed, cpts) %>%
+  summarize(mean_sum_ll = mean(sum_loglik)) %>%
+  arrange(desc(mean_sum_ll)) %>%
+  group_by(dataset) %>%
+  mutate(dat_rank = row_number())
+
+
+ggplot(filter(all_evals_summary), aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) + 
+  geom_point() + 
+  facet_wrap(vars(dataset), scales = "free_y")
+
+# Some but not all have clear winners. 
+head(filter(all_evals_summary, dat_rank < 6))
+
+
+#### load datasets ####
+load(here::here("hybrid_datasets.RData"))
+```
+
+## static_changepoint
+
+```{r static changepoint}
+
+head(filter(all_evals_summary, dataset == "all_evals_toy_static_changepoint"))
+
+# the winner for this dataset is 2 topics, seed = 20, 1 cpt.
+
+long_static_changepoint <- toy_static_changepoint$abundance %>%
+  mutate(year = toy_static_changepoint$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
+
+ggplot(long_static_changepoint, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme(legend.position = "none") +
+  scale_color_viridis_d()
+
+lda_static_changepoint<- LDATS::LDA_set_user_seeds(toy_static_changepoint$abundance, topics = 2, seed = 20)
+
+plot_lda_comp(lda_static_changepoint)
+plot_lda_year(lda_static_changepoint, toy_static_changepoint$covariates$year)
+plot_lda_year(lda_static_changepoint, toy_static_changepoint$covariates$year) +
+  facet_wrap(vars(topic))
+
+ts_static_changepoint <- LDATS::TS_on_LDA(lda_static_changepoint, as.data.frame(toy_static_changepoint$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = LDATS::TS_control(nit = 100))
+
+gamma_plot(ts_static_changepoint[[1]])
+rho_plot(ts_static_changepoint[[1]])
+```
+
+
+## directional_changepoint
+
+```{r directional changepoint}
+
+head(filter(all_evals_summary, dataset == "all_evals_toy_directional_changepoint"))
+
+# the winner for this dataset is 5 topics, seed = 4, 2 cpt.
+
+long_directional_changepoint <- toy_directional_changepoint$abundance %>%
+  mutate(year = toy_directional_changepoint$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
+
+ggplot(long_directional_changepoint, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme(legend.position = "none") +
+  scale_color_viridis_d()
+
+lda_directional_changepoint<- LDATS::LDA_set_user_seeds(toy_directional_changepoint$abundance, topics = 5, seed = 4)
+
+plot_lda_comp(lda_directional_changepoint)
+
+plot_lda_year(lda_directional_changepoint, toy_directional_changepoint$covariates$year) 
+plot_lda_year(lda_directional_changepoint, toy_directional_changepoint$covariates$year) +
+  facet_wrap(vars(topic))
+
+ts_directional_changepoint <- LDATS::TS_on_LDA(lda_directional_changepoint, as.data.frame(toy_directional_changepoint$covariates), formulas = ~1, nchangepoints = 2, timename = "year", control = LDATS::TS_control(nit = 100))
+
+gamma_plot(ts_directional_changepoint[[1]])
+rho_plot(ts_directional_changepoint[[1]])
+```
+## directional
+
+```{r directional}
+
+head(filter(all_evals_summary, dataset == "all_evals_toy_directional"))
+
+# the winner for this dataset is 4 topics, seed = 4, 1 cpt.
+
+long_directional <- toy_directional$abundance %>%
+  mutate(year = toy_directional$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
+
+ggplot(long_directional, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme(legend.position = "none") +
+  scale_color_viridis_d()
+
+lda_directional<- LDATS::LDA_set_user_seeds(toy_directional$abundance, topics = 4, seed = 4)
+
+plot_lda_comp(lda_directional)
+
+plot_lda_year(lda_directional, toy_directional$covariates$year) 
+plot_lda_year(lda_directional, toy_directional$covariates$year) +
+  facet_wrap(vars(topic))
+
+ts_directional <- LDATS::TS_on_LDA(lda_directional, as.data.frame(toy_directional$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = LDATS::TS_control(nit = 100))
+
+gamma_plot(ts_directional[[1]])
+rho_plot(ts_directional[[1]])
+```
