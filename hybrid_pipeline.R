@@ -32,8 +32,10 @@ datasets <- datasets[c(m, stories_codes),]
 toy_dataset_files <- list.files(here::here("analysis", "toy_datasets"), pattern= ".csv")
 toy_dataset_files <- unlist(strsplit(toy_dataset_files, split = ".csv"))
 
+toy_path <- here::here("analysis", "toy_datasets")
+
 toy_datasets <- drake::drake_plan(
-  toy = target(get_toy_data(dataset_name, toy_datasets_path = "toy_datasets"),
+  toy = target(get_toy_data(dataset_name, toy_datasets_path = toy_path),
                transform = map(dataset_name = !!toy_dataset_files))
 )
 
