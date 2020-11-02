@@ -1,0 +1,96 @@
+---
+title: "New toy datasets"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+bbs_dat <- MATSS::get_bbs_route_region_data(path = "C:\\\\Users\\\\diaz.renata\\\\Documents\\\\Datasets/breed-bird-survey-prepped/route1region11.RDS")
+
+bbs_abunds <- rowSums(bbs_dat$abundance)
+
+bbs_s0 <- ncol(bbs_dat$abundance)
+
+bbs_mean_abunds <- colMeans(bbs_dat$abundance)
+
+```
+
+So a BBS dataset might have `r length(bbs_abunds)` timesteps and `r bbs_s0` species, with abundances like `r mean(bbs_abunds)`. 
+
+
+```{r}
+
+set.seed(1977)
+
+mean_abunds <- as.vector(bbs_mean_abunds) / sum(bbs_mean_abunds)
+
+rmultinom(1, bbs_abunds[1], mean_abunds)
+
+static_ts <- t(apply(as.matrix(bbs_abunds), MARGIN = 1, FUN = function(ts_abund, mean_abunds) return(rmultinom(1, ts_abund, mean_abunds)), mean_abunds = mean_abunds)) %>%
+  as.data.frame() 
+
+static_ts_long <- static_ts %>%
+  mutate(year = row_number()) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
+
+
+ggplot(static_ts_long, aes(year, abundance, color = species)) +
+  geom_line() +
+  scale_color_viridis_d(end = .9) +
+  theme_bw() +
+  theme(legend.position = "none") 
+
+
+changepoint_ts <- rbind(
+   t(apply(as.matrix(bbs_abunds[1:15]), MARGIN = 1, FUN = function(ts_abund, mean_abunds) return(rmultinom(1, ts_abund, mean_abunds)), mean_abunds = mean_abunds)),
+    t(apply(as.matrix(bbs_abunds[16:23]), MARGIN = 1, FUN = function(ts_abund, mean_abunds) return(rmultinom(1, ts_abund, mean_abunds)), mean_abunds = sample(mean_abunds, size = 82, replace = F))
+    )
+) %>%
+  as.data.frame()
+
+
+changepoint_ts_long <- changepoint_ts %>%
+  mutate(year = row_number()) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
+
+ggplot(changepoint_ts_long, aes(year, abundance, color = species)) +
+  geom_line() +
+  scale_color_viridis_d(end = .9) +
+  theme_bw() +
+  theme(legend.position = "none") 
+
+two_changepoint_ts <- rbind(
+   t(apply(as.matrix(bbs_abunds[1:8]), MARGIN = 1, FUN = function(ts_abund, mean_abunds) return(rmultinom(1, ts_abund, mean_abunds)), mean_abunds = mean_abunds)),
+    t(apply(as.matrix(bbs_abunds[9:18]), MARGIN = 1, FUN = function(ts_abund, mean_abunds) return(rmultinom(1, ts_abund, mean_abunds)), mean_abunds = sample(mean_abunds, size = 82, replace = F))),
+   t(apply(as.matrix(bbs_abunds[19:23]), MARGIN = 1, FUN = function(ts_abund, mean_abunds) return(rmultinom(1, ts_abund, mean_abunds)), mean_abunds = sample(mean_abunds, size = 82, replace = F)))
+) %>%
+  as.data.frame()
+
+
+two_changepoint_ts_long <- two_changepoint_ts %>%
+  mutate(year = row_number()) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
+
+ggplot(two_changepoint_ts_long, aes(year, abundance, color = species)) +
+  geom_line() +
+  scale_color_viridis_d(end = .9) +
+  theme_bw() +
+  theme(legend.position = "none") 
+```
+
+```{r}
+write.csv(changepoint_ts, here::here("analysis", "toy_datasets", "new_changepoint.csv"), row.names = F)
+
+write.csv(two_changepoint_ts, here::here("analysis", "toy_datasets", "new_two_changepoint.csv"), row.names = F)
+
+write.csv(static_ts, here::here("analysis", "toy_datasets", "new_static.csv"), row.names = F)
+
+
+
+
+```

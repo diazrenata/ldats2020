@@ -1,9 +1,9 @@
 library(drake)
 library(ggplot2)
 library(dplyr)
-source(here::here("crossval_fxns.R"))
-source(here::here("hybrid_fxns.R"))
-source(here::here("make_toy_data_objects.R"))
+source(here::here("analysis", "fxns", "crossval_fxns.R"))
+source(here::here("analysis", "fxns", "hybrid_fxns.R"))
+source(here::here("analysis", "fxns", "make_toy_data_objects.R"))
 library(MATSS)
 library(LDATS)
 
@@ -29,7 +29,7 @@ stories_codes <- vapply(stories_codes, FUN = function(story) return(min(which(gr
 
 datasets <- datasets[c(m, stories_codes),]
 
-toy_dataset_files <- list.files(here::here("toy_datasets"), pattern= ".csv")
+toy_dataset_files <- list.files(here::here("analysis", "toy_datasets"), pattern= ".csv")
 toy_dataset_files <- unlist(strsplit(toy_dataset_files, split = ".csv"))
 
 toy_datasets <- drake::drake_plan(
@@ -103,10 +103,7 @@ if(grepl("ufhpc", nodename)) {
   # Run the pipeline on multiple local cores
   system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log_hybrid.txt")))
 }
-# 
-# 
-# loadd(all_evals_bbs_rtrg_1_11, cache = cache)
-# write.csv(all_evals_bbs_rtrg_1_11, "all_evals_bbs_rtrg_1_11_hybrid.csv")
+
 
 
 all_evals_objs <- methods$target[which(grepl(methods$target, pattern = "all_evals"))]
@@ -123,7 +120,7 @@ for(i in 1:length(all_evals_objs)) {
 
 all_evals_df <- bind_rows(all_evals_list)
 
-write.csv(all_evals_df, "all_evals_hybrid.csv", row.names = F)
+write.csv(all_evals_df, here::here("analysis", "all_evals_hybrid.csv"), row.names = F)
 
 
 DBI::dbDisconnect(db)
