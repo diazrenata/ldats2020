@@ -47,7 +47,7 @@ methods <- drake::drake_plan(
                      transform = cross(
                        dataset = !!rlang::syms(datasets$target),
                        ks = !!c(2:10),
-                       seeds = !!seq(2, 22, by = 2)
+                       seeds = !!seq(2, 102, by = 2)
                        )),
   ldats_eval = target(eval_ldats_crossval(ldats_fit, use_folds = T),
                       transform = map(ldats_fit)
