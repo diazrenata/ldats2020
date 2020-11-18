@@ -59,6 +59,10 @@ get_toy_data <- function(toy_dataset_name, toy_datasets_path) {
   
   dat$abundance <- read.csv(file.path(toy_datasets_path, paste0(toy_dataset_name, ".csv")), stringsAsFactors = F)
   
-  dat$covariates <- data.frame(year = 1:nrow(dat$abundance), dummycol = "ignore_me")
+  if(toy_dataset_name != "rodents") {
   
+  dat$covariates <- data.frame(year = 1:nrow(dat$abundance), dummycol = "ignore_me")
+  } else {
+    dat$covariates <- read.csv(file.path(toy_datasets_path, "rodents_covariates.csv"), stringsAsFactors = F)
+  }
 dat}

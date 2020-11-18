@@ -1,0 +1,84 @@
+---
+title: "Annual rats: classic v hybrid"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+library(LDATS)
+source(here::here("analysis", "fxns", "crossval_fxns.R"))
+source(here::here("analysis", "fxns","hybrid_fxns.R"))
+source(here::here("analysis", "fxns","make_toy_data_objects.R"))
+
+```
+
+```{r}
+
+annual_rats <- get_toy_data("rodents_annual",  here::here("analysis", "toy_datasets"))
+
+annual_rats_long <- annual_rats$abundance %>%
+  mutate(year = annual_rats$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance") %>%
+  group_by(year) %>%
+  mutate(annual_total = sum(abundance)) %>%
+  ungroup() %>%
+  mutate(prop_abund = abundance / annual_total)
+
+ggplot(annual_rats_long, aes(year, abundance, color = species)) + geom_line(size = 2) +
+   theme_bw() + scale_color_viridis_d(end = .8)
+
+
+ggplot(annual_rats_long, aes(year, prop_abund, color = species)) + geom_line(size = 2) +
+   theme_bw() + scale_color_viridis_d(end = .8)
+
+```
+
+## ldats classic
+
+```{r}
+
+#classic_ldas <- LDATS::LDA_set(annual_rats$abundance, topics = c(2:10), nseeds = 200)
+
+classic_ldas <- readRDS(here::here("analysis", "reports", "annual_ldas.Rds"))
+
+
+selected_lda <- LDATS::select_LDA(classic_ldas)
+
+lda_aic <- lapply(classic_ldas, FUN = function(lda_fit) return(data.frame(k = lda_fit@k, seed = lda_fit@control@seed, aic = AIC(lda_fit))))
+
+lda_aic <- bind_rows(lda_aic)
+
+ggplot(lda_aic, aes(k, aic)) +
+  geom_point()
+
+plot_lda_comp(selected_lda)
+
+plot(selected_lda)
+
+```
+
+```{r monthly}
+
+monthly_rats <- get_toy_data("rodents", here::here("analysis", "toy_datasets", "monthly"))
+
+#monthly_ldas <- LDATS::LDA_set(monthly_rats$abundance, topics = c(2:10), nseeds = 50)
+
+monthly_ldas <- readRDS(here::here("analysis", "reports", "monthy_ldas.Rds"))
+
+monthly_selected_lda <- LDATS::select_LDA(monthly_ldas)
+
+plot_lda_comp(monthly_selected_lda)
+plot(monthly_selected_lda)
+
+
+lda_aic_monthly <- lapply(monthly_ldas, FUN = function(lda_fit) return(data.frame(k = lda_fit@k, seed = lda_fit@control@seed, aic = AIC(lda_fit))))
+
+lda_aic_monthly <- bind_rows(lda_aic_monthly)
+
+ggplot(lda_aic_monthly, aes(k, aic)) +
+  geom_point()
+
+
+```
