@@ -11,17 +11,18 @@ knitr::opts_chunk$set(echo = FALSE)
 library(dplyr)
 library(ggplot2)
 library(LDATS)
-source(here::here("crossval_fxns.R"))
-source(here::here("hybrid_fxns.R"))
+source(here::here("analysis", "fxns", "crossval_fxns.R"))
+source(here::here("analysis", "fxns", "hybrid_fxns.R"))
+source(here::here("analysis", "fxns", "make_toy_data_objects.R"))
 ```
 
 ```{r}
 
-all_evals <- read.csv("all_evals_hybrid.csv")
+all_evals <- read.csv(here::here("analysis", "all_evals_hybrid.csv"))
 
 all_evals <- all_evals %>%
   mutate(k_seed = paste(k,seed, sep = "_")) %>%
-  filter(grepl(dataset, pattern = "toy"))
+  filter(grepl(dataset, pattern = "toy_new"))
   
 
 ggplot(all_evals, aes(as.factor(k), sum_loglik, color = as.factor(cpts), group = k_seed)) + geom_boxplot() + facet_wrap(vars(dataset), scales = "free_y")
@@ -44,101 +45,130 @@ ggplot(filter(all_evals_summary), aes(as.factor(k), mean_sum_ll, color = as.fact
   facet_wrap(vars(dataset), scales = "free_y")
 
 # Some but not all have clear winners. 
-head(filter(all_evals_summary, dat_rank < 6))
+(filter(all_evals_summary, dat_rank < 6))
 
-
-#### load datasets ####
-load(here::here("hybrid_datasets.RData"))
 ```
 
-## static_changepoint
+## New static
+```{r static}
 
-```{r static changepoint}
+static <- get_toy_data("new_static", here::here("analysis", "toy_datasets"))
 
-head(filter(all_evals_summary, dataset == "all_evals_toy_static_changepoint"))
+static_long <- static$abundance %>%
+  mutate(year = static$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
 
-# the winner for this dataset is 2 topics, seed = 20, 1 cpt.
-
-long_static_changepoint <- toy_static_changepoint$abundance %>%
-  mutate(year = toy_static_changepoint$covariates$year) %>%
-  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
-
-ggplot(long_static_changepoint, aes(year, abundance, color = species)) +
+ggplot(static_long, aes(year, abundance, color = species)) +
   geom_line() +
+  theme_bw() +
   theme(legend.position = "none") +
-  scale_color_viridis_d()
+  scale_color_viridis_d(end = .8)
 
-lda_static_changepoint<- LDATS::LDA_set_user_seeds(toy_static_changepoint$abundance, topics = 2, seed = 20)
+(filter(all_evals_summary, dat_rank < 6, dataset == "all_evals_toy_new_static"))
 
-plot_lda_comp(lda_static_changepoint)
-plot_lda_year(lda_static_changepoint, toy_static_changepoint$covariates$year)
-plot_lda_year(lda_static_changepoint, toy_static_changepoint$covariates$year) +
-  facet_wrap(vars(topic))
+static_ldas <- LDATS::LDA_set_user_seeds(static$abundance,  topics = c(3, 5, 8, 9), seed = 16)
 
-ts_static_changepoint <- LDATS::TS_on_LDA(lda_static_changepoint, as.data.frame(toy_static_changepoint$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = LDATS::TS_control(nit = 100))
+for(i in 1:4) {
+  print(plot_lda_year(static_ldas[[i]], static$covariates$year))
+}
 
-gamma_plot(ts_static_changepoint[[1]])
-rho_plot(ts_static_changepoint[[1]])
+static_ts <- LDATS::TS_on_LDA(static_ldas, as.data.frame(static$covariates), formulas = ~1, nchangepoints = 0,timename = "year", control = LDATS::TS_control(nit = 100))
+
+for(i in 1:4) {
+  print(gamma_plot(static_ts[[i]], static$covariates$year))
+}
 ```
 
+## New changepoint
+```{r changepoint}
 
-## directional_changepoint
+changepoint <- get_toy_data("new_changepoint", here::here("analysis", "toy_datasets"))
 
-```{r directional changepoint}
+changepoint_long <- changepoint$abundance %>%
+    mutate(year = changepoint$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
 
-head(filter(all_evals_summary, dataset == "all_evals_toy_directional_changepoint"))
-
-# the winner for this dataset is 5 topics, seed = 4, 2 cpt.
-
-long_directional_changepoint <- toy_directional_changepoint$abundance %>%
-  mutate(year = toy_directional_changepoint$covariates$year) %>%
-  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
-
-ggplot(long_directional_changepoint, aes(year, abundance, color = species)) +
+ggplot(changepoint_long, aes(year, abundance, color = species)) +
   geom_line() +
+  theme_bw() +
   theme(legend.position = "none") +
-  scale_color_viridis_d()
+  scale_color_viridis_d(end = .8)
 
-lda_directional_changepoint<- LDATS::LDA_set_user_seeds(toy_directional_changepoint$abundance, topics = 5, seed = 4)
+(filter(all_evals_summary, dat_rank < 6, dataset == "all_evals_toy_new_changepoint"))
 
-plot_lda_comp(lda_directional_changepoint)
 
-plot_lda_year(lda_directional_changepoint, toy_directional_changepoint$covariates$year) 
-plot_lda_year(lda_directional_changepoint, toy_directional_changepoint$covariates$year) +
-  facet_wrap(vars(topic))
+changepoint_ldas <- list(LDATS::LDA_set_user_seeds(changepoint$abundance,  topics = 5, seed = 18),
+                    LDATS::LDA_set_user_seeds(changepoint$abundance,  topics = 2, seed = 20))
 
-ts_directional_changepoint <- LDATS::TS_on_LDA(lda_directional_changepoint, as.data.frame(toy_directional_changepoint$covariates), formulas = ~1, nchangepoints = 2, timename = "year", control = LDATS::TS_control(nit = 100))
 
-gamma_plot(ts_directional_changepoint[[1]])
-rho_plot(ts_directional_changepoint[[1]])
+for(i in 1:length(changepoint_ldas)) {
+  print(plot_lda_year(changepoint_ldas[[i]], changepoint$covariates$year))
+}
+
+changepoint_ts_5 <- LDATS::TS_on_LDA(changepoint_ldas[[1]], as.data.frame(changepoint$covariates), formulas = ~1, nchangepoints = 1,timename = "year", control = LDATS::TS_control(nit = 100))
+                       
+changepoint_ts_2 <- LDATS::TS_on_LDA(changepoint_ldas[[2]], as.data.frame(changepoint$covariates), formulas = ~1, nchangepoints = 1,timename = "year", control = LDATS::TS_control(nit = 100))
+
+gamma_plot(changepoint_ts_5[[1]])
+rho_plot(changepoint_ts_5[[1]]) +
+  xlim(0, nrow(changepoint$abundance))
+gamma_plot(changepoint_ts_2[[1]])
+rho_plot(changepoint_ts_2[[1]]) +
+  xlim(0, nrow(changepoint$abundance))
+
 ```
-## directional
 
-```{r directional}
 
-head(filter(all_evals_summary, dataset == "all_evals_toy_directional"))
+## New two changepoint
+```{r two changepoint}
 
-# the winner for this dataset is 4 topics, seed = 4, 1 cpt.
+two_changepoint <- get_toy_data("new_two_changepoint", here::here("analysis", "toy_datasets"))
 
-long_directional <- toy_directional$abundance %>%
-  mutate(year = toy_directional$covariates$year) %>%
-  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
+two_changepoint_long <- two_changepoint$abundance %>%
+    mutate(year = two_changepoint$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
 
-ggplot(long_directional, aes(year, abundance, color = species)) +
+ggplot(two_changepoint_long, aes(year, abundance, color = species)) +
   geom_line() +
+  theme_bw() +
   theme(legend.position = "none") +
-  scale_color_viridis_d()
+  scale_color_viridis_d(end = .8)
 
-lda_directional<- LDATS::LDA_set_user_seeds(toy_directional$abundance, topics = 4, seed = 4)
 
-plot_lda_comp(lda_directional)
+ggplot(two_changepoint_long, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  scale_color_viridis_d(end = .8) +
+  facet_wrap(vars(species), scales = "free_y")
 
-plot_lda_year(lda_directional, toy_directional$covariates$year) 
-plot_lda_year(lda_directional, toy_directional$covariates$year) +
-  facet_wrap(vars(topic))
+(filter(all_evals_summary, dat_rank < 6, dataset == "all_evals_toy_new_two_changepoint"))
 
-ts_directional <- LDATS::TS_on_LDA(lda_directional, as.data.frame(toy_directional$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = LDATS::TS_control(nit = 100))
 
-gamma_plot(ts_directional[[1]])
-rho_plot(ts_directional[[1]])
+two_changepoint_ldas <- list(LDATS::LDA_set_user_seeds(two_changepoint$abundance,  topics = 2, seed = 12),
+                    LDATS::LDA_set_user_seeds(two_changepoint$abundance,  topics = 3, seed = 4),
+                    LDATS::LDA_set_user_seeds(two_changepoint$abundance,  topics = 3, seed = 12))
+
+
+for(i in 1:length(two_changepoint_ldas)) {
+  print(plot_lda_year(two_changepoint_ldas[[i]], two_changepoint$covariates$year))
+}
+
+two_changepoint_ts_2 <- LDATS::TS_on_LDA(two_changepoint_ldas[[1]], as.data.frame(two_changepoint$covariates), formulas = ~1, nchangepoints = 1,timename = "year", control = LDATS::TS_control(nit = 100))
+                       
+two_changepoint_ts_3 <- LDATS::TS_on_LDA(two_changepoint_ldas[[2]], as.data.frame(two_changepoint$covariates), formulas = ~1, nchangepoints = 1,timename = "year", control = LDATS::TS_control(nit = 100))
+
+two_changepoint_ts_3_2cpts <- LDATS::TS_on_LDA(two_changepoint_ldas[[3]], as.data.frame(two_changepoint$covariates), formulas = ~1, nchangepoints = 2,timename = "year", control = LDATS::TS_control(nit = 100))
+
+gamma_plot(two_changepoint_ts_2[[1]])
+rho_plot(two_changepoint_ts_2[[1]]) +
+  xlim(0, nrow(two_changepoint$abundance))
+gamma_plot(two_changepoint_ts_3[[1]])
+rho_plot(two_changepoint_ts_3[[1]]) +
+  xlim(0, nrow(two_changepoint$abundance))
+gamma_plot(two_changepoint_ts_3_2cpts[[1]])
+rho_plot(two_changepoint_ts_3_2cpts[[1]]) +
+  xlim(0, nrow(two_changepoint$abundance))
 ```
+  
+For the data I (intended) to contrive to have two changepoints, the LDA seems to have found a way to split into just **2** topics that capture most of the change. I am not sure how it has done this, but I'm not completely surprised. It is very hard to engineer topic structure over time. 
