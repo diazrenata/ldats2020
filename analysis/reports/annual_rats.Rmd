@@ -53,9 +53,61 @@ lda_aic <- bind_rows(lda_aic)
 ggplot(lda_aic, aes(k, aic)) +
   geom_point()
 
-plot_lda_comp(selected_lda)
+plot_lda_comp(selected_lda, specl = T)
 
-plot(selected_lda)
+plot_lda_year(selected_lda, annual_rats$covariates$year)
+
+classic_ts <- LDATS::TS_on_LDA(selected_lda[[1]], as.data.frame(annual_rats$covariates), formulas = ~1, nchangepoints = c(0:5), timename = "year", control = LDATS::TS_control(nit = 100))
+
+selected_ts <- LDATS::select_TS(classic_ts)
+
+gamma_plot(selected_ts)
+
+rho_plot(selected_ts)
+
+
+ts_aic <- lapply(classic_ts, FUN = function(ts_fit) return(data.frame(cpts = ts_fit$nchangepoints, aic = AIC(ts_fit))))
+
+ts_aic <- bind_rows(ts_aic)
+
+ggplot(ts_aic, aes(cpts, aic)) +
+  geom_point()
+
+
+```
+
+
+```{r}
+
+filter(lda_aic, k == 6) %>%
+arrange(aic)
+
+annual_6 <- list(classic_ldas$`k: 6, seed: 34`)
+
+plot_lda_comp(annual_6, specl = T) +
+  facet_wrap(vars(topic))
+
+plot(annual_6[[1]])
+
+
+
+
+six_ts <- LDATS::TS_on_LDA(annual_6[[1]], as.data.frame(annual_rats$covariates), formulas = ~1, nchangepoints = c(0:5), timename = "year", control = LDATS::TS_control(nit = 100))
+
+selected_ts_6 <- LDATS::select_TS(six_ts)
+
+gamma_plot(selected_ts_6)
+
+rho_plot(selected_ts_6)
+
+
+ts_aic_6 <- lapply(six_ts, FUN = function(ts_fit) return(data.frame(cpts = ts_fit$nchangepoints, aic = AIC(ts_fit))))
+
+ts_aic_6 <- bind_rows(ts_aic_6)
+
+ggplot(ts_aic_6, aes(cpts, aic)) +
+  geom_point()
+
 
 ```
 
@@ -69,7 +121,8 @@ monthly_ldas <- readRDS(here::here("analysis", "reports", "monthy_ldas.Rds"))
 
 monthly_selected_lda <- LDATS::select_LDA(monthly_ldas)
 
-plot_lda_comp(monthly_selected_lda)
+plot_lda_comp(monthly_selected_lda, specl = T) +
+  facet_wrap(vars(topic))
 plot(monthly_selected_lda)
 
 
@@ -82,3 +135,4 @@ ggplot(lda_aic_monthly, aes(k, aic)) +
 
 
 ```
+

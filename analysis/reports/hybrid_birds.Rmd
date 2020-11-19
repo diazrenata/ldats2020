@@ -11,13 +11,14 @@ knitr::opts_chunk$set(echo = FALSE)
 library(dplyr)
 library(ggplot2)
 library(LDATS)
-source(here::here("crossval_fxns.R"))
-source(here::here("hybrid_fxns.R"))
+source(here::here("analysis", "fxns", "crossval_fxns.R"))
+source(here::here("analysis", "fxns", "hybrid_fxns.R"))
+source(here::here("analysis", "fxns", "make_toy_data_objects.R"))
 ```
 
 ```{r}
 
-all_evals <- read.csv("all_evals_hybrid.csv")
+all_evals <- read.csv(here::here("analysis", "all_evals_hybrid.csv"))
 
 all_evals <- all_evals %>%
   mutate(k_seed = paste(k,seed, sep = "_")) %>%
@@ -50,7 +51,7 @@ head(filter(all_evals_summary, dat_rank < 6))
 # all_evals_bbs_rtrg_105_4 is an example of one with clear winners.
 
 #### load datasets ####
-load(here::here("hybrid_datasets.RData"))
+load(here::here("analysis", "reports", "hybrid_datasets.RData"))
 ```
 
 ## 105_4

@@ -21,7 +21,7 @@ source(here::here("analysis", "fxns", "make_toy_data_objects.R"))
 
 all_evals <- read.csv(here::here("analysis", "all_evals_hybrid_portal.csv")) %>%
   mutate(k_seed = paste(k, seed, sep = "_"))
-  
+
 
 ggplot(all_evals, aes(as.factor(k), sum_loglik, color = as.factor(cpts), group = k_seed)) + geom_boxplot() + facet_wrap(vars(dataset), scales = "free_y")
 
@@ -47,7 +47,7 @@ head(filter(all_evals_summary, dat_rank < 6))
 
 
 #### load datasets ####
-rats <- get_toy_data("rodents",  here::here("analysis", "toy_datasets"))
+rats <- get_toy_data("rodents_annual",  here::here("analysis", "toy_datasets"))
 rats$covariates$year <- 1:nrow(rats$covariates)
 ```
 
@@ -65,15 +65,78 @@ ggplot(rats_long, aes(year, abundance, color = species)) +
   scale_color_viridis_d() +
   theme_bw()
 
-lda_rats<- LDATS::LDA_set_user_seeds(rats$abundance, topics = 4, seed = 14)
+lda_rats<- LDATS::LDA_set_user_seeds(rats$abundance, topics = 2, seed = 6)
 
-plot_lda_comp(lda_rats)
+plot_lda_comp(lda_rats, specl = TRUE)
 plot_lda_year(lda_rats, rats$covariates$year)
 plot_lda_year(lda_rats, rats$covariates$year) +
   facet_wrap(vars(topic))
 
-ts_rats <- LDATS::TS_on_LDA(lda_rats, as.data.frame(rats$covariates), formulas = ~1, nchangepoints = 5, timename = "year", control = LDATS::TS_control(nit = 100))
+ts_rats <- LDATS::TS_on_LDA(lda_rats, as.data.frame(rats$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = LDATS::TS_control(nit = 100))
 
 gamma_plot(ts_rats[[1]])
-rho_plot(ts_rats[[1]])
+rho_plot(ts_rats[[1]]) 
+```
+
+
+```{r, fig.dim = c(10,10)}
+
+set.seed(1977)
+
+betas <- exp(lda_rats[[1]]@beta)
+
+nsims = nrow(ts_rats[[1]]$etas)
+
+a_sim <- sample.int(nsims, size = 1)  
+thetas <- lapply(a_sim, FUN = get_one_mn_theta, subsetted_dataset_item =list(full= rats), fitted_ts = ts_rats[[1]])
+
+abund_probabilities <- lapply(thetas, FUN = function(theta, betas) return(theta %*% betas), betas = betas)[[1]]
+
+sampled_abund <- rats$abundance - rats$abundance
+
+annualsums <- rowSums(rats$abundance)
+
+for(i in 1:nrow(sampled_abund)) {
+  sampled_abund[i,] <- rmultinom(1, size = annualsums[i], prob = abund_probabilities[i,])
+}
+
+sampled_abund <- sampled_abund %>%
+  mutate(year = rats$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance") %>%
+  mutate(source = "mod") %>%
+  bind_rows(mutate(rats_long, source = "obs"))
+
+
+ggplot(sampled_abund, aes(year, abundance, color = source)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(vars(species), scales = "free_y") +
+  theme_bw() +
+  scale_color_viridis_d(end = .8) +
+  geom_vline(xintercept = ts_rats[[1]]$rhos[a_sim])
+
+
+
+```
+```{r}
+
+lda_betas <- data.frame(t(exp(lda_rats[[1]]@beta)))
+
+
+lda_betas <- lda_betas %>%
+  mutate(species =unlist(lda_rats[[1]]@terms)) %>%
+  mutate(diff = abs(X1 - X2)) %>%
+  group_by_all() %>%
+  mutate(ratio = max(X1, X2) / min(X1, X2)) %>%
+  ungroup() %>%
+  arrange(desc(diff))
+lda_betas
+
+ggplot(filter(rats_long, species %in% c("DS", "DM", "OL", "PP", "PB", "NA.")), aes(year, abundance, color = species)) +
+  geom_line(size = 2) +
+  theme(legend.position = "none") +
+  scale_color_viridis_d(end = .8) +
+  theme_bw()
+
+
 ```
