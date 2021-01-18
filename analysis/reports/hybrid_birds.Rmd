@@ -11,13 +11,14 @@ knitr::opts_chunk$set(echo = FALSE)
 library(dplyr)
 library(ggplot2)
 library(LDATS)
-source(here::here("crossval_fxns.R"))
-source(here::here("hybrid_fxns.R"))
+source(here::here("analysis", "fxns", "crossval_fxns.R"))
+source(here::here("analysis", "fxns", "hybrid_fxns.R"))
+source(here::here("analysis", "fxns", "make_toy_data_objects.R"))
 ```
 
 ```{r}
 
-all_evals <- read.csv("all_evals_hybrid.csv")
+all_evals <- read.csv(here::here("analysis", "all_evals_hybrid.csv"))
 
 all_evals <- all_evals %>%
   mutate(k_seed = paste(k,seed, sep = "_")) %>%
@@ -44,94 +45,144 @@ ggplot(filter(all_evals_summary), aes(as.factor(k), mean_sum_ll, color = as.fact
   facet_wrap(vars(dataset), scales = "free_y")
 
 # Some but not all have clear winners. 
-head(filter(all_evals_summary, dat_rank < 6))
+(filter(all_evals_summary, dat_rank < 3))
 
 # all_evals_bbs_rtrg_304_17 seems tied between 2, 6, or 10 (!!!) topics
 # all_evals_bbs_rtrg_105_4 is an example of one with clear winners.
 
 #### load datasets ####
-load(here::here("hybrid_datasets.RData"))
+load(here::here("analysis", "reports", "hybrid_datasets.RData"))
 ```
 
-## 105_4
+Let's look at these in terms of, what was the winning dynamic?
 
-```{r 105 4}
+```{r}
 
-head(filter(all_evals_summary, dataset == "all_evals_bbs_rtrg_105_4"))
+all_evals_summary %>%
+  mutate(dynamic = paste0(k, " topics, ", cpts, " changepoints")) %>%
+  filter(dat_rank == 1) %>%
+  arrange((dynamic))
 
-# the winner for this dataset is 3 topics, seed = 12, 1 cpt.
+```
+
+My thinking is as follows.
+
+Any k, 0 changepoints: the model is not picking up on any strong temporal structure and is defaulting to a species mean for the whole TS. This can be, things essentially don't change, **or** that the change does not fit neatly into chunks over time. Topics in this case just tell us how the LDA best described the species arrangements, but aren't inherently meaningful.
+
+2 topics and 1 changepoint: I suspect, but want to confirm, that this means we have two states/regimes for the community. Typically I expect this to have two topics, one of which is dominant before the changepoint and one that is dominant after. Some things to look at in these models are (1) how well-resolved the estimate for the changepoint is and (2) how different the 2 topics are. Re: (1), if the change occurs gradually or idiosyncratically we a priori expect a broader distribution of estimates for the changepoint location compared to the scenario where the change occurs suddenly. Re: (2), the topics have to be *fairly* different in order for it to be worth the complexity to fit them, but the ways in which they differ could be informative. They could be totally different species, or the same species in quite different proportions. They could be driven by the most abundant species, or by rare species that are showing a very strong pattern. 
+
+Anything else - here, we are finding one with 3 topics and 1 changepoint, and one with 3 topics and 2 changepoints. I have less intuition for what this means "generally" and want to look at the models. 
+
+
+## 2 topics and 1 changepoint
+
+### 102_18
+```{r, fig.dim = c(4,3)}
+
+long_102_18 <- bbs_rtrg_102_18$abundance %>%
+  mutate(year = bbs_rtrg_102_18$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
+
+ggplot(long_102_18, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme_bw() +
+  theme(legend.position = "none")
+
+lda_102_18 <- LDATS::LDA_set_user_seeds(bbs_rtrg_102_18$abundance, topics = 2, seed = 6)
+ts_102_18 <- LDATS::TS_on_LDA(lda_102_18[[1]], as.data.frame(bbs_rtrg_102_18$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = TS_control(nit = 100))
+plot_lda_comp(lda_102_18)
+plot_lda_year(lda_102_18, bbs_rtrg_102_18$covariates$year)
+gamma_plot(ts_102_18[[1]])
+rho_plot(ts_102_18[[1]])
+```
+
+
+### 19_35
+```{r, fig.dim = c(4,3)}
+
+long_19_35 <- bbs_rtrg_19_35$abundance %>%
+  mutate(year = bbs_rtrg_19_35$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
+
+ggplot(long_19_35, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme_bw() +
+  theme(legend.position = "none")
+
+lda_19_35 <- LDATS::LDA_set_user_seeds(bbs_rtrg_19_35$abundance, topics = 2, seed = 12)
+ts_19_35 <- LDATS::TS_on_LDA(lda_19_35[[1]], as.data.frame(bbs_rtrg_19_35$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = TS_control(nit = 100))
+plot_lda_comp(lda_19_35)
+plot_lda_year(lda_19_35, bbs_rtrg_19_35$covariates$year)
+gamma_plot(ts_19_35[[1]])
+rho_plot(ts_19_35[[1]])
+```
+
+
+### 172_14
+```{r, fig.dim = c(4,3)}
+
+long_172_14 <- bbs_rtrg_172_14$abundance %>%
+  mutate(year = bbs_rtrg_172_14$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
+
+ggplot(long_172_14, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme_bw() +
+  theme(legend.position = "none")
+
+lda_172_14 <- LDATS::LDA_set_user_seeds(bbs_rtrg_172_14$abundance, topics = 2, seed = 22)
+ts_172_14 <- LDATS::TS_on_LDA(lda_172_14[[1]], as.data.frame(bbs_rtrg_172_14$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = TS_control(nit = 100))
+plot_lda_comp(lda_172_14)
+plot_lda_year(lda_172_14, bbs_rtrg_172_14$covariates$year)
+gamma_plot(ts_172_14[[1]])
+rho_plot(ts_172_14[[1]])
+```
+
+## 3 topics and 1 changepoint
+
+
+### 105_4
+```{r, fig.dim = c(4,3)}
 
 long_105_4 <- bbs_rtrg_105_4$abundance %>%
   mutate(year = bbs_rtrg_105_4$covariates$year) %>%
-  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
 
 ggplot(long_105_4, aes(year, abundance, color = species)) +
   geom_line() +
-  theme(legend.position = "none") +
-  scale_color_viridis_d()
+  theme_bw() +
+  theme(legend.position = "none")
 
 lda_105_4 <- LDATS::LDA_set_user_seeds(bbs_rtrg_105_4$abundance, topics = 3, seed = 12)
-
+ts_105_4 <- LDATS::TS_on_LDA(lda_105_4[[1]], as.data.frame(bbs_rtrg_105_4$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = TS_control(nit = 100))
 plot_lda_comp(lda_105_4)
-plot_lda_year(lda_105_4, bbs_rtrg_105_4$covariates$year) +
-  facet_wrap(vars(topic))
-
-ts_105_4 <- LDATS::TS_on_LDA(lda_105_4, as.data.frame(bbs_rtrg_105_4$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = LDATS::TS_control(nit = 100))
-
+plot_lda_year(lda_105_4, bbs_rtrg_105_4$covariates$year)
 gamma_plot(ts_105_4[[1]])
 rho_plot(ts_105_4[[1]])
 ```
 
-### 304_17
 
-```{r 304 17}
+## 3 topics and 2 changepoints
 
-head(filter(all_evals_summary, dataset == "all_evals_bbs_rtrg_304_17"))
 
-# the winner for this dataset is 3 topics, seed = 12, 1 cpt.
+### 1_11
+```{r, fig.dim = c(4,3)}
 
-long_304_17 <- bbs_rtrg_304_17$abundance %>%
-  mutate(year = bbs_rtrg_304_17$covariates$year) %>%
-  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
+long_1_11 <- bbs_rtrg_1_11$abundance %>%
+  mutate(year = bbs_rtrg_1_11$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
 
-ggplot(long_304_17, aes(year, abundance, color = species)) +
+ggplot(long_1_11, aes(year, abundance, color = species)) +
   geom_line() +
-  theme(legend.position = "none") +
-  scale_color_viridis_d()
+  theme_bw() +
+  theme(legend.position = "none")
 
-lda_304_17_2<- LDATS::LDA_set_user_seeds(bbs_rtrg_304_17$abundance, topics = 2, seed = 8)
-lda_304_17_6<- LDATS::LDA_set_user_seeds(bbs_rtrg_304_17$abundance, topics = 6, seed = 10)
-lda_304_17_10<- LDATS::LDA_set_user_seeds(bbs_rtrg_304_17$abundance, topics = 10, seed = 10)
-
-
-
-
-ts_304_17_2 <- LDATS::TS_on_LDA(lda_304_17_2
-, as.data.frame(bbs_rtrg_304_17$covariates), formulas = ~1, nchangepoints = 0, timename = "year", control = LDATS::TS_control(nit = 100))
-
-ts_304_17_6 <- LDATS::TS_on_LDA(lda_304_17_6
-, as.data.frame(bbs_rtrg_304_17$covariates), formulas = ~1, nchangepoints = 0, timename = "year", control = LDATS::TS_control(nit = 100))
-
-
-ts_304_17_10 <- LDATS::TS_on_LDA(lda_304_17_10
-, as.data.frame(bbs_rtrg_304_17$covariates), formulas = ~1, nchangepoints = 0, timename = "year", control = LDATS::TS_control(nit = 100))
-
-
-plot_lda_comp(lda_304_17_2)
-plot_lda_year(lda_304_17_2, bbs_rtrg_304_17$covariates$year) +
-  facet_wrap(vars(topic))
-gamma_plot(ts_304_17_2[[1]])
-
-plot_lda_comp(lda_304_17_6)
-plot_lda_year(lda_304_17_6, bbs_rtrg_304_17$covariates$year) +
-  facet_wrap(vars(topic))
-gamma_plot(ts_304_17_6[[1]])
-
-plot_lda_comp(lda_304_17_10)
-plot_lda_year(lda_304_17_10, bbs_rtrg_304_17$covariates$year) +
-  facet_wrap(vars(topic))
-gamma_plot(ts_304_17_10[[1]])
-
+lda_1_11 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, topics = 3, seed = 8)
+ts_1_11 <- LDATS::TS_on_LDA(lda_1_11[[1]], as.data.frame(bbs_rtrg_1_11$covariates), formulas = ~1, nchangepoints = 2, timename = "year", control = TS_control(nit = 100))
+plot_lda_comp(lda_1_11)
+plot_lda_year(lda_1_11, bbs_rtrg_1_11$covariates$year)
+gamma_plot(ts_1_11[[1]])
+rho_plot(ts_1_11[[1]])
 ```
 
-I **think** this means things are too static/random to extract a strong temporal structure. Not sure though.
+

@@ -692,7 +692,8 @@ rho_plot <- function (x)
   ggplot(rhos, aes(estimate, group = changepoint, fill  = changepoint)) +
     geom_histogram(alpha = .5, position = "identity") +
     theme_bw() +
-    scale_color_viridis_d()
+    scale_color_viridis_d() +
+    xlim(c(start, end))
   
   }
 
@@ -725,7 +726,7 @@ eval_ldats_crossval <- function(ldats_fits, nests = 100, use_folds = F) {
   
 }
 
-plot_lda_comp <- function(fitted_lda) {
+plot_lda_comp <- function(fitted_lda, specl = F) {
   
   lda_betas <- data.frame(t(fitted_lda[[1]]@beta))
   
@@ -741,6 +742,12 @@ plot_lda_comp <- function(fitted_lda) {
     geom_col(position = "stack") +
     theme_void() +
     scale_fill_viridis_d(end = .7)
+  
+  if(specl) {
+    betas_plot <- betas_plot +
+      theme(axis.text.x = element_text(angle = 0))
+  }
+  
   
   return(betas_plot)
 }

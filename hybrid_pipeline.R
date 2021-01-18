@@ -39,15 +39,15 @@ toy_datasets <- drake::drake_plan(
                transform = map(dataset_name = !!toy_dataset_files))
 )
 
-datasets <- bind_rows(datasets, toy_datasets)
-
+#datasets <- bind_rows(datasets, toy_datasets)
+datasets <- toy_datasets[7, ]
 #if(FALSE){
 methods <- drake::drake_plan(
-  ldats_fit = target(fit_ldats_hybrid(dataset, use_folds = T, n_folds = 20, n_timesteps = 2, buffer = 2, k = ks, seed = seeds, cpts = c(0:5), nit = 500),
+  ldats_fit = target(fit_ldats_hybrid(dataset, use_folds = T, n_folds = 20, n_timesteps = 2, buffer = 2, k = ks, seed = seeds, cpts = c(0:5), nit = 100),
                      transform = cross(
                        dataset = !!rlang::syms(datasets$target),
                        ks = !!c(2:10),
-                       seeds = !!seq(2, 102, by = 2)
+                       seeds = !!seq(4, 30, by = 2)
                        )),
   ldats_eval = target(eval_ldats_crossval(ldats_fit, use_folds = T),
                       transform = map(ldats_fit)
@@ -84,6 +84,16 @@ workflow <- dplyr::bind_rows(
 db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache-hybrid.sqlite"))
 cache <- storr::storr_dbi("datatable", "keystable", db)
 cache$del(key = "lock", namespace = "session")
+
+
+## View the graph of the plan
+if (interactive())
+{
+  config <- drake_config(workflow, cache = cache)
+  sankey_drake_graph(config, build_times = "none")  # requires "networkD3" package
+  vis_drake_graph(config, build_times = "none")     # requires "visNetwork" package
+}
+
 
 ## Run the pipeline
 nodename <- Sys.info()["nodename"]
@@ -122,7 +132,7 @@ for(i in 1:length(all_evals_objs)) {
 
 all_evals_df <- bind_rows(all_evals_list)
 
-write.csv(all_evals_df, here::here("analysis", "all_evals_hybrid.csv"), row.names = F)
+write.csv(all_evals_df, here::here("analysis", "all_evals_hybrid_portal.csv"), row.names = F)
 
 
 DBI::dbDisconnect(db)
