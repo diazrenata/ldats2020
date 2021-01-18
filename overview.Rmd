@@ -7,6 +7,17 @@ output:
     toc: true
 ---
 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+library(LDATS)
+source(here::here("analysis", "fxns", "crossval_fxns.R"))
+source(here::here("analysis", "fxns", "hybrid_fxns.R"))
+source(here::here("analysis", "fxns", "make_toy_data_objects.R"))
+
+```
 # Overview
 
 ## Usefulness of the approach
@@ -126,5 +137,128 @@ I think this is because of two related things. One, we have fewer time samples, 
 
 (I am not doing monthly Portal because of the seasonal signal.)
 
+```{r}
+
+all_evals <- read.csv(here::here("analysis", "all_evals_hybrid_portal.csv")) %>%
+  mutate(k_seed = paste(k, seed, sep = "_"))
+
+
+#ggplot(all_evals, aes(as.factor(k), sum_loglik, color = as.factor(cpts), group = k_seed)) + geom_boxplot() + facet_wrap(vars(dataset), scales = "free_y")
+
+# there is a lot of spread per model, and overlap.
+# taking this as NOT problematic....precedent, AIC is often calculated off the mean.
+
+# look at the mean
+
+all_evals_summary <- all_evals %>%
+  group_by(dataset, k, seed, cpts) %>%
+  summarize(mean_sum_ll = mean(sum_loglik)) %>%
+  arrange(desc(mean_sum_ll)) %>%
+  group_by(dataset) %>%
+  mutate(dat_rank = row_number())
+
+
+ggplot(filter(all_evals_summary), aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) + 
+  geom_point() + 
+  facet_wrap(vars(dataset), scales = "free_y")
+
+# Some but not all have clear winners. 
+head(filter(all_evals_summary, dat_rank < 6))
+
+
+#### load datasets ####
+rats <- get_toy_data("rodents_annual",  here::here("analysis", "toy_datasets"))
+rats$covariates$year <- 1:nrow(rats$covariates)
+```
+
+
+```{r static changepoint}
+
+
+rats_long <- rats$abundance %>%
+  mutate(year = rats$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
+
+ggplot(rats_long, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme(legend.position = "none") +
+  scale_color_viridis_d() +
+  theme_bw()
+
+lda_rats<- LDATS::LDA_set_user_seeds(rats$abundance, topics = 2, seed = 6)
+
+plot_lda_comp(lda_rats, specl = TRUE)
+plot_lda_year(lda_rats, rats$covariates$year)
+ts_rats <- LDATS::TS_on_LDA(lda_rats, as.data.frame(rats$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = LDATS::TS_control(nit = 100))
+
+gamma_plot(ts_rats[[1]])
+rho_plot(ts_rats[[1]]) 
+```
+```{r}
+# 
+# lda_rats<- LDATS::LDA_set_user_seeds(rats$abundance, topics = 3, seed = 18)
+# 
+# plot_lda_comp(lda_rats, specl = TRUE)
+# plot_lda_year(lda_rats, rats$covariates$year)
+# ts_rats <- LDATS::TS_on_LDA(lda_rats, as.data.frame(rats$covariates), formulas = ~1, nchangepoints = 2, timename = "year", control = LDATS::TS_control(nit = 100))
+# 
+# gamma_plot(ts_rats[[1]])
+# rho_plot(ts_rats[[1]]) 
+# 
+```
+
 
 ## A BBS route
+
+```{r}
+
+all_evals <- read.csv(here::here("analysis", "all_evals_hybrid.csv"))
+
+all_evals <- all_evals %>%
+  mutate(k_seed = paste(k,seed, sep = "_")) %>%
+  filter(grepl(dataset, pattern = "bbs_rtrg_1_11"))
+  
+
+ggplot(all_evals, aes(as.factor(k), sum_loglik, color = as.factor(cpts), group = k_seed)) + geom_boxplot() + facet_wrap(vars(dataset), scales = "free_y")
+
+# there is a lot of spread per model, and overlap.
+# taking this as NOT problematic....precedent, AIC is often calculated off the mean.
+
+# look at the mean
+
+all_evals_summary <- all_evals %>%
+  group_by(dataset, k, seed, cpts) %>%
+  summarize(mean_sum_ll = mean(sum_loglik)) %>%
+  arrange(desc(mean_sum_ll)) %>%
+  group_by(dataset) %>%
+  mutate(dat_rank = row_number())
+
+
+ggplot(filter(all_evals_summary), aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) + 
+  geom_point() + 
+  facet_wrap(vars(dataset), scales = "free_y")
+
+# Some but not all have clear winners. 
+all_evals_summary[1:10,]
+
+```
+
+```{r}
+load(here::here("analysis", "reports", "hybrid_datasets.RData"))
+
+long_1_11 <- bbs_rtrg_1_11$abundance %>%
+  mutate(year = bbs_rtrg_1_11$covariates$year) %>%
+  tidyr::pivot_longer(-year, names_to = "species", values_to = "abundance")
+
+ggplot(long_1_11, aes(year, abundance, color = species)) +
+  geom_line() +
+  theme_bw() +
+  theme(legend.position = "none")
+
+lda_1_11 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, topics = 3, seed = 8)
+ts_1_11 <- LDATS::TS_on_LDA(lda_1_11[[1]], as.data.frame(bbs_rtrg_1_11$covariates), formulas = ~1, nchangepoints = 2, timename = "year", control = TS_control(nit = 100))
+plot_lda_comp(lda_1_11)
+plot_lda_year(lda_1_11, bbs_rtrg_1_11$covariates$year)
+gamma_plot(ts_1_11[[1]])
+rho_plot(ts_1_11[[1]])
+```

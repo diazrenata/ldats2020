@@ -232,4 +232,79 @@ relatively simple temporal dynamics.
 
 ## Portal, reduced to annual samples
 
+(I am not doing monthly Portal because of the seasonal signal.)
+
+    ## `summarise()` regrouping output by 'dataset', 'k', 'seed' (override with `.groups` argument)
+
+![](overview_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+    ## # A tibble: 5 x 6
+    ## # Groups:   dataset [1]
+    ##   dataset                          k  seed  cpts mean_sum_ll dat_rank
+    ##   <chr>                        <int> <int> <int>       <dbl>    <int>
+    ## 1 all_evals_toy_rodents_annual     2     6     1       -461.        1
+    ## 2 all_evals_toy_rodents_annual     2    30     1       -462.        2
+    ## 3 all_evals_toy_rodents_annual     2    24     1       -467.        3
+    ## 4 all_evals_toy_rodents_annual     2    18     1       -470.        4
+    ## 5 all_evals_toy_rodents_annual     3    18     2       -471.        5
+
+![](overview_files/figure-gfm/static%20changepoint-1.png)<!-- -->
+
+    ## Running LDA with 2 topics (seed 6)
+
+![](overview_files/figure-gfm/static%20changepoint-2.png)<!-- -->![](overview_files/figure-gfm/static%20changepoint-3.png)<!-- -->
+
+    ## Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model k: 2, seed: 6
+
+    ##   Estimating changepoint distribution
+
+    ##   Estimating regressor distribution
+
+![](overview_files/figure-gfm/static%20changepoint-4.png)<!-- -->
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+    ## Warning: Removed 2 rows containing missing values (geom_bar).
+
+![](overview_files/figure-gfm/static%20changepoint-5.png)<!-- -->
+
 ## A BBS route
+
+![](overview_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+    ## `summarise()` regrouping output by 'dataset', 'k', 'seed' (override with `.groups` argument)
+
+![](overview_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+
+    ## # A tibble: 10 x 6
+    ## # Groups:   dataset [1]
+    ##    dataset                     k  seed  cpts mean_sum_ll dat_rank
+    ##    <chr>                   <int> <int> <int>       <dbl>    <int>
+    ##  1 all_evals_bbs_rtrg_1_11     3     8     2       -464.        1
+    ##  2 all_evals_bbs_rtrg_1_11     3    12     2       -467.        2
+    ##  3 all_evals_bbs_rtrg_1_11     3     6     2       -470.        3
+    ##  4 all_evals_bbs_rtrg_1_11     3     4     2       -470.        4
+    ##  5 all_evals_bbs_rtrg_1_11     3    14     2       -473.        5
+    ##  6 all_evals_bbs_rtrg_1_11     3    10     2       -476.        6
+    ##  7 all_evals_bbs_rtrg_1_11     4    12     2       -480.        7
+    ##  8 all_evals_bbs_rtrg_1_11     3    22     2       -484.        8
+    ##  9 all_evals_bbs_rtrg_1_11     3    18     2       -488.        9
+    ## 10 all_evals_bbs_rtrg_1_11     3    20     2       -489.       10
+
+![](overview_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+    ## Running LDA with 3 topics (seed 8)
+
+    ## Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model
+
+    ##   Estimating changepoint distribution
+
+    ##   Estimating regressor distribution
+
+![](overview_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->![](overview_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->![](overview_files/figure-gfm/unnamed-chunk-4-4.png)<!-- -->
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+    ## Warning: Removed 4 rows containing missing values (geom_bar).
+
+![](overview_files/figure-gfm/unnamed-chunk-4-5.png)<!-- -->
