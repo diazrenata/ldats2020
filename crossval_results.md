@@ -57,9 +57,10 @@ well:
 ![](crossval_results_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 Digging into this, we can see that the best fitting model (`k = 2, seed
-= 16, cpts = 5`) is not very different from a model with 1 changepoint,
-and I’d argue that the extra changepoints are not picking up on
-“important” dynamics. We’re getting more changepoints than we want.
+= 16, cpts = 5`) is not very different from a model with 1 or 2
+changepoints, and I’d argue that the extra changepoints are not picking
+up on “important” dynamics. We’re getting more changepoints than we
+want.
 
     ## Running LDA with 2 topics (seed 16)
 
@@ -73,10 +74,16 @@ and I’d argue that the extra changepoints are not picking up on
 
     ##   Estimating regressor distribution
 
+    ## Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model
+
+    ##   Estimating changepoint distribution
+
+    ##   Estimating regressor distribution
+
     ## Running TS model with 5 changepoints and equation gamma ~ 1 on LDA model
 
     ##   Estimating changepoint distribution
 
     ##   Estimating regressor distribution
 
-![](crossval_results_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->![](crossval_results_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->![](crossval_results_files/figure-gfm/unnamed-chunk-4-4.png)<!-- -->
+![](crossval_results_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->![](crossval_results_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->![](crossval_results_files/figure-gfm/unnamed-chunk-4-4.png)<!-- -->![](crossval_results_files/figure-gfm/unnamed-chunk-4-5.png)<!-- -->
