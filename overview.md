@@ -95,8 +95,9 @@ C. used a seuential approach.
     changepoints).
   - Select the best-fitting TS model via AIC.
 
-This worked beautifully at Portal, but when applied to BBS (and other
-coarser/shorter timeseries)
+This worked beautifully at Portal, but [when applied to BBS (and other
+coarser/shorter
+timeseries)](https://github.com/diazrenata/ldats2020/blob/master/orig_results.md)
 
   - The best-fitting LDA, via AIC, tends to have very high `k`.
   - The resulting topic proportions are super high dimensional and hard
@@ -119,14 +120,15 @@ selection.
   - Choose the whole-model - `k`, `seed`, `ncpts` - with the best
     loglikelihood
 
-In practice, this approach tends to have tractable `k` but a lot of
-uncertainty for, and often high, `ncpts`. That is, it effectively
-penalizes overly complex LDAs, because these interfere with the TS
-model’s ability to fit well. But there isn’t really a penalty for
-extra changepoints, because there can be a changepoint with very little
-change. Having many changepoints can thus result in a slight improvement
-in fit and rarely results in a dramatic reduction in fit detectable via
-crossvalidation.
+[In practice, this approach tends to have tractable `k` but a lot of
+uncertainty for, and often high,
+`ncpts`](https://github.com/diazrenata/ldats2020/blob/master/crossval_results.md).
+That is, it effectively penalizes overly complex LDAs, because these
+interfere with the TS model’s ability to fit well. But there isn’t
+really a penalty for extra changepoints, because there can be a
+changepoint with very little change. Having many changepoints can thus
+result in a slight improvement in fit and rarely results in a dramatic
+reduction in fit detectable via crossvalidation.
 
 We didn’t have this problem before, because when we select the TS via
 AIC, we explicitly impose a penalty for extra parameters. So an extra
