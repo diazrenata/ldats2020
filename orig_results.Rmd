@@ -1,10 +1,11 @@
 ---
-title: "Model selection 10/2020"
-output: github_document
+title: "Classic January 2021"
+author: Renata Diaz
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output:
+  github_document:
+    toc: true
 ---
-
-Including history of the crossval approach, how I've arrived at a combined crossval + AIC approach, and what I see as paths from here....
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)

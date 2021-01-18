@@ -15,6 +15,9 @@ Renata Diaz
   - [Sample results](#sample-results)
       - [What changepoints mean now](#what-changepoints-mean-now)
       - [What topics mean now](#what-topics-mean-now)
+      - [Portal, reduced to annual
+        samples](#portal-reduced-to-annual-samples)
+      - [A BBS route](#a-bbs-route)
 
 # Overview
 
@@ -56,8 +59,6 @@ other data streams & community-specific hypotheses to ask:
 
   - Which species are responsible for the change
   - What endogenous or exogenous factors coincide with periods of change
-
-<!-- Specifically, a standard change-point model approach is intractable for community data because there are too many species to effectively model simultaneously. We use LDA to condense the full community abundance data into a set of 2-5ish topics that occur in varying proportions over time, and fit the changepoint model to the topic proportions. We explore varying numbers of changepoints - 0 changepoint corresponding to no strong temporal structure, 1 to there being a transition between two different states, 2 to there being 3 states, etc - and varying numbers of topics. We identify the combined changepoint and topic structure that achieves the best combination of model fit and parsimony.  -->
 
 # Technical details
 
@@ -115,12 +116,6 @@ selection.
       - Loglikelihood of observed actual abundances given predicted
         abundances (multinomial probabilities) from model.
       - This is done via LOO cross validation.
-        <!-- * Every year takes its turn being the test yqear.  -->
-        <!--  * Make training data by witholding the test year + a buffer.  -->
-        <!--  * Run the specific model in uestion on the training data (`k`, `seed`, `ncpts`).  -->
-        <!--  * Calculate the loglikelihood of the observed test data given the predicted abundances for the test year.  -->
-        <!--  * Score the model's performance over all years by summing the loglikelihoods for every test year.  -->
-        <!--  * (Done many times because Bayesian, and tried with a variety of LOO schemes) -->
   - Choose the whole-model - `k`, `seed`, `ncpts` - with the best
     loglikelihood
 
@@ -137,9 +132,9 @@ We didn’t have this problem before, because when we select the TS via
 AIC, we explicitly impose a penalty for extra parameters. So an extra
 changepoint had to improve the fit enough to be “worth” the parameter
 penalty. Using crossvalidation, the extra changepoint just has to not
-make things a lot worse. Crossvalidation approaches assume the
-extra-complexity penalty is built in via overfitting, and aren’t really
-compatible with an explicit extra penalty for parameters.
+make things a lot worse. Crossvalidation approaches in general assume
+the complexity penalty is built in via overfitting, and aren’t really
+compatible with an explicit penalty for parameters.
 
 ### What I’m doing now - “Hybrid” (Crossval + AIC)
 
@@ -163,11 +158,14 @@ perform crossvalidation. We can work around this by:
     overall goodness of fit using crossvalidation.
       - We therefore get crossvalidation scores for a bunch of models
         like this:
-          - `k = 2, seed = 100, ncpts = 1`; `k = 3, seed = 20, ncpts
-            = 0`; `k = 12, seed = 2, ncpts = 0`.
+          - `k = 2, seed = 100, ncpts = 1`; `k = 12, seed = 2, ncpts
+            = 0`.
           - This effectively tells us whether a 2 topic LDA with 1
             changepoint is better at predicting withheld data than a 12
             topic LDA with 0 changepoints etc.
+          - We are choosing between LDA models based on if their topic
+            proportions can set up a parsimonious TS model to accurately
+            predict withheld data.
       - Choose the model with the best crossvalidation score.
 
 I would not have done this if not for the string of issues discussed
@@ -181,7 +179,8 @@ we see major red flags?**
 
 I believe we have to do the training/test split on the LDA proportions
 after they are fit (instead of on the data before it goes into the LDA).
-This is unusual for crossvalidation, but justified, I think.
+This raises concerns re: data leakage, but I think it’s justified and I
+don’t think we’re seeing evidence of a problem there.
 
 If you fit two LDAs to two different datasets, even with the same seed,
 you can end up with very different topics and topic proportions. It’s
@@ -230,3 +229,7 @@ samples, so less capacity to detect fine scale dynamics. Two, we
 specifically look for the set of topics that allows the change point
 model to achieve a good fit, which means the topics need to have
 relatively simple temporal dynamics.
+
+## Portal, reduced to annual samples
+
+## A BBS route

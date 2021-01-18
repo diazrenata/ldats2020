@@ -124,7 +124,7 @@ I think this is because of two related things. One, we have fewer time samples, 
 
 ## Portal, reduced to annual samples
 
-(I am not doing monthly Portal because of the seasonal signal.)
+(I am not doing monthly Portal because of the seasonal signal)
 
 
 ## A BBS route
