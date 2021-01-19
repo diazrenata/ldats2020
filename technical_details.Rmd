@@ -51,23 +51,70 @@ Beyond the scope here, this method could also be useful combined with other data
 * We proceed using the softmax transformation. **Juniper** - is this acceptable (even if not ideal)? My impression was that the softmax was most problematic when we were fitting slopes, but you're the expert on these details. 
 
 
-## Model selection
+## Details on model selection
 
-Here in brief; see technical_details.Rmd for details and figures.
+### Christensen/original LDATS
 
-The original LDATS implementation first selects an LDA via AIC and then selects a TS model via AIC. This tends to select an LDA with a lot of topics. The TS model then struggles to fit anything to the (very high dimensional) topic proportions. 
+I'm including this in case it is a helpful reminder. Feel free to skip! 
 
-I tried a combined/holistic selection process using leave-one-out crossvalidation. That is, we try all possible combinations of numbers of topics and numbers of changepoints, and pick the best *combination* of number of topics and number of changepoints according to how well it predicts withheld data. 
+C. used a seuential approach. 
 
-Crossvalidation effectively curbs the tendency to have too many topics, but tends to fit a lot of *changepoints*. We did not have this problem when we selected the changepoints with AIC, because AIC penalizes for additional parameters. A changepoint has to improve the fit so much that it is "worth" the parameter penalty. However, with crossvalidation, there is no penalty for parameters directly. Overly-complex models are supposed to be selected against because they will be overfit and will do a bad job predicting test data. The problem is that having an extra changepoint doesn't necessarily make a model so complex it is bad at prediction - the change associated with the changepoint can be minimal or nonexistent. This means extra changepoints can sometimes make the fit a little better but rarely make it a lot worse.
+* First fit numerous LDAs with varying `k` (numbers of topics) and `seed` (important because the model fitting algorithm is sensitive to initial conditions; we use many seeds to get good coverage of the likelihood space). 
+* Then, select the best-fitting LDA via AIC and carry only that model forward.
+* Take the `gammas` (topic proportions) from the best fitting LDA and fit numerous changepoint models with varying `ncpts` (numbers of changepoints). 
+* Select the best-fitting TS model via AIC. 
 
-My solution is to select the number of changepoints via AIC, so we get the parameter penalty, and select the number of topics via crossvalidation, so we get a topic structure that helps us capture the gist of the whole community dynamics via a simple TS model. This is tricky because 1) we can't use AIC to compare TS models fit to different LDAs, and 2) we need the TS fit in order to do crossvalidation on the LDA. 
+This worked beautifully at Portal, but [when applied to BBS (and other coarser/shorter timeseries)](https://github.com/diazrenata/ldats2020/blob/master/orig_results.md)
 
-My approach is to restrict the models considered via crossvalidation to the best-scoring TS model for each particular LDA fit. That is, for a particular LDA (2 topics, seed = 100), we fit a bunch of TS models (0, 1, 2, 5 changepoints). We compare the TS models via AIC, and enter *only the best-fitting TS model for each LDA* into crossvalidation. We then use crossvalidation to pick the LDA model that, when combined with its best-fitting TS model, allows for the best performance at predicting withheld data. 
+* The best-fitting LDA, via AIC, tends to have very high `k`.
+* The resulting topic proportions are super high dimensional and hard for the change point model to fit.
+* Think about this as, *we optimized the LDA piece at the very great expense of the TS piece*. Because we ultimately care more about the TS piece, this is not useful for our purposes. 
 
-That is, we might be comparing "2 topics, seed = 100, 2 changepoints" with "5 topics, seed = 10, 0 changepoints", and finding that the 2 topic LDA, with 2 changepoints, does a better job recovering the actual species abundances than a 5 topic LDA with no changepoints. 
 
-This seems to work. However, I would not have done it this way if not for the string of issues discussed above. It's unconventional! **I want to give everyone, and especially technically-inclined folks, the chance to investigate this, ask any questions, and raise any concerns.**
+### Combined goodness of fit
+
+Because we want the *combination* of LDA and TS model that best capture the dynamics, we move towards a combined or holistic approach to model selection.
+
+* Run all possible combinations of `k`, `seed`, and `ncpts`. 
+* For every model, calculate an overall goodness of fit.
+    * Loglikelihood of observed actual abundances given predicted abundances (multinomial probabilities) from model.
+    * This is done via LOO cross validation. 
+* Choose the whole-model - `k`, `seed`, `ncpts` - with the best loglikelihood
+
+[In practice, this approach tends to have tractable `k` but a lot of uncertainty for, and often high, `ncpts`](https://github.com/diazrenata/ldats2020/blob/master/crossval_results.md). That is, it effectively penalizes overly complex LDAs, because these interfere with the TS model's ability to fit well. But there isn't really a penalty for extra changepoints, because there can be a changepoint with very little change. Having many changepoints can thus result in a slight improvement in fit and rarely results in a dramatic reduction in fit detectable via crossvalidation. 
+
+We didn't have this problem before, because when we select the TS via AIC, we explicitly impose a penalty for extra parameters. So an extra changepoint had to improve the fit enough to be "worth" the parameter penalty. Using crossvalidation, the extra changepoint just has to not make things a lot worse. Crossvalidation approaches in general assume the complexity penalty is built in via overfitting, and aren't really compatible with an explicit penalty for parameters.
+
+### What I'm doing now - "Hybrid" (Crossval + AIC)
+
+I want to effectively select the LDA using crossvalidation but select the TS using AIC(c). 
+
+This is a little complex because 1) we can't use AIC to compare TS models fit on different LDAs, and 2) we need the TS fit before we can perform crossvalidation. We can work around this by:
+
+* Use AIC to select the best-fitting TS **for each specific LDA model**. That is, are the topic proportions from the LDA model with 2 topics and seed 100 best-described via a TS model with 0, 1, or 2 changepoints? 
+* Each LDA model is then combined with only its best-fitting TS model. So if `k = 2, seed = 100` was best fit by `ncpts = 1`, that is the only version of `k = 2, seed = 100` we consider further. We no longer entertain the possibility that `k = 2, seed = 100, ncpts = 3`. 
+* For each specific LDA model, now combined with its TS model, get an overall goodness of fit using crossvalidation. 
+    * We therefore get crossvalidation scores for a bunch of models like this:
+        * `k = 2, seed = 100, ncpts = 1`; `k = 12, seed = 2, ncpts = 0`. 
+        * This effectively tells us whether a 2 topic LDA with 1 changepoint is better at predicting withheld data than a 12 topic LDA with 0 changepoints etc.
+        * We are choosing between LDA models based on if their topic proportions can set up a parsimonious TS model to accurately predict withheld data.
+    * Choose the model with the best crossvalidation score.
+
+
+I would not have done this if not for the string of issues discussed above. It's unconventional! **Can I please ask technical folks** (it is up to you whether you consider yourself technical folk or not!), **do we see major red flags?** 
+
+
+#### Detail on LDAs and crossvalidation
+
+**I'd really appreciate technical perspectives on this, too!**
+
+I believe we have to do the training/test split on the LDA proportions after they are fit (instead of on the data before it goes into the LDA). This raises  concerns re: data leakage, but I think it's justified and I don't think we're seeing evidence of a problem there. 
+
+If you fit two LDAs to two different datasets, even with the same seed, you can end up with very different topics and topic proportions. It's impossible to re-combine them into one LDA for the whole timeseries. Nor is the LDA you get from fitting to the whole, unsubsetted, data really reflective of the LDAs you got from every subset. This renders the crossvalidation nonsensical.
+
+Fitting the LDA first, and then subsetting, in principle results in some data leakage. However, I think this would manifest as overfitting in the LDA/sneaking around the crossvalidation. I'm not finding an obvious issue with high `k` anymore. And, selecting `k` perfectly is less important now than in the original formulation. 
+
+This is also always going to be a problem with LDA + crossvalidation.
 
 
 # Sample results
