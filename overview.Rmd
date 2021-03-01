@@ -115,11 +115,11 @@ ggplot(filter(all_evals_summary), aes(as.factor(k), mean_sum_ll, color = as.fact
 ```
 
 
-Here are the 5 performing models. The top 4 all have 2 topics and 1 changepoint.
+Here are the 10 performing models. The top 4 all have 2 topics and 1 changepoint.
 
 ```{r}
 # Some but not all have clear winners. 
-head(filter(all_evals_summary, dat_rank < 6))
+(filter(all_evals_summary, dat_rank < 11))[1:10,]
 
 
 #### load datasets ####
@@ -212,7 +212,7 @@ ggplot(long_1_11, aes(year, abundance, color = species)) +
 ```
 
 
-Plotting the LDA topic composition and the temporal dynamics of the LDA topics:
+Plotting the LDA topic composition and the temporal dynamics of the LDA topics. 
 
 
 ```{r}

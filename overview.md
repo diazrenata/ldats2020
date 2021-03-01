@@ -181,18 +181,23 @@ those with 2 topics and 1 changepoint.
 
 ![](overview_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
-Here are the 5 performing models. The top 4 all have 2 topics and 1
+Here are the 10 performing models. The top 4 all have 2 topics and 1
 changepoint.
 
-    ## # A tibble: 5 x 6
+    ## # A tibble: 10 x 6
     ## # Groups:   dataset [1]
-    ##   dataset                          k  seed  cpts mean_sum_ll dat_rank
-    ##   <chr>                        <int> <int> <int>       <dbl>    <int>
-    ## 1 all_evals_toy_rodents_annual     2     6     1       -461.        1
-    ## 2 all_evals_toy_rodents_annual     2    30     1       -462.        2
-    ## 3 all_evals_toy_rodents_annual     2    24     1       -467.        3
-    ## 4 all_evals_toy_rodents_annual     2    18     1       -470.        4
-    ## 5 all_evals_toy_rodents_annual     3    18     2       -471.        5
+    ##    dataset                          k  seed  cpts mean_sum_ll dat_rank
+    ##    <chr>                        <int> <int> <int>       <dbl>    <int>
+    ##  1 all_evals_toy_rodents_annual     2     6     1       -461.        1
+    ##  2 all_evals_toy_rodents_annual     2    30     1       -462.        2
+    ##  3 all_evals_toy_rodents_annual     2    24     1       -467.        3
+    ##  4 all_evals_toy_rodents_annual     2    18     1       -470.        4
+    ##  5 all_evals_toy_rodents_annual     3    18     2       -471.        5
+    ##  6 all_evals_toy_rodents_annual     3    30     2       -472.        6
+    ##  7 all_evals_toy_rodents_annual     2    20     1       -474.        7
+    ##  8 all_evals_toy_rodents_annual     2     8     1       -477.        8
+    ##  9 all_evals_toy_rodents_annual     2    26     1       -477.        9
+    ## 10 all_evals_toy_rodents_annual     2    22     1       -477.       10
 
 Here is what that model looks like. The LDA topics look to me like
 “PP/PB/DO/DM” and “Everything else, including spectabs”.
@@ -262,7 +267,7 @@ plots terribly informative:
 ![](overview_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 Plotting the LDA topic composition and the temporal dynamics of the LDA
-topics:
+topics.
 
     ## Running LDA with 3 topics (seed 8)
 
