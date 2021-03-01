@@ -69,7 +69,7 @@ A possible approach is to restrict the models considered via crossvalidation to 
 
 That is, we might be comparing "2 topics, seed = 100, 2 changepoints" with "5 topics, seed = 10, 0 changepoints", and finding that the 2 topic LDA, with 2 changepoints, does a better job recovering the actual species abundances than a 5 topic LDA with no changepoints. 
 
-This seems to work. However, I would not have done it this way if not for the string of issues discussed above. It's unconventional! See below for sample results.
+This seems to work, in that it selects with reasonable confidence a model with small numbers of topics and changepoints, and it selects different numbers of topics & changepoints for different datasets. However, I would not have done it this way if not for the string of issues discussed above. It's unconventional! See below for sample results.
 
 
 # Sample results
