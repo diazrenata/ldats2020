@@ -1,11 +1,11 @@
 ---
-title: "Overview January 2021"
+title: "Overview"
 author: Renata Diaz
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 output:
   github_document:
     toc: true
-    fig_width: 4
+    fig_width: 5
     fig_height: 3
 ---
 
@@ -18,6 +18,7 @@ library(LDATS)
 source(here::here("analysis", "fxns", "crossval_fxns.R"))
 source(here::here("analysis", "fxns", "hybrid_fxns.R"))
 source(here::here("analysis", "fxns", "make_toy_data_objects.R"))
+theme_set(theme_bw())
 
 ```
 # Overview
@@ -32,12 +33,12 @@ We take a macroecological approach to detecting and describing shifts between co
 
 1. How common it is to have a) relatively little temporal structure, meaning static or temporally randomish dynamics, or b) transitions between multiple states? 
 2. (Potentially) Do these transitions tend to occur rapidly or gradually?
-3. Do transitions - in particular rapid ones - coincide with periods of overall low abundance? 
 
 Beyond the scope here, this method could also be useful combined with other data streams & community-specific hypotheses to ask:
 
-* Which species are responsible for the change
-* What endogenous or exogenous factors coincide with periods of change
+*Do transitions - in particular rapid ones - coincide with periods of overall low abundance? 
+* Which species/groups are responsible for the change?
+* What endogenous or exogenous factors coincide with periods of change?
     * environmental shifts; key species crashing out; etc
 * If there are regional or national patterns in if or when transitions occur
     * e.g. New England is static but there are multiple states for communities from the Southwest
@@ -56,19 +57,19 @@ Beyond the scope here, this method could also be useful combined with other data
 
 Here in brief; see technical_details.Rmd for details and figures.
 
-The original LDATS implementation first selects an LDA via AIC and then selects a TS model via AIC. This tends to select an LDA with a lot of topics. The TS model then struggles to fit anything to the (very high dimensional) topic proportions. 
+The original LDATS implementation first selects an LDA via AIC and then selects a TS model via AIC. This tends to select an LDA with a lot of topics. The TS model then struggles to fit anything to the (very high dimensional) topic proportions. See https://github.com/diazrenata/ldats2020/blob/master/orig_results.md for some example results.
 
-I tried a combined/holistic selection process using leave-one-out crossvalidation. That is, we try all possible combinations of numbers of topics and numbers of changepoints, and pick the best *combination* of number of topics and number of changepoints according to how well it predicts withheld data. 
+I tried a combined/holistic selection process using leave-one-out crossvalidation. That is, we try all possible combinations of numbers of topics and numbers of changepoints, and pick the best *combination* of number of topics and number of changepoints according to how well it predicts withheld data. See here for some example results from this procedure: https://github.com/diazrenata/ldats2020/blob/master/crossval_results.md 
 
-Crossvalidation effectively curbs the tendency to have too many topics, but tends to fit a lot of *changepoints*. We did not have this problem when we selected the changepoints with AIC, because AIC penalizes for additional parameters. A changepoint has to improve the fit so much that it is "worth" the parameter penalty. However, with crossvalidation, there is no penalty for parameters directly. Overly-complex models are supposed to be selected against because they will be overfit and will do a bad job predicting test data. The problem is that having an extra changepoint doesn't necessarily make a model so complex it is bad at prediction - the change associated with the changepoint can be minimal or nonexistent. This means extra changepoints can sometimes make the fit a little better but rarely make it a lot worse.
+Crossvalidation effectively curbs the tendency to have too many topics, but tends to fit a lot of *changepoints*. We did not have this problem when we selected the changepoints with AIC, because AIC penalizes for additional parameters. A changepoint has to improve the fit so much that it is "worth" the parameter penalty. However, with crossvalidation, there is no penalty for parameters directly. Overly-complex models are supposed to be selected against because they will be overfit and will do a bad job predicting test data. The problem is that having an extra changepoint doesn't necessarily make a model so complex it is bad at prediction - the change associated with the changepoint can be minimal or nonexistent. This means extra changepoints can sometimes make the fit a little better but rarely make it a lot worse. 
 
-My solution is to select the number of changepoints via AIC, so we get the parameter penalty, and select the number of topics via crossvalidation, so we get a topic structure that helps us capture the gist of the whole community dynamics via a simple TS model. This is tricky because 1) we can't use AIC to compare TS models fit to different LDAs, and 2) we need the TS fit in order to do crossvalidation on the LDA. 
+A possible solution is to select the number of changepoints via AIC, so we get the parameter penalty, and select the number of topics via crossvalidation, so we get a topic structure that helps us capture the gist of the whole community dynamics via a simple TS model. This is tricky because 1) we can't use AIC to compare TS models fit to different LDAs, and 2) we need the TS fit in order to do crossvalidation on the LDA. 
 
-My approach is to restrict the models considered via crossvalidation to the best-scoring TS model for each particular LDA fit. That is, for a particular LDA (2 topics, seed = 100), we fit a bunch of TS models (0, 1, 2, 5 changepoints). We compare the TS models via AIC, and enter *only the best-fitting TS model for each LDA* into crossvalidation. We then use crossvalidation to pick the LDA model that, when combined with its best-fitting TS model, allows for the best performance at predicting withheld data. 
+A possible approach is to restrict the models considered via crossvalidation to the best-scoring TS model for each particular LDA fit. That is, for a particular LDA (2 topics, seed = 100), we fit a bunch of TS models (0, 1, 2, 5 changepoints). We compare the TS models via AIC, and enter *only the best-fitting TS model for each LDA* into crossvalidation. We then use crossvalidation to pick the LDA model that, when combined with its best-fitting TS model, allows for the best performance at predicting withheld data. 
 
 That is, we might be comparing "2 topics, seed = 100, 2 changepoints" with "5 topics, seed = 10, 0 changepoints", and finding that the 2 topic LDA, with 2 changepoints, does a better job recovering the actual species abundances than a 5 topic LDA with no changepoints. 
 
-This seems to work. However, I would not have done it this way if not for the string of issues discussed above. It's unconventional!
+This seems to work. However, I would not have done it this way if not for the string of issues discussed above. It's unconventional! See below for sample results.
 
 
 # Sample results
@@ -79,7 +80,7 @@ The presence & number of changepoints tells us how many community states the mod
 
 The presence of a changepoint means there was a transition, but not necessarily a *rapid* one. The uncertainty around *when* the changepoint occurred may reflect how rapid it was.
 
-A transition doesn't need to be a total overhaul of the community/"regime shift" for the model to find a changepoint. It has to be reasonably substantial and consistent, but just flagging that transitions between states != regime shift. 
+Note that a transition doesn't need to be a total overhaul of the community/"regime shift" for the model to find a changepoint. It has to be reasonably substantial and consistent, but just flagging that transitions between states != regime shift. 
 
 ## What topics mean now
 
@@ -90,6 +91,10 @@ In this application, the number of topics and the species composition of the top
 ## Portal, reduced to annual samples
 
 (I am not doing monthly Portal because of the seasonal signal.)
+
+This is a plot of the model performance (mean loglikelihood over crossvalidation folds) on the y-axis, versus the number of topics (k) on the x-axis. The colors are the number of changepoints. For a given number of topics and changepoints, different dots are for LDA models fit with different seeds. 
+
+High-topic models perform very poorly. The best performing models are those with 2 topics and 1 changepoint. 
 
 ```{r}
 
@@ -107,7 +112,12 @@ all_evals_summary <- all_evals %>%
 ggplot(filter(all_evals_summary), aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) + 
   geom_point() + 
   facet_wrap(vars(dataset), scales = "free_y")
+```
 
+
+Here are the 5 performing models. The top 4 all have 2 topics and 1 changepoint.
+
+```{r}
 # Some but not all have clear winners. 
 head(filter(all_evals_summary, dat_rank < 6))
 
@@ -118,12 +128,28 @@ rats$covariates$year <- 1:nrow(rats$covariates)
 ```
 
 
+Here is what that model looks like. The LDA topics look to me like "PP/PB/DO/DM" and "Everything else, including spectabs". 
 ```{r static changepoint}
 
 lda_rats<- LDATS::LDA_set_user_seeds(rats$abundance, topics = 2, seed = 6)
 
 plot_lda_comp(lda_rats, specl = TRUE)
+
+```
+
+
+These are the temporal dynamics for the LDA topics.  The temporal shift is a shift from "Everything else" to the small granivore/small krat cocktail:
+
+
+```{r}
 plot_lda_year(lda_rats, rats$covariates$year)
+
+```
+
+
+Fitting the TS model to those LDA topics, we (unsuprisingly) get a single changepoint around year 20. 
+
+```{r}
 ts_rats <- LDATS::TS_on_LDA(lda_rats, as.data.frame(rats$covariates), formulas = ~1, nchangepoints = 1, timename = "year", control = LDATS::TS_control(nit = 100))
 
 gamma_plot(ts_rats[[1]])
@@ -133,6 +159,10 @@ rho_plot(ts_rats[[1]])
 
 
 ## A BBS route
+
+Here is a totally arbitrary BBS route.
+
+Again, the model loglikelihoods for models with different numbers of topics (x axis) and changepoints (color). Again, very high topic models do poorly. This one has a peak for a 3-topic LDA with 2 changepoints:
 
 ```{r}
 
@@ -153,11 +183,20 @@ all_evals_summary <- all_evals %>%
 ggplot(filter(all_evals_summary), aes(as.factor(k), mean_sum_ll, color = as.factor(cpts))) + 
   geom_point() + 
   facet_wrap(vars(dataset), scales = "free_y")
+```
 
+
+Here are the top 10. 9/10 of them have the same number of topics and changepoints.
+
+```{r}
 # Some but not all have clear winners. 
 all_evals_summary[1:10,]
 
 ```
+
+Here is what that model looks like. 
+
+First, the actual species dynamics - I unfortunately don't find these plots terribly informative: 
 
 ```{r}
 load(here::here("analysis", "reports", "hybrid_datasets.RData"))
@@ -170,11 +209,24 @@ ggplot(long_1_11, aes(year, abundance, color = species)) +
   geom_line() +
   theme_bw() +
   theme(legend.position = "none")
+```
 
+
+Plotting the LDA topic composition and the temporal dynamics of the LDA topics:
+
+
+```{r}
 lda_1_11 <- LDATS::LDA_set_user_seeds(bbs_rtrg_1_11$abundance, topics = 3, seed = 8)
 ts_1_11 <- LDATS::TS_on_LDA(lda_1_11[[1]], as.data.frame(bbs_rtrg_1_11$covariates), formulas = ~1, nchangepoints = 2, timename = "year", control = TS_control(nit = 100))
 plot_lda_comp(lda_1_11)
 plot_lda_year(lda_1_11, bbs_rtrg_1_11$covariates$year)
+
+```
+
+
+And estimates from the changepoint model:
+
+```{r}
 gamma_plot(ts_1_11[[1]])
 rho_plot(ts_1_11[[1]])
 ```

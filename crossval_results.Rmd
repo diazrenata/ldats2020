@@ -30,6 +30,7 @@ There are some variants and details in the crossvalidation methods:
 knitr::opts_chunk$set(echo = FALSE)
 library(dplyr)
 library(ggplot2)
+theme_set(theme_bw())
 
 ll_evals <- read.csv(here::here("old_but_mb_useful","all_evals_bbs_rtrg_1_11.csv")) %>%
   select(-X)

@@ -1,7 +1,7 @@
-Overview January 2021
+Overview
 ================
 Renata Diaz
-19 January, 2021
+01 March, 2021
 
   - [Overview](#overview)
       - [Usefulness of the approach](#usefulness-of-the-approach)
@@ -43,20 +43,18 @@ past 40 years. We ask:
     between multiple states?
 2.  (Potentially) Do these transitions tend to occur rapidly or
     gradually?
-3.  Do transitions - in particular rapid ones - coincide with periods of
-    overall low abundance?
 
 Beyond the scope here, this method could also be useful combined with
 other data streams & community-specific hypotheses to ask:
 
-  - Which species are responsible for the change
-  - What endogenous or exogenous factors coincide with periods of change
-      - environmental shifts; key species crashing out; etc
-  - If there are regional or national patterns in if or when transitions
-    occur
-      - e.g. New England is static but there are multiple states for
-        communities from the Southwest
-      - or, communities nationwide underwent a shift between 1990-95
+*Do transitions - in particular rapid ones - coincide with periods of
+overall low abundance? * Which species/groups are responsible for the
+change? \* What endogenous or exogenous factors coincide with periods of
+change? \* environmental shifts; key species crashing out; etc \* If
+there are regional or national patterns in if or when transitions occur
+\* e.g. New England is static but there are multiple states for
+communities from the Southwest \* or, communities nationwide underwent a
+shift between 1990-95
 
 # Technical details
 
@@ -86,13 +84,17 @@ Here in brief; see technical\_details.Rmd for details and figures.
 The original LDATS implementation first selects an LDA via AIC and then
 selects a TS model via AIC. This tends to select an LDA with a lot of
 topics. The TS model then struggles to fit anything to the (very high
-dimensional) topic proportions.
+dimensional) topic proportions. See
+<https://github.com/diazrenata/ldats2020/blob/master/orig_results.md>
+for some example results.
 
 I tried a combined/holistic selection process using leave-one-out
 crossvalidation. That is, we try all possible combinations of numbers of
 topics and numbers of changepoints, and pick the best *combination* of
 number of topics and number of changepoints according to how well it
-predicts withheld data.
+predicts withheld data. See here for some example results from this
+procedure:
+<https://github.com/diazrenata/ldats2020/blob/master/crossval_results.md>
 
 Crossvalidation effectively curbs the tendency to have too many topics,
 but tends to fit a lot of *changepoints*. We did not have this problem
@@ -107,22 +109,22 @@ prediction - the change associated with the changepoint can be minimal
 or nonexistent. This means extra changepoints can sometimes make the fit
 a little better but rarely make it a lot worse.
 
-My solution is to select the number of changepoints via AIC, so we get
-the parameter penalty, and select the number of topics via
+A possible solution is to select the number of changepoints via AIC, so
+we get the parameter penalty, and select the number of topics via
 crossvalidation, so we get a topic structure that helps us capture the
 gist of the whole community dynamics via a simple TS model. This is
 tricky because 1) we can’t use AIC to compare TS models fit to different
 LDAs, and 2) we need the TS fit in order to do crossvalidation on the
 LDA.
 
-My approach is to restrict the models considered via crossvalidation to
-the best-scoring TS model for each particular LDA fit. That is, for a
-particular LDA (2 topics, seed = 100), we fit a bunch of TS models (0,
-1, 2, 5 changepoints). We compare the TS models via AIC, and enter *only
-the best-fitting TS model for each LDA* into crossvalidation. We then
-use crossvalidation to pick the LDA model that, when combined with its
-best-fitting TS model, allows for the best performance at predicting
-withheld data.
+A possible approach is to restrict the models considered via
+crossvalidation to the best-scoring TS model for each particular LDA
+fit. That is, for a particular LDA (2 topics, seed = 100), we fit a
+bunch of TS models (0, 1, 2, 5 changepoints). We compare the TS models
+via AIC, and enter *only the best-fitting TS model for each LDA* into
+crossvalidation. We then use crossvalidation to pick the LDA model that,
+when combined with its best-fitting TS model, allows for the best
+performance at predicting withheld data.
 
 That is, we might be comparing “2 topics, seed = 100, 2 changepoints”
 with “5 topics, seed = 10, 0 changepoints”, and finding that the 2 topic
@@ -130,7 +132,8 @@ LDA, with 2 changepoints, does a better job recovering the actual
 species abundances than a 5 topic LDA with no changepoints.
 
 This seems to work. However, I would not have done it this way if not
-for the string of issues discussed above. It’s unconventional\!
+for the string of issues discussed above. It’s unconventional\! See
+below for sample results.
 
 # Sample results
 
@@ -144,9 +147,9 @@ The presence of a changepoint means there was a transition, but not
 necessarily a *rapid* one. The uncertainty around *when* the changepoint
 occurred may reflect how rapid it was.
 
-A transition doesn’t need to be a total overhaul of the
-community/“regime shift” for the model to find a changepoint. It has
-to be reasonably substantial and consistent, but just flagging that
+Note that a transition doesn’t need to be a total overhaul of the
+community/“regime shift” for the model to find a changepoint. It has to
+be reasonably substantial and consistent, but just flagging that
 transitions between states \!= regime shift.
 
 ## What topics mean now
@@ -165,9 +168,21 @@ another community state, another topic post-transition.
 
 (I am not doing monthly Portal because of the seasonal signal.)
 
-    ## `summarise()` regrouping output by 'dataset', 'k', 'seed' (override with `.groups` argument)
+This is a plot of the model performance (mean loglikelihood over
+crossvalidation folds) on the y-axis, versus the number of topics (k) on
+the x-axis. The colors are the number of changepoints. For a given
+number of topics and changepoints, different dots are for LDA models fit
+with different seeds.
+
+High-topic models perform very poorly. The best performing models are
+those with 2 topics and 1 changepoint.
+
+    ## `summarise()` has grouped output by 'dataset', 'k', 'seed'. You can override using the `.groups` argument.
 
 ![](overview_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+Here are the 5 performing models. The top 4 all have 2 topics and 1
+changepoint.
 
     ## # A tibble: 5 x 6
     ## # Groups:   dataset [1]
@@ -179,9 +194,21 @@ another community state, another topic post-transition.
     ## 4 all_evals_toy_rodents_annual     2    18     1       -470.        4
     ## 5 all_evals_toy_rodents_annual     3    18     2       -471.        5
 
+Here is what that model looks like. The LDA topics look to me like
+“PP/PB/DO/DM” and “Everything else, including spectabs”.
+
     ## Running LDA with 2 topics (seed 6)
 
-![](overview_files/figure-gfm/static%20changepoint-1.png)<!-- -->![](overview_files/figure-gfm/static%20changepoint-2.png)<!-- -->
+![](overview_files/figure-gfm/static%20changepoint-1.png)<!-- -->
+
+These are the temporal dynamics for the LDA topics. The temporal shift
+is a shift from “Everything else” to the small granivore/small krat
+cocktail:
+
+![](overview_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+Fitting the TS model to those LDA topics, we (unsuprisingly) get a
+single changepoint around year 20.
 
     ## Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model k: 2, seed: 6
 
@@ -189,21 +216,28 @@ another community state, another topic post-transition.
 
     ##   Estimating regressor distribution
 
-![](overview_files/figure-gfm/static%20changepoint-3.png)<!-- -->
+![](overview_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
     ## Warning: Removed 2 rows containing missing values (geom_bar).
 
-![](overview_files/figure-gfm/static%20changepoint-4.png)<!-- -->
+![](overview_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
 
 ## A BBS route
 
-![](overview_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+Here is a totally arbitrary BBS route.
 
-    ## `summarise()` regrouping output by 'dataset', 'k', 'seed' (override with `.groups` argument)
+Again, the model loglikelihoods for models with different numbers of
+topics (x axis) and changepoints (color). Again, very high topic models
+do poorly. This one has a peak for a 3-topic LDA with 2 changepoints:
 
-![](overview_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
+    ## `summarise()` has grouped output by 'dataset', 'k', 'seed'. You can override using the `.groups` argument.
+
+![](overview_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+Here are the top 10. 9/10 of them have the same number of topics and
+changepoints.
 
     ## # A tibble: 10 x 6
     ## # Groups:   dataset [1]
@@ -220,7 +254,15 @@ another community state, another topic post-transition.
     ##  9 all_evals_bbs_rtrg_1_11     3    18     2       -488.        9
     ## 10 all_evals_bbs_rtrg_1_11     3    20     2       -489.       10
 
-![](overview_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+Here is what that model looks like.
+
+First, the actual species dynamics - I unfortunately don’t find these
+plots terribly informative:
+
+![](overview_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+Plotting the LDA topic composition and the temporal dynamics of the LDA
+topics:
 
     ## Running LDA with 3 topics (seed 8)
 
@@ -230,10 +272,14 @@ another community state, another topic post-transition.
 
     ##   Estimating regressor distribution
 
-![](overview_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->![](overview_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->![](overview_files/figure-gfm/unnamed-chunk-3-4.png)<!-- -->
+![](overview_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->![](overview_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
+
+And estimates from the changepoint model:
+
+![](overview_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
     ## Warning: Removed 4 rows containing missing values (geom_bar).
 
-![](overview_files/figure-gfm/unnamed-chunk-3-5.png)<!-- -->
+![](overview_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->
