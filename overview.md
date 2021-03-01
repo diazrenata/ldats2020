@@ -1,7 +1,7 @@
 Overview January 2021
 ================
 Renata Diaz
-18 January, 2021
+19 January, 2021
 
   - [Overview](#overview)
       - [Usefulness of the approach](#usefulness-of-the-approach)
@@ -22,39 +22,41 @@ Renata Diaz
 I am now thinking of LDATS as a tool for detecting & describing temporal
 structure in timeseries of community composition. Community composition
 may be relatively static over time, or might shift gradually or rapidly
-between two or more states. A major challenge in detecting, let alone
-explaining or predicting, such shifts relates to the high dimensionality
-of most community data. The researcher has to choose whether to focus on
-a few abundant or apparent species, use a dimensionality reduction
-algorithm, or use a distance metric - neither of which approaches is
-inherently suited to temporal community data. LDATS accomplishes
-dimensionality reduction and temporal analysis, and (now) optimizes the
-dimensionality reduction to facilitate accurate, but parsimonious,
-description of specifically temporal dynamics.
+between two or more transient states. A major challenge in detecting,
+let alone explaining or predicting, such shifts relates to the high
+dimensionality of most community data. The researcher has to choose
+whether to focus on a few abundant or apparent species, use a
+dimensionality reduction algorithm, or use a distance metric - neither
+of which approaches is inherently suited to temporal community data.
+LDATS accomplishes dimensionality reduction and temporal analysis, and
+(now) optimizes the dimensionality reduction to facilitate accurate, but
+parsimonious, description of specifically temporal dynamics.
 
 ## Applied to BBS
 
-Applied to a large number of communities sampled with consistent
-methodology (BBS), LDATS can tell us:
+We take a macroecological approach to detecting and describing shifts
+between community states for North American bird communities over the
+past 40 years. We ask:
 
-  - How common it is to have a) relatively little temporal structure,
-    meaning static or temporally randomish dynamics, b) multiple states
-    for the community over time
-  - How many states is common
-  - Potentially, how rapidly we tend to see these transitions occurring
-  - If, as with Portal, we see periods of change coinciding with periods
-    of low abundance
-  - If there are patterns at regional or national scale in a) how many
-    states occur and b) when the transitions occurred
-      - e.g. has New England been static but the Southeast changed a
-        bunch of times
-      - or, was there a period of ubiuitous change from 1990-1995
+1.  How common it is to have a) relatively little temporal structure,
+    meaning static or temporally randomish dynamics, or b) transitions
+    between multiple states?
+2.  (Potentially) Do these transitions tend to occur rapidly or
+    gradually?
+3.  Do transitions - in particular rapid ones - coincide with periods of
+    overall low abundance?
 
 Beyond the scope here, this method could also be useful combined with
 other data streams & community-specific hypotheses to ask:
 
   - Which species are responsible for the change
   - What endogenous or exogenous factors coincide with periods of change
+      - environmental shifts; key species crashing out; etc
+  - If there are regional or national patterns in if or when transitions
+    occur
+      - e.g. New England is static but there are multiple states for
+        communities from the Southwest
+      - or, communities nationwide underwent a shift between 1990-95
 
 # Technical details
 
@@ -66,13 +68,18 @@ other data streams & community-specific hypotheses to ask:
     = response ~ 1`)
   - Also following C., we may be able to use the (un)certainty of the
     changepoint model’s estimates of when the changepoints occur to
-    infer how rapidly or gradually a transition took place.
+    infer how rapidly or gradually a transition took place. I am still
+    testing this for coarser (40-sample v 400-sample) datasets.
   - We proceed using the softmax transformation. **Juniper** - is this
     acceptable (even if not ideal)? My impression was that the softmax
     was most problematic when we were fitting slopes, but you’re the
     expert on these details.
 
 ## Model selection
+
+**I want to give everyone, and especially technically-inclined folks,
+the chance to investigate this, ask any questions, and raise any
+concerns.**
 
 Here in brief; see technical\_details.Rmd for details and figures.
 
@@ -123,9 +130,7 @@ LDA, with 2 changepoints, does a better job recovering the actual
 species abundances than a 5 topic LDA with no changepoints.
 
 This seems to work. However, I would not have done it this way if not
-for the string of issues discussed above. It’s unconventional\! **I want
-to give everyone, and especially technically-inclined folks, the chance
-to investigate this, ask any questions, and raise any concerns.**
+for the string of issues discussed above. It’s unconventional\!
 
 # Sample results
 
@@ -139,9 +144,9 @@ The presence of a changepoint means there was a transition, but not
 necessarily a *rapid* one. The uncertainty around *when* the changepoint
 occurred may reflect how rapid it was.
 
-A transition probably doesn’t need to be a total overhaul of the
-community/“regime shift” for the model to find a changepoint. It has to
-be reasonably substantial and consistent, but just flagging that
+A transition doesn’t need to be a total overhaul of the
+community/“regime shift” for the model to find a changepoint. It has
+to be reasonably substantial and consistent, but just flagging that
 transitions between states \!= regime shift.
 
 ## What topics mean now
@@ -154,11 +159,7 @@ proportions over time. Rather, we tend to see one topic corresponding to
 the community state in one time period, and, if there is a transition to
 another community state, another topic post-transition.
 
-I think this is because of two related things. One, we have fewer time
-samples, so less capacity to detect fine scale dynamics. Two, we
-specifically look for the set of topics that allows the change point
-model to achieve a good fit, which means the topics need to have
-relatively simple temporal dynamics.
+<!-- I think this is because of two related things. One, we have fewer time samples, so less capacity to detect fine scale dynamics. Two, we specifically look for the set of topics that allows the change point model to achieve a good fit, which means the topics need to have relatively simple temporal dynamics.  -->
 
 ## Portal, reduced to annual samples
 
@@ -178,11 +179,9 @@ relatively simple temporal dynamics.
     ## 4 all_evals_toy_rodents_annual     2    18     1       -470.        4
     ## 5 all_evals_toy_rodents_annual     3    18     2       -471.        5
 
-![](overview_files/figure-gfm/static%20changepoint-1.png)<!-- -->
-
     ## Running LDA with 2 topics (seed 6)
 
-![](overview_files/figure-gfm/static%20changepoint-2.png)<!-- -->![](overview_files/figure-gfm/static%20changepoint-3.png)<!-- -->
+![](overview_files/figure-gfm/static%20changepoint-1.png)<!-- -->![](overview_files/figure-gfm/static%20changepoint-2.png)<!-- -->
 
     ## Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model k: 2, seed: 6
 
@@ -190,21 +189,21 @@ relatively simple temporal dynamics.
 
     ##   Estimating regressor distribution
 
-![](overview_files/figure-gfm/static%20changepoint-4.png)<!-- -->
+![](overview_files/figure-gfm/static%20changepoint-3.png)<!-- -->
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
     ## Warning: Removed 2 rows containing missing values (geom_bar).
 
-![](overview_files/figure-gfm/static%20changepoint-5.png)<!-- -->
+![](overview_files/figure-gfm/static%20changepoint-4.png)<!-- -->
 
 ## A BBS route
 
-![](overview_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](overview_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
     ## `summarise()` regrouping output by 'dataset', 'k', 'seed' (override with `.groups` argument)
 
-![](overview_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+![](overview_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
 
     ## # A tibble: 10 x 6
     ## # Groups:   dataset [1]
@@ -221,7 +220,7 @@ relatively simple temporal dynamics.
     ##  9 all_evals_bbs_rtrg_1_11     3    18     2       -488.        9
     ## 10 all_evals_bbs_rtrg_1_11     3    20     2       -489.       10
 
-![](overview_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](overview_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
     ## Running LDA with 3 topics (seed 8)
 
@@ -231,10 +230,10 @@ relatively simple temporal dynamics.
 
     ##   Estimating regressor distribution
 
-![](overview_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->![](overview_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->![](overview_files/figure-gfm/unnamed-chunk-4-4.png)<!-- -->
+![](overview_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->![](overview_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->![](overview_files/figure-gfm/unnamed-chunk-3-4.png)<!-- -->
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
     ## Warning: Removed 4 rows containing missing values (geom_bar).
 
-![](overview_files/figure-gfm/unnamed-chunk-4-5.png)<!-- -->
+![](overview_files/figure-gfm/unnamed-chunk-3-5.png)<!-- -->

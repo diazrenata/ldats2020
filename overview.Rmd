@@ -5,6 +5,8 @@ date: '`r format(Sys.time(), "%d %B, %Y")`'
 output:
   github_document:
     toc: true
+    fig_width: 4
+    fig_height: 3
 ---
 
 
@@ -22,36 +24,35 @@ source(here::here("analysis", "fxns", "make_toy_data_objects.R"))
 
 ## Usefulness of the approach
 
-I am now thinking of LDATS as a tool for detecting & describing temporal structure in timeseries of community composition. Community composition may be relatively static over time, or might shift gradually or rapidly between two or more states. A major challenge in detecting, let alone explaining or predicting, such shifts relates to the high dimensionality of most community data. The researcher has to choose whether to focus on a few abundant or apparent species, use a dimensionality reduction algorithm, or use a distance metric - neither of which approaches is inherently suited to temporal community data. LDATS accomplishes dimensionality reduction and temporal analysis, and (now) optimizes the dimensionality reduction to facilitate accurate, but parsimonious, description of specifically temporal dynamics. 
-
+I am now thinking of LDATS as a tool for detecting & describing temporal structure in timeseries of community composition. Community composition may be relatively static over time, or might shift gradually or rapidly between two or more transient states. A major challenge in detecting, let alone explaining or predicting, such shifts relates to the high dimensionality of most community data. The researcher has to choose whether to focus on a few abundant or apparent species, use a dimensionality reduction algorithm, or use a distance metric - neither of which approaches is inherently suited to temporal community data. LDATS accomplishes dimensionality reduction and temporal analysis, and (now) optimizes the dimensionality reduction to facilitate accurate, but parsimonious, description of specifically temporal dynamics. 
 
 ## Applied to BBS
 
-Applied to a large number of communities sampled with consistent methodology (BBS), LDATS can tell us:
+We take a macroecological approach to detecting and describing shifts between community states for North American bird communities over the past 40 years. We ask: 
 
-* How common it is to have a) relatively little temporal structure, meaning static or temporally randomish dynamics, b) multiple states for the community over time
-* How many states is common
-* Potentially, how rapidly we tend to see these transitions occurring
-* If, as with Portal, we see periods of change coinciding with periods of low abundance
-* If there are patterns at regional or national scale in a) how many states occur and b) when the transitions occurred
-    * e.g. has New England been static but the Southeast changed a bunch of times
-    * or, was there a period of ubiuitous change from 1990-1995
-
+1. How common it is to have a) relatively little temporal structure, meaning static or temporally randomish dynamics, or b) transitions between multiple states? 
+2. (Potentially) Do these transitions tend to occur rapidly or gradually?
+3. Do transitions - in particular rapid ones - coincide with periods of overall low abundance? 
 
 Beyond the scope here, this method could also be useful combined with other data streams & community-specific hypotheses to ask:
 
 * Which species are responsible for the change
 * What endogenous or exogenous factors coincide with periods of change
-
+    * environmental shifts; key species crashing out; etc
+* If there are regional or national patterns in if or when transitions occur
+    * e.g. New England is static but there are multiple states for communities from the Southwest
+    * or, communities nationwide underwent a shift between 1990-95
 
 # Technical details
  
 * Following Christensen et al (and in a change from past years in MATSS-LDATS), we do not try to fit temporal dynamics - i.e. slope - within a time chunk. This is because fitting slopes allows the model to fit even very rapid, changepoint like dynamics within a single chunk. All models are fit as intercept-only within chunks. (`formula = response ~ 1`)
-* Also following C., we may be able to use the (un)certainty of the changepoint model's estimates of when the changepoints occur to infer how rapidly or gradually a transition took place. 
+* Also following C., we may be able to use the (un)certainty of the changepoint model's estimates of when the changepoints occur to infer how rapidly or gradually a transition took place. I am still testing this for coarser (40-sample v 400-sample) datasets.
 * We proceed using the softmax transformation. **Juniper** - is this acceptable (even if not ideal)? My impression was that the softmax was most problematic when we were fitting slopes, but you're the expert on these details. 
 
 
 ## Model selection
+
+ **I want to give everyone, and especially technically-inclined folks, the chance to investigate this, ask any questions, and raise any concerns.**
 
 Here in brief; see technical_details.Rmd for details and figures.
 
@@ -67,7 +68,7 @@ My approach is to restrict the models considered via crossvalidation to the best
 
 That is, we might be comparing "2 topics, seed = 100, 2 changepoints" with "5 topics, seed = 10, 0 changepoints", and finding that the 2 topic LDA, with 2 changepoints, does a better job recovering the actual species abundances than a 5 topic LDA with no changepoints. 
 
-This seems to work. However, I would not have done it this way if not for the string of issues discussed above. It's unconventional! **I want to give everyone, and especially technically-inclined folks, the chance to investigate this, ask any questions, and raise any concerns.**
+This seems to work. However, I would not have done it this way if not for the string of issues discussed above. It's unconventional!
 
 
 # Sample results
@@ -78,13 +79,13 @@ The presence & number of changepoints tells us how many community states the mod
 
 The presence of a changepoint means there was a transition, but not necessarily a *rapid* one. The uncertainty around *when* the changepoint occurred may reflect how rapid it was.
 
-A transition probably doesn't need to be a total overhaul of the community/"regime shift" for the model to find a changepoint. It has to be reasonably substantial and consistent, but just flagging that transitions between states != regime shift. 
+A transition doesn't need to be a total overhaul of the community/"regime shift" for the model to find a changepoint. It has to be reasonably substantial and consistent, but just flagging that transitions between states != regime shift. 
 
 ## What topics mean now
 
 In this application, the number of topics and the species composition of the topics is less intuitively informative than in the Portal application. Here, the topic structure doesn't seem to be picking up on "functional" community types with fine variation in their relative proportions over time. Rather, we tend to see one topic corresponding to the community state in one time period, and, if there is a transition to another community state, another topic post-transition. 
 
-I think this is because of two related things. One, we have fewer time samples, so less capacity to detect fine scale dynamics. Two, we specifically look for the set of topics that allows the change point model to achieve a good fit, which means the topics need to have relatively simple temporal dynamics. 
+<!-- I think this is because of two related things. One, we have fewer time samples, so less capacity to detect fine scale dynamics. Two, we specifically look for the set of topics that allows the change point model to achieve a good fit, which means the topics need to have relatively simple temporal dynamics.  -->
 
 ## Portal, reduced to annual samples
 
@@ -94,14 +95,6 @@ I think this is because of two related things. One, we have fewer time samples, 
 
 all_evals <- read.csv(here::here("analysis", "all_evals_hybrid_portal.csv")) %>%
   mutate(k_seed = paste(k, seed, sep = "_"))
-
-
-#ggplot(all_evals, aes(as.factor(k), sum_loglik, color = as.factor(cpts), group = k_seed)) + geom_boxplot() + facet_wrap(vars(dataset), scales = "free_y")
-
-# there is a lot of spread per model, and overlap.
-# taking this as NOT problematic....precedent, AIC is often calculated off the mean.
-
-# look at the mean
 
 all_evals_summary <- all_evals %>%
   group_by(dataset, k, seed, cpts) %>%
@@ -127,17 +120,6 @@ rats$covariates$year <- 1:nrow(rats$covariates)
 
 ```{r static changepoint}
 
-
-rats_long <- rats$abundance %>%
-  mutate(year = rats$covariates$year) %>%
-  tidyr::pivot_longer(-year, names_to = "species", values_to  = "abundance")
-
-ggplot(rats_long, aes(year, abundance, color = species)) +
-  geom_line() +
-  theme(legend.position = "none") +
-  scale_color_viridis_d() +
-  theme_bw()
-
 lda_rats<- LDATS::LDA_set_user_seeds(rats$abundance, topics = 2, seed = 6)
 
 plot_lda_comp(lda_rats, specl = TRUE)
@@ -147,18 +129,7 @@ ts_rats <- LDATS::TS_on_LDA(lda_rats, as.data.frame(rats$covariates), formulas =
 gamma_plot(ts_rats[[1]])
 rho_plot(ts_rats[[1]]) 
 ```
-```{r}
-# 
-# lda_rats<- LDATS::LDA_set_user_seeds(rats$abundance, topics = 3, seed = 18)
-# 
-# plot_lda_comp(lda_rats, specl = TRUE)
-# plot_lda_year(lda_rats, rats$covariates$year)
-# ts_rats <- LDATS::TS_on_LDA(lda_rats, as.data.frame(rats$covariates), formulas = ~1, nchangepoints = 2, timename = "year", control = LDATS::TS_control(nit = 100))
-# 
-# gamma_plot(ts_rats[[1]])
-# rho_plot(ts_rats[[1]]) 
-# 
-```
+
 
 
 ## A BBS route
@@ -171,14 +142,6 @@ all_evals <- all_evals %>%
   mutate(k_seed = paste(k,seed, sep = "_")) %>%
   filter(grepl(dataset, pattern = "bbs_rtrg_1_11"))
   
-
-ggplot(all_evals, aes(as.factor(k), sum_loglik, color = as.factor(cpts), group = k_seed)) + geom_boxplot() + facet_wrap(vars(dataset), scales = "free_y")
-
-# there is a lot of spread per model, and overlap.
-# taking this as NOT problematic....precedent, AIC is often calculated off the mean.
-
-# look at the mean
-
 all_evals_summary <- all_evals %>%
   group_by(dataset, k, seed, cpts) %>%
   summarize(mean_sum_ll = mean(sum_loglik)) %>%
