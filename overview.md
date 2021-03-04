@@ -1,13 +1,15 @@
 Overview
 ================
 Renata Diaz
-01 March, 2021
+04 March, 2021
 
   - [Overview](#overview)
       - [Usefulness of the approach](#usefulness-of-the-approach)
       - [Applied to BBS](#applied-to-bbs)
   - [Technical details](#technical-details)
       - [Model selection](#model-selection)
+      - [Detail on LDAs and
+        crossvalidation](#detail-on-ldas-and-crossvalidation)
   - [Sample results](#sample-results)
       - [What changepoints mean now](#what-changepoints-mean-now)
       - [What topics mean now](#what-topics-mean-now)
@@ -47,14 +49,17 @@ past 40 years. We ask:
 Beyond the scope here, this method could also be useful combined with
 other data streams & community-specific hypotheses to ask:
 
-*Do transitions - in particular rapid ones - coincide with periods of
-overall low abundance? * Which species/groups are responsible for the
-change? \* What endogenous or exogenous factors coincide with periods of
-change? \* environmental shifts; key species crashing out; etc \* If
-there are regional or national patterns in if or when transitions occur
-\* e.g. New England is static but there are multiple states for
-communities from the Southwest \* or, communities nationwide underwent a
-shift between 1990-95
+  - Do transitions - in particular rapid ones - coincide with periods of
+    overall low abundance?
+  - Which species/groups are responsible for the change?
+  - What endogenous or exogenous factors coincide with periods of
+    change?
+      - environmental shifts; key species crashing out; etc
+  - If there are regional or national patterns in if or when transitions
+    occur
+      - e.g. New England is static but there are multiple states for
+        communities from the Southwest
+      - or, communities nationwide underwent a shift between 1990-95
 
 # Technical details
 
@@ -67,7 +72,9 @@ shift between 1990-95
   - Also following C., we may be able to use the (un)certainty of the
     changepoint model’s estimates of when the changepoints occur to
     infer how rapidly or gradually a transition took place. I am still
-    testing this for coarser (40-sample v 400-sample) datasets.
+    testing this for coarser (40-sample v 400-sample) datasets, but
+    preliminarily it seems to hold (see
+    <https://github.com/diazrenata/ldats2020/blob/master/test_cpt_sensitivity/cpt_testing.md>)
   - We proceed using the softmax transformation. **Juniper** - is this
     acceptable (even if not ideal)? My impression was that the softmax
     was most problematic when we were fitting slopes, but you’re the
@@ -79,7 +86,9 @@ shift between 1990-95
 the chance to investigate this, ask any questions, and raise any
 concerns.**
 
-Here in brief; see technical\_details.Rmd for details and figures.
+Here in brief; see
+<https://github.com/diazrenata/ldats2020/blob/master/test_cpt_sensitivity/technical_details.md>
+for details and figures.
 
 The original LDATS implementation first selects an LDA via AIC and then
 selects a TS model via AIC. This tends to select an LDA with a lot of
@@ -137,6 +146,30 @@ different numbers of topics & changepoints for different datasets.
 However, I would not have done it this way if not for the string of
 issues discussed above. It’s unconventional\! See below for sample
 results.
+
+## Detail on LDAs and crossvalidation
+
+**I’d really appreciate technical perspectives on this, too\!**
+
+I believe we have to do the training/test split on the LDA proportions
+after they are fit (instead of on the data before it goes into the LDA).
+This raises concerns re: data leakage, but I think it’s justified and I
+don’t think we’re seeing evidence of a problem there.
+
+If you fit two LDAs to two different datasets, even with the same seed,
+you can end up with very different topics and topic proportions. It’s
+impossible to re-combine them into one LDA for the whole timeseries. Nor
+is the LDA you get from fitting to the whole, unsubsetted, data really
+reflective of the LDAs you got from every subset. This renders the
+crossvalidation nonsensical.
+
+Fitting the LDA first, and then subsetting, in principle results in some
+data leakage. However, I think this would manifest as overfitting in the
+LDA/sneaking around the crossvalidation. I’m not finding an obvious
+issue with high `k` anymore. And, selecting `k` perfectly is less
+important now than in the original formulation.
+
+This is also always going to be a problem with LDA + crossvalidation.
 
 # Sample results
 

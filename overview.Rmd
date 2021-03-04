@@ -3,10 +3,10 @@ title: "Overview"
 author: Renata Diaz
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 output:
-  # github_document:
-  #   toc: true
-  #   fig_width: 5
-  #   fig_height: 3
+  github_document:
+    toc: true
+    fig_width: 5
+    fig_height: 3
   word_document:
     toc: true
     fig_width: 5
@@ -40,7 +40,7 @@ We take a macroecological approach to detecting and describing shifts between co
 
 Beyond the scope here, this method could also be useful combined with other data streams & community-specific hypotheses to ask:
 
-*Do transitions - in particular rapid ones - coincide with periods of overall low abundance? 
+* Do transitions - in particular rapid ones - coincide with periods of overall low abundance? 
 * Which species/groups are responsible for the change?
 * What endogenous or exogenous factors coincide with periods of change?
     * environmental shifts; key species crashing out; etc
@@ -51,7 +51,7 @@ Beyond the scope here, this method could also be useful combined with other data
 # Technical details
  
 * Following Christensen et al (and in a change from past years in MATSS-LDATS), we do not try to fit temporal dynamics - i.e. slope - within a time chunk. This is because fitting slopes allows the model to fit even very rapid, changepoint like dynamics within a single chunk. All models are fit as intercept-only within chunks. (`formula = response ~ 1`)
-* Also following C., we may be able to use the (un)certainty of the changepoint model's estimates of when the changepoints occur to infer how rapidly or gradually a transition took place. I am still testing this for coarser (40-sample v 400-sample) datasets.
+* Also following C., we may be able to use the (un)certainty of the changepoint model's estimates of when the changepoints occur to infer how rapidly or gradually a transition took place. I am still testing this for coarser (40-sample v 400-sample) datasets, but preliminarily it seems to hold (see https://github.com/diazrenata/ldats2020/blob/master/test_cpt_sensitivity/cpt_testing.md)
 * We proceed using the softmax transformation. **Juniper** - is this acceptable (even if not ideal)? My impression was that the softmax was most problematic when we were fitting slopes, but you're the expert on these details. 
 
 
@@ -59,7 +59,7 @@ Beyond the scope here, this method could also be useful combined with other data
 
  **I want to give everyone, and especially technically-inclined folks, the chance to investigate this, ask any questions, and raise any concerns.**
 
-Here in brief; see technical_details.Rmd for details and figures.
+Here in brief; see https://github.com/diazrenata/ldats2020/blob/master/test_cpt_sensitivity/technical_details.md for details and figures.
 
 The original LDATS implementation first selects an LDA via AIC and then selects a TS model via AIC. This tends to select an LDA with a lot of topics. The TS model then struggles to fit anything to the (very high dimensional) topic proportions. See https://github.com/diazrenata/ldats2020/blob/master/orig_results.md for some example results.
 
@@ -74,6 +74,18 @@ A possible approach is to restrict the models considered via crossvalidation to 
 That is, we might be comparing "2 topics, seed = 100, 2 changepoints" with "5 topics, seed = 10, 0 changepoints", and finding that the 2 topic LDA, with 2 changepoints, does a better job recovering the actual species abundances than a 5 topic LDA with no changepoints. 
 
 This seems to work, in that it selects with reasonable confidence a model with small numbers of topics and changepoints, and it selects different numbers of topics & changepoints for different datasets. However, I would not have done it this way if not for the string of issues discussed above. It's unconventional! See below for sample results.
+
+## Detail on LDAs and crossvalidation
+
+**I'd really appreciate technical perspectives on this, too!**
+
+I believe we have to do the training/test split on the LDA proportions after they are fit (instead of on the data before it goes into the LDA). This raises  concerns re: data leakage, but I think it's justified and I don't think we're seeing evidence of a problem there. 
+
+If you fit two LDAs to two different datasets, even with the same seed, you can end up with very different topics and topic proportions. It's impossible to re-combine them into one LDA for the whole timeseries. Nor is the LDA you get from fitting to the whole, unsubsetted, data really reflective of the LDAs you got from every subset. This renders the crossvalidation nonsensical.
+
+Fitting the LDA first, and then subsetting, in principle results in some data leakage. However, I think this would manifest as overfitting in the LDA/sneaking around the crossvalidation. I'm not finding an obvious issue with high `k` anymore. And, selecting `k` perfectly is less important now than in the original formulation. 
+
+This is also always going to be a problem with LDA + crossvalidation.
 
 
 # Sample results
