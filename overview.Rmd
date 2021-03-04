@@ -3,7 +3,11 @@ title: "Overview"
 author: Renata Diaz
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 output:
-  github_document:
+  # github_document:
+  #   toc: true
+  #   fig_width: 5
+  #   fig_height: 3
+  word_document:
     toc: true
     fig_width: 5
     fig_height: 3
