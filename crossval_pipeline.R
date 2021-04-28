@@ -11,7 +11,7 @@ source(here::here("analysis", "fxns", "crossval_fxns.R"))
 datasets <- build_bbs_datasets_plan()
 
 
-m <- which(grepl(datasets$target, pattern = "rtrg_1_11")) # wants many topics
+m <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # wants many topics
 
 datasets <- datasets[m,]
 
@@ -25,7 +25,7 @@ if(FALSE){
                          seeds = !!seq(2, 2, by = 2),
                          cpts = !!c(0:1)
                        )),
-    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 1000, use_folds = T),
+    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 100, use_folds = T),
                         transform = map(ldats_fit)
     ),
     all_evals = target(dplyr::bind_rows(ldats_eval),
@@ -33,14 +33,14 @@ if(FALSE){
   )  
 } else {
   methods <- drake::drake_plan(
-    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 4, k = ks, seed = seeds, cpts = cpts, nit = 1000, fit_to_train = FALSE),
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 4, k = ks, seed = seeds, cpts = cpts, nit = 100, fit_to_train = FALSE),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2:5),
                          seeds = !!seq(2, 50, by = 2),
                          cpts = !!c(0:5)
                        )),
-    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 1000, use_folds = T),
+    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 100, use_folds = T),
                         transform = map(ldats_fit)
     ),
     all_evals = target(dplyr::bind_rows(ldats_eval),
