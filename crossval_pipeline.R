@@ -40,7 +40,7 @@ if(FALSE){
                          seeds = !!seq(2, 20, by = 2),
                          cpts = !!c(0:3)
                        )),
-    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 100, use_folds = T),
+    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 1000, use_folds = F),
                         transform = map(ldats_fit)
     ),
     all_evals = target(dplyr::bind_rows(ldats_eval),
