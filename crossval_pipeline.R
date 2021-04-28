@@ -37,8 +37,8 @@ if(FALSE){
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2:5),
-                         seeds = !!seq(2, 50, by = 2),
-                         cpts = !!c(0:5)
+                         seeds = !!seq(2, 20, by = 2),
+                         cpts = !!c(0:3)
                        )),
     ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 100, use_folds = T),
                         transform = map(ldats_fit)
