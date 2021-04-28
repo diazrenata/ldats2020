@@ -83,8 +83,8 @@ nodename <- Sys.info()["nodename"]
 #}
 
 
-loadd(all_evals_bbs_rtrg_1_11, cache = cache)
-write.csv(all_evals_bbs_rtrg_1_11, "all_evals_bbs_rtrg_1_11_cv.csv")
+loadd(all_evals_bbs_rtrg_102_18, cache = cache)
+write.csv(all_evals_bbs_rtrg_102_18, "all_evals_bbs_rtrg_102_18_cv.csv")
 
 DBI::dbDisconnect(db)
 rm(cache)
