@@ -76,3 +76,14 @@ maj_abunds_long <- maj_abunds %>%
   tidyr::pivot_longer(-tstep, names_to ="spec", values_to = "abund")
 ggplot(maj_abunds_long, aes(tstep, abund, color = as.factor(spec))) +
   geom_line()
+
+abund_probs <- get_abund_probabilities(list(full = h), fitted_lda = an_lda[[1]], fitted_ts = ts_2[[1]], max_sims = 100)
+
+
+one_prob <- abund_probs[[1]] %>%
+  unique()
+
+library(vegan)
+
+bc <- vegdist(one_prob)
+bc

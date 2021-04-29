@@ -2,6 +2,7 @@ library(MATSS)
 library(drake)
 library(LDATS)
 source(here::here("analysis", "fxns", "crossval_fxns.R"))
+source(here::here("analysis", "fxns", "make_short_portal.R"))
 ## include the functions in packages as dependencies
 #  - this is to help Drake recognize that targets need to be rebuilt if the
 #    functions have changed
@@ -15,6 +16,11 @@ m <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # wants many topics
 
 datasets <- datasets[m,]
 
+portal_dat <- drake::drake_plan(
+  portal_annual = target(get_portal_annual())
+)
+
+datasets <- bind_rows(datasets, portal_dat)
 
 if(FALSE){
   methods <- drake::drake_plan(
@@ -38,13 +44,13 @@ if(FALSE){
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2:5),
                          seeds = !!seq(2, 20, by = 2),
-                         cpts = !!c(0:3)
+                         cpts = !!c(0:4)
                        )),
-    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 1000, use_folds = F),
+    ldats_eval_f = target(eval_ldats_crossval(ldats_fit, nests = 1000, use_folds = T),
                         transform = map(ldats_fit)
     ),
-    all_evals = target(dplyr::bind_rows(ldats_eval),
-                       transform = combine(ldats_eval, .by = dataset))
+    all_evals_f = target(dplyr::bind_rows(ldats_eval_f),
+                       transform = combine(ldats_eval_f, .by = dataset))
   )
 }
 
@@ -83,8 +89,11 @@ nodename <- Sys.info()["nodename"]
 #}
 
 
-loadd(all_evals_bbs_rtrg_102_18, cache = cache)
-write.csv(all_evals_bbs_rtrg_102_18, "all_evals_bbs_rtrg_102_18_cv.csv")
+loadd(all_evals_f_bbs_rtrg_102_18, cache = cache)
+write.csv(all_evals_f_bbs_rtrg_102_18, "all_evals_bbs_rtrg_102_18_cv.csv")
+
+loadd(all_evals_f_portal_annual, cache = cache)
+write.csv(all_evals_f_portal_annual, "all_evals_portal_annual_cv.csv")
 
 DBI::dbDisconnect(db)
 rm(cache)
