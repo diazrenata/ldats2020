@@ -17,7 +17,7 @@ m <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # wants many topics
 datasets <- datasets[m,]
 
 portal_dat <- drake::drake_plan(
-  portal_annual = target(get_portal_annual())
+  portal_annual = target(get_rodents_annual())
 )
 
 datasets <- bind_rows(datasets, portal_dat)
