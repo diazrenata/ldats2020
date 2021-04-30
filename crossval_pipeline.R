@@ -69,24 +69,24 @@ cache$del(key = "lock", namespace = "session")
 
 ## Run the pipeline
 nodename <- Sys.info()["nodename"]
-# if(grepl("ufhpc", nodename)) {
-#   print("I know I am on the HiPerGator!")
-#   library(clustermq)
-#   options(clustermq.scheduler = "slurm", clustermq.template = "slurm_clustermq.tmpl")
-#   ## Run the pipeline parallelized for HiPerGator
-#   make(workflow,
-#        force = TRUE,
-#        cache = cache,
-#        cache_log_file = here::here("analysis", "drake", "cache_log.txt"),
-#        verbose = 1,
-#        parallelism = "clustermq",
-#        jobs = 50,
-#        caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
-#} else {
+if(grepl("ufhpc", nodename)) {
+  print("I know I am on the HiPerGator!")
+  library(clustermq)
+  options(clustermq.scheduler = "slurm", clustermq.template = "slurm_clustermq.tmpl")
+  ## Run the pipeline parallelized for HiPerGator
+  make(workflow,
+       force = TRUE,
+       cache = cache,
+       cache_log_file = here::here("analysis", "drake", "cache_log.txt"),
+       verbose = 1,
+       parallelism = "clustermq",
+       jobs = 5,
+       caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
+} else {
  
   # Run the pipeline on multiple local cores
   system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log.txt"), verbose = 1, memory_strategy = "autoclean"))
-#}
+}
 
 
 loadd(all_evals_f_bbs_rtrg_102_18, cache = cache)
