@@ -33,6 +33,7 @@ ggplot(one_se, aes(k, mean_estimates_loglik, color = as.factor(seed))) + geom_po
 library(MATSS)
 library(drake)
 library(LDATS)
+library(cvlt)
 source(here::here("analysis", "fxns", "crossval_fxns.R"))
 
 ## Set up the cache and config
@@ -42,8 +43,12 @@ cache$del(key = "lock", namespace = "session")
 
 
 h = readd(bbs_rtrg_102_18, cache = cache)
-an_lda <- LDA_set_user_seeds(h$abundance, topics = 2, seed = 6)
-ts_2 <- TS_on_LDA(an_lda, as.data.frame(h$covariates), formulas =  ~1, nchangepoints = 2, timename = "year", control = TS_control(nit = 1000))
+
+h <- MATSS::get_bbs_route_region_data(route = 102, region = 18)
+an_lda <- cvlt::LDA_set_user_seeds(h$abundance, topics = 5, seed = 8)
+ts_2 <- TS_on_LDA(an_lda, as.data.frame(h$covariates), formulas =  ~1, nchangepoints = 4, timename = "year", control = TS_control(nit = 1000))
+
+full_fit <- fit_ldats_crossval(h, F, n_timesteps = 1, buffer = 2, k = 5, seed = 8, cpts = 4, nit = 1000, fit_to_train = F)
 
 plot(an_lda)
 gamma_plot(ts_2[[1]])
