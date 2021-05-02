@@ -50,7 +50,19 @@ if(FALSE){
                         transform = map(ldats_fit)
     ),
     all_evals_f = target(dplyr::bind_rows(ldats_eval_f),
-                       transform = combine(ldats_eval_f, .by = dataset))
+                       transform = combine(ldats_eval_f, .by = dataset)),
+    ldats_fit_hasty = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 100, fit_to_train = FALSE),
+                       transform = cross(
+                         dataset = !!rlang::syms(datasets$target),
+                         ks = !!c(2:5),
+                         seeds = !!seq(2, 20, by = 2),
+                         cpts = !!c(0:4)
+                       )),
+    ldats_eval_f_hasty = target(eval_ldats_crossval(ldats_fit_hasty, nests = 1000, use_folds = T),
+                          transform = map(ldats_fit_hasty)
+    ),
+    all_evals_f_hasty = target(dplyr::bind_rows(ldats_eval_f_hasty),
+                         transform = combine(ldats_eval_f_hasty, .by = dataset))
   )
 }
 
@@ -80,7 +92,7 @@ if(grepl("ufhpc", nodename)) {
        cache_log_file = here::here("analysis", "drake", "cache_log.txt"),
        verbose = 1,
        parallelism = "clustermq",
-       jobs = 15,
+       jobs = 20,
        caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
 } else {
  
@@ -94,6 +106,13 @@ write.csv(all_evals_f_bbs_rtrg_102_18, "all_evals_bbs_rtrg_102_18_cv.csv")
 
 loadd(all_evals_f_portal_annual, cache = cache)
 write.csv(all_evals_f_portal_annual, "all_evals_portal_annual_cv.csv")
+
+
+loadd(all_evals_f_hasty_bbs_rtrg_102_18, cache = cache)
+write.csv(all_evals_f_hasty_bbs_rtrg_102_18, "all_evals_f_hasty_bbs_rtrg_102_18_cv.csv")
+
+loadd(all_evals_f_hasty_portal_annual, cache = cache)
+write.csv(all_evals_f_hasty_portal_annual, "all_evals_f_hasty_portal_annual_cv.csv")
 
 DBI::dbDisconnect(db)
 rm(cache)
