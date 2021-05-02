@@ -18,7 +18,8 @@ datasets <- datasets[m,]
 
 portal_dat <- drake::drake_plan(
   portal_annual = target(get_rodents_annual()),
-  portal_winter_plants = target(cvlt::get_plants_annual("winter"))
+  portal_winter_plants = target(cvlt::get_plants_annual("winter")),
+  portal_summer_plants = target(cvlt::get_plants_annual("summer"))
 )
 
 datasets <- bind_rows(datasets, portal_dat)
