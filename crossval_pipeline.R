@@ -119,6 +119,9 @@ write.csv(all_evals_f_hasty_portal_annual, "all_evals_f_hasty_portal_annual_cv.c
 loadd(all_evals_f_hasty_portal_winter_plants, cache = cache)
 write.csv(all_evals_f_hasty_portal_winter_plants, "all_evals_f_hasty_portal_winter_plants_cv.csv")
 
+loadd(all_evals_f_hasty_portal_summer_plants, cache = cache)
+write.csv(all_evals_f_hasty_portal_summer_plants, "all_evals_f_hasty_portal_summer_plants_cv.csv")
+
 
 
 DBI::dbDisconnect(db)
