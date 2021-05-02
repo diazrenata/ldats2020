@@ -131,7 +131,7 @@ ts_2_1000   <- TS_on_LDA(an_lda, as.data.frame(h$covariates), formulas =  ~1, nc
 plot(an_lda)
 gamma_plot(ts_2_1000[[1]])
 gridExtra::grid.arrange(grobs = list(rho_plot(ts_2_1000[[1]]) + ggtitle("1000"),
-rho_plot(ts_2_100[[1]]) + ggtitle("100"))
+rho_plot(ts_2_100[[1]]) + ggtitle("100")))
 
 abund_probs <- get_abund_probabilities(list(full = h), fitted_lda = an_lda[[1]], fitted_ts = ts_2_1000[[1]], max_sims = 100)
 
