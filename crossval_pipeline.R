@@ -3,6 +3,8 @@ library(drake)
 library(LDATS)
 source(here::here("analysis", "fxns", "crossval_fxns.R"))
 source(here::here("analysis", "fxns", "make_short_portal.R"))
+library(soar)
+expose_imports(soar)
 ## include the functions in packages as dependencies
 #  - this is to help Drake recognize that targets need to be rebuilt if the
 #    functions have changed
