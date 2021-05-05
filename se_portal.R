@@ -1,7 +1,7 @@
 library(ggplot2)
 library(readr)
 library(dplyr)
-all_evals_portal_annual_cv <- read_csv("all_evals_portal_annual_cv.csv")
+all_evals_portal_annual_cv <- read_csv("all_evals_f_hasty_portal_annual_cv.csv")
 #View(all_evals_portal_annual_cv)
 #library(ggplot2)
 ae <- all_evals_portal_annual_cv %>% group_by(k, seed, cpts, nit, nfolds) %>% summarize(mean_ll = mean(sum_loglik), se_ll = sd(sum_loglik) / sqrt(nfolds)) %>% ungroup() %>% distinct() %>%
@@ -37,9 +37,9 @@ an_lda <- cvlt::LDA_set_user_seeds(h$abundance, topics = 2, seed = 4)
 ts_2 <- TS_on_LDA(an_lda, as.data.frame(h$covariates), formulas =  ~1, nchangepoints = 1, timename = "year", control = TS_control(nit = 100))
 
 
-plot_lda_year(an_lda[[1]], covariate_data = portal_annual$covariates$year)
+plot_lda_year(an_lda[[1]], covariate_data = h$covariates$year)
 gamma_plot(ts_2[[1]])
-rho_plot(ts_2[[1]]) + xlim(min(portal_annual$covariates$year), max(portal_annual$covariates$year))
+rho_plot(ts_2[[1]]) + xlim(min(h$covariates$year), max(h$covariates$year))
 
 abund_probs <- get_abund_probabilities(list(full = h), fitted_lda = an_lda[[1]], fitted_ts = ts_2[[1]], max_sims = 100)
 
