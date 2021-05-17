@@ -28,13 +28,6 @@ library(LDATS)
 library(cvlt)
 source(here::here("analysis", "fxns", "crossval_fxns.R"))
 
-## Set up the cache and config
-db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache-cv.sqlite"))
-cache <- storr::storr_dbi("datatable", "keystable", db)
-cache$del(key = "lock", namespace = "session")
-
-
-h = readd(bbs_rtrg_102_18, cache = cache)
 
 h <- MATSS::get_bbs_route_region_data(route = 102, region = 18)
 an_lda <- cvlt::LDA_set_user_seeds(h$abundance, topics = 2, seed = 6)

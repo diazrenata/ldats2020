@@ -3,6 +3,8 @@ library(drake)
 library(LDATS)
 source(here::here("analysis", "fxns", "crossval_fxns.R"))
 source(here::here("analysis", "fxns", "make_short_portal.R"))
+library(soar)
+expose_imports(soar)
 ## include the functions in packages as dependencies
 #  - this is to help Drake recognize that targets need to be rebuilt if the
 #    functions have changed
@@ -19,7 +21,12 @@ datasets <- datasets[m,]
 portal_dat <- drake::drake_plan(
   portal_annual = target(get_rodents_annual()),
   portal_winter_plants = target(cvlt::get_plants_annual("winter")),
-  portal_summer_plants = target(cvlt::get_plants_annual("summer"))
+  portal_summer_plants = target(cvlt::get_plants_annual("summer")),
+  soar_plants = target(soar::get_plants_annual_ldats(census_season = seasons, plot_type = trts),
+                       transform = cross(
+                         seasons = !!c("winter", "summer"),
+                         trts = !!c("CC", "EE")
+                       ))
 )
 
 datasets <- bind_rows(datasets, portal_dat)
@@ -56,7 +63,7 @@ if(FALSE){
     ldats_fit_hasty = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 100, fit_to_train = FALSE),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
-                         ks = !!c(2:8),
+                         ks = !!c(2:5),
                          seeds = !!seq(2, 20, by = 2),
                          cpts = !!c(0:4)
                        )),
@@ -122,6 +129,21 @@ write.csv(all_evals_f_hasty_portal_winter_plants, "all_evals_f_hasty_portal_wint
 loadd(all_evals_f_hasty_portal_summer_plants, cache = cache)
 write.csv(all_evals_f_hasty_portal_summer_plants, "all_evals_f_hasty_portal_summer_plants_cv.csv")
 
+
+loadd(all_evals_f_hasty_soar_plants_summer_EE, cache = cache)
+write.csv(all_evals_f_hasty_soar_plants_summer_EE, "all_evals_f_hasty_soar_plants_summer_EE_cv.csv")
+
+
+loadd(all_evals_f_hasty_soar_plants_winter_EE, cache = cache)
+write.csv(all_evals_f_hasty_soar_plants_winter_EE, "all_evals_f_hasty_soar_plants_winter_EE_cv.csv")
+
+
+loadd(all_evals_f_hasty_soar_plants_summer_CC, cache = cache)
+write.csv(all_evals_f_hasty_soar_plants_summer_CC, "all_evals_f_hasty_soar_plants_summer_CC_cv.csv")
+
+
+loadd(all_evals_f_hasty_soar_plants_winter_CC, cache = cache)
+write.csv(all_evals_f_hasty_soar_plants_winter_CC, "all_evals_f_hasty_soar_plants_winter_CC_cv.csv")
 
 
 DBI::dbDisconnect(db)
