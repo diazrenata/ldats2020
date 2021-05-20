@@ -12,7 +12,19 @@ library(ggplot2)
 library(readr)
 library(dplyr)
 library(cvlt)
-all_evals_portal_winter_plants_cv <- read_csv(here::here("all_evals_f_hasty_portal_winter_plants_cv.csv"))
+all_evals_portal_winter_plants_CC_cv <- read_csv(here::here("all_evals_f_hasty_soar_plants_winter_CC_cv.csv"))
+all_evals_portal_winter_plants_EE_cv <- read_csv(here::here("all_evals_f_hasty_soar_plants_winter_EE_cv.csv"))
+
+all_evals_portal_summer_plants_CC_cv <- read_csv(here::here("all_evals_f_hasty_soar_plants_summer_CC_cv.csv"))
+
+all_evals_portal_summer_plants_EE_cv <- read_csv(here::here("all_evals_f_hasty_soar_plants_summer_EE_cv.csv"))
+
+
+
+
+
+
+
 #View(all_evals_portal_winter_plants_cv)
 #library(ggplot2)
 ae <- all_evals_portal_winter_plants_cv %>% group_by(k, seed, cpts, nit, nfolds) %>% summarize(mean_ll = mean(sum_loglik), se_ll = sd(sum_loglik) / sqrt(nfolds)) %>% ungroup() %>% distinct() %>%
@@ -75,7 +87,7 @@ bc
 ```{r}
 #### summer ####
 
-all_evals_portal_summer_plants_cv <- read_csv(here::here("all_evals_f_hasty_portal_summer_plants_cv.csv"))
+all_evals_portal_summer_plants_cv <- read_csv(here::here("all_evals_f_hasty_soar_plants_summer_CC_cv.csv"))
 #View(all_evals_portal_summer_plants_cv)
 #library(ggplot2)
 ae <- all_evals_portal_summer_plants_cv %>% group_by(k, seed, cpts, nit, nfolds) %>% summarize(mean_ll = mean(sum_loglik), se_ll = sd(sum_loglik) / sqrt(nfolds)) %>% ungroup() %>% distinct() %>%

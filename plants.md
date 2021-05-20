@@ -3,16 +3,9 @@ Plants CV LDATS
 
 ``` r
 library(ggplot2)
-```
-
-    ## Warning: package 'ggplot2' was built under R version 4.0.5
-
-``` r
 library(readr)
 library(dplyr)
 ```
-
-    ## Warning: package 'dplyr' was built under R version 4.0.5
 
     ## 
     ## Attaching package: 'dplyr'
@@ -27,13 +20,13 @@ library(dplyr)
 
 ``` r
 library(cvlt)
-all_evals_portal_winter_plants_cv <- read_csv(here::here("all_evals_f_hasty_portal_winter_plants_cv.csv"))
+all_evals_portal_winter_plants_cv <- read_csv(here::here("all_evals_f_hasty_soar_plants_winter_CC_cv.csv"))
 ```
 
     ## Warning: Missing column names filled in: 'X1' [1]
 
     ## 
-    ## -- Column specification --------------------------------------------------------
+    ## ── Column specification ────────────────────────────────────────────────────────
     ## cols(
     ##   X1 = col_double(),
     ##   k = col_double(),
@@ -89,22 +82,7 @@ good_se_configs <- good_se_configs %>%
 ``` r
 library(MATSS)
 library(drake)
-```
-
-    ## Warning: package 'drake' was built under R version 4.0.5
-
-``` r
 library(LDATS)
-```
-
-    ## 
-    ## Attaching package: 'LDATS'
-
-    ## The following object is masked from 'package:cvlt':
-    ## 
-    ##     LDA_set_user_seeds
-
-``` r
 library(cvlt)
 source(here::here("analysis", "fxns", "crossval_fxns.R"))
 
@@ -112,19 +90,19 @@ source(here::here("analysis", "fxns", "crossval_fxns.R"))
 h = cvlt::get_plants_annual()
 ```
 
-    ## Loading in data version 2.94.0
+    ## Loading in data version 2.95.0
 
 ``` r
 an_lda <- cvlt::LDA_set_user_seeds(h$abundance, topics = good_se_configs$k[1], seed = as.numeric(good_se_configs$seed[1]))
 ```
 
-    ## Running LDA with 2 topics (seed 6)
+    ## Running LDA with 2 topics (seed 1)
 
 ``` r
 ts_2 <- TS_on_LDA(an_lda, as.data.frame(h$covariates), formulas =  ~1, nchangepoints = good_se_configs$cpts[1], timename = "year", control = TS_control(nit = 100))
 ```
 
-    ## Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model k: 2, seed: 6
+    ## Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model k: 2, seed: 1
 
     ##   Estimating changepoint distribution
 
@@ -276,7 +254,7 @@ library(vegan)
 
     ## Loading required package: lattice
 
-    ## This is vegan 2.5-6
+    ## This is vegan 2.5-7
 
 ``` r
 bc <- vegdist(one_prob)
@@ -284,18 +262,18 @@ bc
 ```
 
     ##           1
-    ## 2 0.5033126
+    ## 2 0.5632947
 
 ``` r
 #### summer ####
 
-all_evals_portal_summer_plants_cv <- read_csv(here::here("all_evals_f_hasty_portal_summer_plants_cv.csv"))
+all_evals_portal_summer_plants_cv <- read_csv(here::here("all_evals_f_hasty_soar_plants_summer_CC_cv.csv"))
 ```
 
     ## Warning: Missing column names filled in: 'X1' [1]
 
     ## 
-    ## -- Column specification --------------------------------------------------------
+    ## ── Column specification ────────────────────────────────────────────────────────
     ## cols(
     ##   X1 = col_double(),
     ##   k = col_double(),
@@ -358,19 +336,19 @@ source(here::here("analysis", "fxns", "crossval_fxns.R"))
 h = cvlt::get_plants_annual("summer")
 ```
 
-    ## Loading in data version 2.94.0
+    ## Loading in data version 2.95.0
 
 ``` r
 an_lda <- cvlt::LDA_set_user_seeds(h$abundance, topics = good_se_configs$k[1], seed = as.numeric(good_se_configs$seed[1]))
 ```
 
-    ## Running LDA with 2 topics (seed 9)
+    ## Running LDA with 2 topics (seed 3)
 
 ``` r
 ts_2 <- TS_on_LDA(an_lda, as.data.frame(h$covariates), formulas =  ~1, nchangepoints = good_se_configs$cpts[1], timename = "year", control = TS_control(nit = 100))
 ```
 
-    ## Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model k: 2, seed: 9
+    ## Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model k: 2, seed: 3
 
 ``` r
 plot(an_lda)
