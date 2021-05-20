@@ -1,7 +1,7 @@
 library(MATSS)
 library(drake)
 library(LDATS)
-remotes::install_github("diazrenata/cvlt")
+#remotes::install_github("diazrenata/cvlt")
 library(cvlt)
 expose_imports(cvlt)
 ## include the functions in packages as dependencies
