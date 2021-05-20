@@ -1,10 +1,9 @@
 library(MATSS)
 library(drake)
 library(LDATS)
-source(here::here("analysis", "fxns", "crossval_fxns.R"))
-source(here::here("analysis", "fxns", "make_short_portal.R"))
-library(soar)
-expose_imports(soar)
+remotes::install_github("diazrenata/cvlt")
+library(cvlt)
+expose_imports(cvlt)
 ## include the functions in packages as dependencies
 #  - this is to help Drake recognize that targets need to be rebuilt if the
 #    functions have changed
@@ -18,62 +17,56 @@ m <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # wants many topics
 
 datasets <- datasets[m,]
 
-portal_dat <- drake::drake_plan(
-  portal_annual = target(get_rodents_annual()),
-  portal_winter_plants = target(cvlt::get_plants_annual("winter")),
-  portal_summer_plants = target(cvlt::get_plants_annual("summer")),
-  soar_plants = target(soar::get_plants_annual_ldats(census_season = seasons, plot_type = trts),
-                       transform = cross(
-                         seasons = !!c("winter", "summer"),
-                         trts = !!c("CC", "EE")
-                       ))
+portaldat <- drake::drake_plan(
+  portal_annual = target(get_rodents_annual())
 )
 
-datasets <- bind_rows(datasets, portal_dat)
+datasets <- dplyr::bind_rows(datasets, portaldat)
 
-if(FALSE){
+if(FALSE) {
   methods <- drake::drake_plan(
-    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 100, fit_to_train = FALSE),
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 50),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2),
                          seeds = !!seq(2, 2, by = 2),
-                         cpts = !!c(0:1)
+                         cpts = !!c(0:1),
+                         return_full = F,
+                         return_fits = F,
+                         summarize_ll = F
                        )),
-    ldats_eval = target(eval_ldats_crossval(ldats_fit, nests = 100, use_folds = T),
-                        transform = map(ldats_fit)
-    ),
-    all_evals = target(dplyr::bind_rows(ldats_eval),
-                       transform = combine(ldats_eval, .by = dataset))
+    all_dataset_fits = target(dplyr::bind_rows(ldats_fit),
+                       transform = combine(ldats_fit, .by = dataset)),
+    all_fits = target(dplyr::bind_rows(all_dataset_fits),
+                      transform = combine(all_dataset_fits)),
+    best_config = target(select_cvlt(all_dataset_fits),
+                              transform = map(all_dataset_fits)),
+    best_mod = target(run_best_model(dataset, best_config),
+                      transform = map(best_config, .by = dataset))
   )  
 } else {
   methods <- drake::drake_plan(
-    # ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 1000, fit_to_train = FALSE),
-    #                    transform = cross(
-    #                      dataset = !!rlang::syms(datasets$target),
-    #                      ks = !!c(2:5),
-    #                      seeds = !!seq(2, 20, by = 2),
-    #                      cpts = !!c(0:4)
-    #                    )),
-    # ldats_eval_f = target(eval_ldats_crossval(ldats_fit, nests = 1000, use_folds = T),
-    #                     transform = map(ldats_fit)
-    # ),
-    # all_evals_f = target(dplyr::bind_rows(ldats_eval_f),
-    #                    transform = combine(ldats_eval_f, .by = dataset)),
-    ldats_fit_hasty = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, seed = seeds, cpts = cpts, nit = 100, fit_to_train = FALSE),
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 500),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2:5),
-                         seeds = !!seq(2, 20, by = 2),
-                         cpts = !!c(0:4)
+                         seeds = !!seq(2, 10, by = 2),
+                         cpts = !!c(0:1),
+                         return_full = F,
+                         return_fits = F,
+                         summarize_ll = F
                        )),
-    ldats_eval_f_hasty = target(eval_ldats_crossval(ldats_fit_hasty, nests = 1000, use_folds = T),
-                          transform = map(ldats_fit_hasty)
-    ),
-    all_evals_f_hasty = target(dplyr::bind_rows(ldats_eval_f_hasty),
-                         transform = combine(ldats_eval_f_hasty, .by = dataset))
-  )
+    all_dataset_fits = target(dplyr::bind_rows(ldats_fit),
+                              transform = combine(ldats_fit, .by = dataset)),
+    all_fits = target(dplyr::bind_rows(all_dataset_fits),
+                      transform = combine(all_dataset_fits)),
+    best_config = target(select_cvlt(all_dataset_fits),
+                         transform = map(all_dataset_fits)),
+    best_mod = target(run_best_model(dataset, best_config),
+                      transform = map(best_config, .by = dataset))
+  )  
 }
+
 
 
 ## The full workflow
@@ -84,7 +77,7 @@ workflow <- dplyr::bind_rows(
 
 
 ## Set up the cache and config
-db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache-cv.sqlite"))
+db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache-cvlt.sqlite"))
 cache <- storr::storr_dbi("datatable", "keystable", db)
 cache$del(key = "lock", namespace = "session")
 
@@ -106,44 +99,13 @@ if(grepl("ufhpc", nodename)) {
 } else {
  
   # Run the pipeline on multiple local cores
-  system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log.txt"), verbose = 1, memory_strategy = "autoclean"))
+  system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log_cvlt.txt"), verbose = 1, memory_strategy = "autoclean"))
 }
 
-# 
-# loadd(all_evals_f_bbs_rtrg_102_18, cache = cache)
-# write.csv(all_evals_f_bbs_rtrg_102_18, "all_evals_bbs_rtrg_102_18_cv.csv")
-# 
-# loadd(all_evals_f_portal_annual, cache = cache)
-# write.csv(all_evals_f_portal_annual, "all_evals_portal_annual_cv.csv")
 
 
-loadd(all_evals_f_hasty_bbs_rtrg_102_18, cache = cache)
-write.csv(all_evals_f_hasty_bbs_rtrg_102_18, "all_evals_f_hasty_bbs_rtrg_102_18_cv.csv")
-
-loadd(all_evals_f_hasty_portal_annual, cache = cache)
-write.csv(all_evals_f_hasty_portal_annual, "all_evals_f_hasty_portal_annual_cv.csv")
-
-loadd(all_evals_f_hasty_portal_winter_plants, cache = cache)
-write.csv(all_evals_f_hasty_portal_winter_plants, "all_evals_f_hasty_portal_winter_plants_cv.csv")
-
-loadd(all_evals_f_hasty_portal_summer_plants, cache = cache)
-write.csv(all_evals_f_hasty_portal_summer_plants, "all_evals_f_hasty_portal_summer_plants_cv.csv")
-
-
-loadd(all_evals_f_hasty_soar_plants_summer_EE, cache = cache)
-write.csv(all_evals_f_hasty_soar_plants_summer_EE, "all_evals_f_hasty_soar_plants_summer_EE_cv.csv")
-
-
-loadd(all_evals_f_hasty_soar_plants_winter_EE, cache = cache)
-write.csv(all_evals_f_hasty_soar_plants_winter_EE, "all_evals_f_hasty_soar_plants_winter_EE_cv.csv")
-
-
-loadd(all_evals_f_hasty_soar_plants_summer_CC, cache = cache)
-write.csv(all_evals_f_hasty_soar_plants_summer_CC, "all_evals_f_hasty_soar_plants_summer_CC_cv.csv")
-
-
-loadd(all_evals_f_hasty_soar_plants_winter_CC, cache = cache)
-write.csv(all_evals_f_hasty_soar_plants_winter_CC, "all_evals_f_hasty_soar_plants_winter_CC_cv.csv")
+loadd(all_fits, cache = cache)
+write.csv(all_fits, "all_fits_cvlt.csv", row.names = F)
 
 
 DBI::dbDisconnect(db)
