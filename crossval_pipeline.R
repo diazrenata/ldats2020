@@ -44,12 +44,12 @@ if(FALSE) {
   )  
 } else {
   methods <- drake::drake_plan(
-    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 500),
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 1000),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2:5),
-                         seeds = !!seq(2, 10, by = 2),
-                         cpts = !!c(0:1),
+                         seeds = !!seq(2, 50, by = 2),
+                         cpts = !!c(0:4),
                          return_full = F,
                          return_fits = F,
                          summarize_ll = F
