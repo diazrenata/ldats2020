@@ -144,6 +144,12 @@ overall_denom <- sum((fitted_actual_r2s$actual_prop - fitted_actual_r2s$obs_mean
 
 annual_r2 <- fitted_actual_r2s %>%
   dplyr::group_by(year) %>%
-  dplyr::summarize(num = sum(difference) ^ 2,
-                   denom = sum(actual_prop - obs_mean_by_year) ^ 2) %>%
+  dplyr::summarize(num = sum(difference ^ 2),
+                   denom = sum((actual_prop - obs_mean_by_year) ^ 2)) %>%
+  dplyr::mutate(r2 = 1 - (num / denom))
+
+species_r2 <- fitted_actual_r2s %>%
+  dplyr::group_by(species) %>%
+  dplyr::summarize(num = sum(difference ^ 2),
+                   denom = sum((actual_prop - obs_mean_by_species) ^ 2)) %>%
   dplyr::mutate(r2 = 1 - (num / denom))
