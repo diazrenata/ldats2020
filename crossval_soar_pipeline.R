@@ -8,31 +8,13 @@ expose_imports(cvlt)
 #  - this is to help Drake recognize that targets need to be rebuilt if the
 #    functions have changed
 
-## a Drake plan for creating the datasets
-#  - these are the default options, which don't include downloaded datasets
-datasets <- build_bbs_datasets_plan()
-
-
-m <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # wants many topics
-
-datasets <- datasets[m,]
-
-if(FALSE) {
 
 plantdat <- drake::drake_plan(
   winter_plants = target(soar::get_plants_annual_ldats()),
-  summer_plants = target(soar::get_plants_annual_ldats(census_season = "summer")))
-  
-  datasets <- plantdat
+  summer_plants = target(soar::get_plants_annual_ldats(census_season = "summer"))
+)
 
-} else {
-  portaldat <- drake::drake_plan(
-    portal_annual = target(get_rodents_annual())
-  )
-
-  datasets <- dplyr::bind_rows(datasets, portaldat)
-  
-}
+datasets <- plantdat
 
 
 if(FALSE) {
@@ -48,9 +30,9 @@ if(FALSE) {
                          summarize_ll = F
                        )),
     all_dataset_fits = target(dplyr::bind_rows(ldats_fit),
-                       transform = combine(ldats_fit, .by = dataset)),
+                              transform = combine(ldats_fit, .by = dataset)),
     best_config = target(select_cvlt(all_dataset_fits),
-                              transform = map(all_dataset_fits)),
+                         transform = map(all_dataset_fits)),
     best_mod = target(run_best_model(dataset, best_config),
                       transform = map(best_config, .by = dataset)),
     best_mod_summary = target(summarize_model(best_mod),
@@ -60,11 +42,11 @@ if(FALSE) {
   )
 } else {
   methods <- drake::drake_plan(
-    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 1000),
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 100),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2:5),
-                         seeds = !!seq(2, 50, by = 2),
+                         seeds = !!seq(2, 20, by = 2),
                          cpts = !!c(0:4),
                          return_full = F,
                          return_fits = F,
@@ -75,7 +57,11 @@ if(FALSE) {
     best_config = target(select_cvlt(all_dataset_fits),
                          transform = map(all_dataset_fits)),
     best_mod = target(run_best_model(dataset, best_config),
-                      transform = map(best_config, .by = dataset))
+                      transform = map(best_config, .by = dataset))#,
+   # best_mod_summary = target(summarize_model(best_mod),
+    #                          transform = map(best_mod)),
+    #all_summaries = target(dplyr::bind_rows(best_mod_summary),
+    #                       transform = combine(best_mod_summary))
   )  
 }
 
@@ -89,7 +75,7 @@ workflow <- dplyr::bind_rows(
 
 
 ## Set up the cache and config
-db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache-cvlt.sqlite"))
+db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache-soar.sqlite"))
 cache <- storr::storr_dbi("datatable", "keystable", db)
 cache$del(key = "lock", namespace = "session")
 
@@ -109,15 +95,15 @@ if(grepl("ufhpc", nodename)) {
        jobs = 20,
        caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
 } else {
- 
+  
   # Run the pipeline on multiple local cores
   system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log_cvlt.txt"), verbose = 1, memory_strategy = "autoclean"))
 }
 
 
 
-loadd(all_fits, cache = cache)
-write.csv(all_fits, "all_fits_cvlt.csv", row.names = F)
+loadd(all_summaries, cache = cache)
+write.csv(all_summaries, "all_summaries_soar.csv", row.names = F)
 
 
 DBI::dbDisconnect(db)
