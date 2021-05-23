@@ -1,0 +1,110 @@
+
+Attaching package: ‘cvlt’
+
+The following object is masked from ‘package:LDATS’:
+
+    LDA_set_user_seeds
+
+Warning message:
+expose_imports() is deprecated because of the edge cases it causes. Instead, please supply getNamespace('yourPackage') to the envir argument of make() and related functions. See https://github.com/ropensci/drake/issues/1286 for details. 
+* Option 'clustermq.scheduler' not set, defaulting to ‘SLURM’
+--- see: https://mschubert.github.io/clustermq/articles/userguide.html#configuration
+▶ target summer_plants
+▶ target winter_plants
+ℹ target summer_plants messages:
+  Loading in data version 1.127.0
+ Loading in data version 1.127.0
+ Joining, by = "plot"
+ Joining, by = c("year", "season", "plot")
+▶ target ldats_fit_summer_plants_5L_12_4L_F_F_F
+▶ target ldats_fit_summer_plants_4L_4_4L_F_F_F
+ℹ target winter_plants messages:
+  Loading in data version 1.127.0
+ Loading in data version 1.127.0
+ Joining, by = "plot"
+ Joining, by = c("year", "season", "plot")
+▶ target ldats_fit_summer_plants_2L_12_1L_F_F_F
+▶ target ldats_fit_summer_plants_3L_12_2L_F_F_F
+▶ target ldats_fit_summer_plants_4L_12_3L_F_F_F
+▶ target ldats_fit_summer_plants_3L_2_0L_F_F_F
+▶ target ldats_fit_summer_plants_3L_2_1L_F_F_F
+▶ target ldats_fit_summer_plants_5L_4_0L_F_F_F
+▶ target ldats_fit_summer_plants_4L_12_4L_F_F_F
+▶ target ldats_fit_summer_plants_3L_8_4L_F_F_F
+▶ target ldats_fit_summer_plants_2L_6_3L_F_F_F
+▶ target ldats_fit_summer_plants_5L_6_2L_F_F_F
+▶ target ldats_fit_summer_plants_2L_14_0L_F_F_F
+▶ target ldats_fit_summer_plants_4L_14_2L_F_F_F
+▶ target ldats_fit_summer_plants_3L_14_3L_F_F_F
+▶ target ldats_fit_summer_plants_5L_12_3L_F_F_F
+▶ target ldats_fit_summer_plants_2L_4_2L_F_F_F
+▶ target ldats_fit_summer_plants_5L_4_1L_F_F_F
+▶ target ldats_fit_summer_plants_5L_2_4L_F_F_F
+▶ target ldats_fit_summer_plants_2L_18_2L_F_F_F
+ℹ target ldats_fit_summer_plants_5L_12_4L_F_F_F messages:
+  Running LDA with 5 topics (seed 12)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_summer_plants_4L_18_0L_F_F_F
+ℹ target ldats_fit_summer_plants_4L_4_4L_F_F_F messages:
+  Running LDA with 4 topics (seed 4)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_summer_plants_3L_18_1L_F_F_F
+slurmstepd: error: *** JOB 1740213 ON c0704a-s1 CANCELLED AT 2021-05-23T06:02:21 DUE TO TIME LIMIT ***

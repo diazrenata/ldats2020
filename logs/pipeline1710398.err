@@ -1,0 +1,1253 @@
+
+Attaching package: ‘cvlt’
+
+The following object is masked from ‘package:LDATS’:
+
+    LDA_set_user_seeds
+
+Warning message:
+expose_imports() is deprecated because of the edge cases it causes. Instead, please supply getNamespace('yourPackage') to the envir argument of make() and related functions. See https://github.com/ropensci/drake/issues/1286 for details. 
+* Option 'clustermq.scheduler' not set, defaulting to ‘SLURM’
+--- see: https://mschubert.github.io/clustermq/articles/userguide.html#configuration
+▶ target ldats_fit_portal_annual_2L_8_3L_F_F_F
+▶ target ldats_fit_portal_annual_4L_2_4L_F_F_F
+▶ target ldats_fit_portal_annual_4L_16_4L_F_F_F
+▶ target ldats_fit_portal_annual_5L_14_4L_F_F_F
+▶ target ldats_fit_portal_annual_2L_4_3L_F_F_F
+▶ target ldats_fit_portal_annual_2L_50_4L_F_F_F
+▶ target ldats_fit_portal_annual_2L_36_4L_F_F_F
+▶ target ldats_fit_portal_annual_3L_34_4L_F_F_F
+▶ target ldats_fit_portal_annual_4L_32_4L_F_F_F
+▶ target ldats_fit_portal_annual_5L_30_4L_F_F_F
+▶ target ldats_fit_portal_annual_5L_34_2L_F_F_F
+▶ target ldats_fit_portal_annual_5L_22_3L_F_F_F
+▶ target ldats_fit_portal_annual_4L_20_3L_F_F_F
+▶ target ldats_fit_portal_annual_3L_30_2L_F_F_F
+▶ target ldats_fit_portal_annual_2L_30_1L_F_F_F
+▶ target ldats_fit_portal_annual_4L_8_3L_F_F_F
+▶ target ldats_fit_portal_annual_4L_6_2L_F_F_F
+▶ target ldats_fit_portal_annual_2L_12_3L_F_F_F
+▶ target ldats_fit_portal_annual_4L_18_4L_F_F_F
+▶ target ldats_fit_portal_annual_2L_10_2L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_30_1L_F_F_F messages:
+  Running LDA with 2 topics (seed 30)
+ Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_10_1L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_10_2L_F_F_F messages:
+  Running LDA with 2 topics (seed 10)
+ Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_16_2L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_6_2L_F_F_F messages:
+  Running LDA with 4 topics (seed 6)
+ Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_2L_16_1L_F_F_F
+ℹ target ldats_fit_portal_annual_3L_30_2L_F_F_F messages:
+  Running LDA with 3 topics (seed 30)
+ Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_5L_16_4L_F_F_F
+ℹ target ldats_fit_portal_annual_5L_34_2L_F_F_F messages:
+  Running LDA with 5 topics (seed 34)
+ Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_4L_14_2L_F_F_F
+ℹ target ldats_fit_portal_annual_3L_10_1L_F_F_F messages:
+  Running LDA with 3 topics (seed 10)
+ Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_24_3L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_16_1L_F_F_F messages:
+  Running LDA with 2 topics (seed 16)
+ Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_2L_24_0L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_24_0L_F_F_F messages:
+  Running LDA with 2 topics (seed 24)
+ Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model 
+
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_2L_4_2L_F_F_F
+ℹ target ldats_fit_portal_annual_3L_16_2L_F_F_F messages:
+  Running LDA with 3 topics (seed 16)
+ Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_2_1L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_14_2L_F_F_F messages:
+  Running LDA with 4 topics (seed 14)
+ Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_50_4L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_8_3L_F_F_F messages:
+  Running LDA with 2 topics (seed 8)
+ Running TS model with 3 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_5L_14_0L_F_F_F
+ℹ target ldats_fit_portal_annual_5L_14_0L_F_F_F messages:
+  Running LDA with 5 topics (seed 14)
+ Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model 
+
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_5L_50_2L_F_F_F
+ℹ target ldats_fit_portal_annual_3L_2_1L_F_F_F messages:
+  Running LDA with 3 topics (seed 2)
+ Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_4L_44_4L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_12_3L_F_F_F messages:
+  Running LDA with 2 topics (seed 12)
+ Running TS model with 3 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_2L_38_4L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_2_4L_F_F_F messages:
+  Running LDA with 4 topics (seed 2)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_36_4L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_36_4L_F_F_F messages:
+  Running LDA with 2 topics (seed 36)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_5L_32_4L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_4_3L_F_F_F messages:
+  Running LDA with 2 topics (seed 4)
+ Running TS model with 3 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_5L_34_3L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_20_3L_F_F_F messages:
+  Running LDA with 4 topics (seed 20)
+ Running TS model with 3 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_40_3L_F_F_F
+ℹ target ldats_fit_portal_annual_3L_34_4L_F_F_F messages:
+  Running LDA with 3 topics (seed 34)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_2L_40_0L_F_F_F
+ℹ target ldats_fit_portal_annual_5L_22_3L_F_F_F messages:
+  Running LDA with 5 topics (seed 22)
+ Running TS model with 3 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_4L_22_3L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_18_4L_F_F_F messages:
+  Running LDA with 4 topics (seed 18)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_32_2L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_16_4L_F_F_F messages:
+  Running LDA with 4 topics (seed 16)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_2L_32_1L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_8_3L_F_F_F messages:
+  Running LDA with 4 topics (seed 8)
+ Running TS model with 3 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_5L_38_1L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_40_0L_F_F_F messages:
+  Running LDA with 2 topics (seed 40)
+ Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model 
+
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_4L_30_2L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_4_2L_F_F_F messages:
+  Running LDA with 2 topics (seed 4)
+ Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_5L_36_2L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_50_4L_F_F_F messages:
+  Running LDA with 2 topics (seed 50)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_4L_8_2L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_32_4L_F_F_F messages:
+  Running LDA with 4 topics (seed 32)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_5L_4_4L_F_F_F
+ℹ target ldats_fit_portal_annual_5L_30_4L_F_F_F messages:
+  Running LDA with 5 topics (seed 30)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_4L_4_0L_F_F_F
+ℹ target ldats_fit_portal_annual_5L_14_4L_F_F_F messages:
+  Running LDA with 5 topics (seed 14)
+ Running TS model with 4 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_4L_16_2L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_4_0L_F_F_F messages:
+  Running LDA with 4 topics (seed 4)
+ Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model 
+
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_4L_14_1L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_32_1L_F_F_F messages:
+  Running LDA with 2 topics (seed 32)
+ Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_26_3L_F_F_F
+ℹ target ldats_fit_portal_annual_5L_38_1L_F_F_F messages:
+  Running LDA with 5 topics (seed 38)
+ Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_2L_26_0L_F_F_F
+ℹ target ldats_fit_portal_annual_5L_50_2L_F_F_F messages:
+  Running LDA with 5 topics (seed 50)
+ Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_2L_24_3L_F_F_F
+ℹ target ldats_fit_portal_annual_2L_26_0L_F_F_F messages:
+  Running LDA with 2 topics (seed 26)
+ Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model 
+
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_24_0L_F_F_F
+ℹ target ldats_fit_portal_annual_3L_24_0L_F_F_F messages:
+  Running LDA with 3 topics (seed 24)
+ Running TS model with 0 changepoints and equation gamma ~ 1 on LDA model 
+
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_3L_18_2L_F_F_F
+ℹ target ldats_fit_portal_annual_4L_14_1L_F_F_F messages:
+  Running LDA with 4 topics (seed 14)
+ Running TS model with 1 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_2L_18_1L_F_F_F
+ℹ target ldats_fit_portal_annual_3L_32_2L_F_F_F messages:
+  Running LDA with 3 topics (seed 32)
+ Running TS model with 2 changepoints and equation gamma ~ 1 on LDA model 
+
+   Estimating changepoint distribution
+   Estimating regressor distribution
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ Joining, by = "segment"
+ ...
+▶ target ldats_fit_portal_annual_5L_30_0L_F_F_F
+slurmstepd: error: *** JOB 1710398 ON c0704a-s1 CANCELLED AT 2021-05-22T20:16:47 DUE TO TIME LIMIT ***
