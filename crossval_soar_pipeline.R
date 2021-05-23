@@ -89,7 +89,7 @@ if(grepl("ufhpc", nodename)) {
   make(workflow,
        force = TRUE,
        cache = cache,
-       cache_log_file = here::here("analysis", "drake", "cache_log.txt"),
+       cache_log_file = here::here("analysis", "drake", "cache_log_soar.txt"),
        verbose = 1,
        parallelism = "clustermq",
        jobs = 20,
