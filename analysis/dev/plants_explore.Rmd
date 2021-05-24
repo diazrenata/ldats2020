@@ -1,0 +1,99 @@
+---
+title: "Portal annuals"
+author: Renata Diaz
+date: "`r Sys.Date()`"
+output: 
+    github_document:
+       df_print: kable
+       toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+library(LDATS)
+library(cvlt)
+library(drake)
+
+## Set up the cache and config
+db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache-soar.sqlite"))
+cache <- storr::storr_dbi("datatable", "keystable", db)
+cache$del(key = "lock", namespace = "session")
+
+theme_set(theme_bw())
+
+```
+## Specs
+
+```{r, echo = T, eval = F}
+methods <- drake::drake_plan(
+  ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 500),
+                     transform = cross(
+                       dataset = !!rlang::syms(datasets$target),
+                       ks = !!c(2:5),
+                       seeds = !!seq(2, 4, by = 2),
+                       cpts = !!c(0:4),
+                       return_full = F,
+                       return_fits = F,
+                       summarize_ll = F
+                     )))
+```
+
+
+```{r}
+
+loadd(all_dataset_fits_summer_plants, cache = cache)
+loadd(all_dataset_fits_winter_plants, cache = cache)
+
+winter_best <- filter(all_dataset_fits_winter_plants, mean_loglik == max(all_dataset_fits_winter_plants$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - se_loglik) %>%
+  select(dat_name, min_within)
+
+summer_best <- filter(all_dataset_fits_summer_plants, mean_loglik == max(all_dataset_fits_summer_plants$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(winter_best, summer_best)
+
+all_dataset_fits <- bind_rows(all_dataset_fits_summer_plants, all_dataset_fits_winter_plants) %>%
+  left_join(best_lls) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+## winter
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_winter_plants, cache = cache)
+
+winter_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_winter_plants)
+
+winter_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_winter_plants$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_winter_plants$ts_mod, selection = "mode")
+```
+
+## summer
+
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_summer_plants, cache = cache)
+
+summer_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_summer_plants)
+
+summer_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_summer_plants$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_summer_plants$ts_mod, selection = "mode")
+
+```

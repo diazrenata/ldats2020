@@ -42,11 +42,11 @@ if(FALSE) {
   )
 } else {
   methods <- drake::drake_plan(
-    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 500),
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 100),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2:5),
-                         seeds = !!seq(2, 4, by = 2),
+                         seeds = !!seq(2, 20, by = 2),
                          cpts = !!c(0:4),
                          return_full = F,
                          return_fits = F,
@@ -99,11 +99,6 @@ if(grepl("ufhpc", nodename)) {
   # Run the pipeline on multiple local cores
   system.time(make(workflow, cache = cache, cache_log_file = here::here("analysis", "drake", "cache_log_cvlt.txt"), verbose = 1, memory_strategy = "autoclean"))
 }
-
-
-
-loadd(all_summaries, cache = cache)
-write.csv(all_summaries, "all_summaries_soar.csv", row.names = F)
 
 
 DBI::dbDisconnect(db)
