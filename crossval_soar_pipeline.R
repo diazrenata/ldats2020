@@ -46,7 +46,7 @@ if(FALSE) {
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(2:5),
-                         seeds = !!seq(2, 20, by = 2),
+                         seeds = !!seq(2, 50, by = 2),
                          cpts = !!c(0:4),
                          return_full = F,
                          return_fits = F,
