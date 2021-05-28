@@ -63,7 +63,7 @@ if(FALSE) {
     ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 100),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
-                         ks = !!c(2:5),
+                         ks = !!c(0,2:5),
                          seeds = !!seq(2, 20, by = 2),
                          cpts = !!c(0:4),
                          return_full = F,
