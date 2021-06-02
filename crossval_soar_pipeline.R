@@ -46,7 +46,7 @@ if(FALSE) {
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(0,2:5),
-                         seeds = !!seq(2, 50, by = 2),
+                         seeds = !!seq(2, 200, by = 2),
                          cpts = !!c(0:4),
                          return_full = F,
                          return_fits = F,
@@ -92,7 +92,7 @@ if(grepl("ufhpc", nodename)) {
        cache_log_file = here::here("analysis", "drake", "cache_log_soar.txt"),
        verbose = 1,
        parallelism = "clustermq",
-       jobs = 20,
+       jobs = 40,
        caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
 } else {
   
