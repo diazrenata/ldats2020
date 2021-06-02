@@ -10,8 +10,10 @@ expose_imports(cvlt)
 
 
 plantdat <- drake::drake_plan(
-  winter_plants = target(soar::get_plants_annual_ldats()),
-  summer_plants = target(soar::get_plants_annual_ldats(census_season = "summer"))
+  winter_plants_CC = target(soar::get_plants_annual_ldats()),
+  summer_plants_CC = target(soar::get_plants_annual_ldats(census_season = "summer")),
+  winter_plants_EE = target(soar::get_plants_annual_ldats(plot_type = "EE")),
+  summer_plants_EE = target(soar::get_plants_annual_ldats(census_season = "summer", plot_type = "EE"))
 )
 
 datasets <- plantdat
@@ -46,7 +48,7 @@ if(FALSE) {
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(0,2:5),
-                         seeds = !!seq(2, 200, by = 2),
+                         seeds = !!seq(2, 100, by = 2),
                          cpts = !!c(0:4),
                          return_full = F,
                          return_fits = F,
