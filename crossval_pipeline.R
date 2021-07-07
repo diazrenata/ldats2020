@@ -12,10 +12,17 @@ expose_imports(cvlt)
 #  - these are the default options, which don't include downloaded datasets
 datasets <- build_bbs_datasets_plan()
 
-
 m <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # wants many topics
 
-datasets <- datasets[m,]
+
+noholes <- read.csv(here::here("analysis", "holes", "no_holes.csv")) %>%
+  dplyr::filter(n_possible_years > 20)
+
+noholes_names <- noholes$matssname[1:10]
+
+noholes_rows <- which(datasets$target %in% noholes_names)
+
+datasets <- datasets[c(noholes_rows, m),]
 
   portaldat <- drake::drake_plan(
     portal_annual = target(get_rodents_annual())
@@ -54,8 +61,8 @@ if(FALSE) {
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(0,2:4),
-                         seeds = !!seq(2, 50, by = 2),
-                         cpts = !!c(0:4),
+                         seeds = !!seq(2, 20, by = 2),
+                         cpts = !!c(0:2),
                          return_full = F,
                          return_fits = F,
                          summarize_ll = F

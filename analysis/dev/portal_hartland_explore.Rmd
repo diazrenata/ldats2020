@@ -47,11 +47,11 @@ loadd(all_dataset_fits_portal_annual, cache = cache)
 loadd(all_dataset_fits_bbs_rtrg_102_18, cache = cache)
 
 bbs_best <- filter(all_dataset_fits_bbs_rtrg_102_18, mean_loglik == max(all_dataset_fits_bbs_rtrg_102_18$mean_loglik)) %>%
-  mutate(min_within = mean_loglik - se_loglik) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
   select(dat_name, min_within)
 
 portal_best <- filter(all_dataset_fits_portal_annual, mean_loglik == max(all_dataset_fits_portal_annual$mean_loglik)) %>%
-  mutate(min_within = mean_loglik - se_loglik) %>%
+  mutate(min_within = mean_loglik - 2 * se_loglik) %>%
   select(dat_name, min_within)
 
 best_lls <- bind_rows(bbs_best, portal_best)
