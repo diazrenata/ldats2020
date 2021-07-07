@@ -17,22 +17,12 @@ m <- which(grepl(datasets$target, pattern = "rtrg_102_18")) # wants many topics
 
 datasets <- datasets[m,]
 
-if(FALSE) {
-
-plantdat <- drake::drake_plan(
-  winter_plants = target(soar::get_plants_annual_ldats()),
-  summer_plants = target(soar::get_plants_annual_ldats(census_season = "summer")))
-  
-  datasets <- plantdat
-
-} else {
   portaldat <- drake::drake_plan(
     portal_annual = target(get_rodents_annual())
   )
 
   datasets <- dplyr::bind_rows(datasets, portaldat)
   
-}
 
 
 if(FALSE) {
@@ -49,7 +39,7 @@ if(FALSE) {
                        )),
     all_dataset_fits = target(dplyr::bind_rows(ldats_fit),
                        transform = combine(ldats_fit, .by = dataset)),
-    best_config = target(select_cvlt(all_dataset_fits),
+    best_config = target(select_cvlt(all_dataset_fits, nse= 2),
                               transform = map(all_dataset_fits)),
     best_mod = target(run_best_model(dataset, best_config),
                       transform = map(best_config, .by = dataset)),
@@ -72,7 +62,7 @@ if(FALSE) {
                        )),
     all_dataset_fits = target(dplyr::bind_rows(ldats_fit),
                               transform = combine(ldats_fit, .by = dataset)),
-    best_config = target(select_cvlt(all_dataset_fits),
+    best_config = target(select_cvlt(all_dataset_fits, nse = 2),
                          transform = map(all_dataset_fits)),
     best_mod = target(run_best_model(dataset, best_config),
                       transform = map(best_config, .by = dataset))

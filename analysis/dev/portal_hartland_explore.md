@@ -1,7 +1,7 @@
 Portal rats + Hartland birds
 ================
 Renata Diaz
-2021-05-30
+2021-06-08
 
   - [Specs](#specs)
   - [BBS](#bbs)
@@ -10,11 +10,11 @@ Renata Diaz
 ## Specs
 
 ``` r
- ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 100),
+  ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 100),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
-                         ks = !!c(0,2:3),
-                         seeds = !!seq(2, 10, by = 2),
+                         ks = !!c(0,2:4),
+                         seeds = !!seq(2, 50, by = 2),
                          cpts = !!c(0:4),
                          return_full = F,
                          return_fits = F,

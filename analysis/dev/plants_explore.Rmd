@@ -27,40 +27,58 @@ theme_set(theme_bw())
 ## Specs
 
 ```{r, echo = T, eval = F}
-   ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 100),
+   methods <- drake::drake_plan(
+    ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 100),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(0,2:5),
-                         seeds = !!seq(2, 50, by = 2),
+                         seeds = !!seq(2, 100, by = 2),
                          cpts = !!c(0:4),
                          return_full = F,
                          return_fits = F,
                          summarize_ll = F
-                       ))
+                       )),
 ```
 
 
 ```{r}
 
-loadd(all_dataset_fits_summer_plants, cache = cache)
-loadd(all_dataset_fits_winter_plants, cache = cache)
+loadd(all_dataset_fits_summer_plants_CC, cache = cache)
+loadd(all_dataset_fits_winter_plants_CC, cache = cache)
 
-winter_best <- filter(all_dataset_fits_winter_plants, mean_loglik == max(all_dataset_fits_winter_plants$mean_loglik)) %>%
+loadd(all_dataset_fits_summer_plants_EE, cache = cache)
+loadd(all_dataset_fits_winter_plants_EE, cache = cache)
+
+all_fits <- bind_rows(all_dataset_fits_summer_plants_CC, all_dataset_fits_summer_plants_EE, all_dataset_fits_winter_plants_CC, all_dataset_fits_winter_plants_EE)
+
+all_fits_best <- all_fits %>%
+  group_by(dat_name) %>%
+  filter(mean_loglik == max(mean_loglik)) %>%
   mutate(min_within = mean_loglik - se_loglik) %>%
-  select(dat_name, min_within)
+  select(dat_name, min_within) %>%
+  ungroup()
 
-summer_best <- filter(all_dataset_fits_summer_plants, mean_loglik == max(all_dataset_fits_summer_plants$mean_loglik)) %>%
-  mutate(min_within = mean_loglik - se_loglik) %>%
-  select(dat_name, min_within)
-
-best_lls <- bind_rows(winter_best, summer_best)
-
-all_dataset_fits <- bind_rows(all_dataset_fits_summer_plants, all_dataset_fits_winter_plants) %>%
-  left_join(best_lls) %>%
-  mutate(is_within = mean_loglik > min_within)
+all_fits <- all_fits %>% 
+  left_join(all_fits_best) %>%
+  mutate(is_within = mean_loglik >= min_within)
 
 
-ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+# winter_best <- filter(all_dataset_fits_winter_plants, mean_loglik == max(all_dataset_fits_winter_plants$mean_loglik)) %>%
+#   mutate(min_within = mean_loglik - se_loglik) %>%
+#   select(dat_name, min_within)
+# 
+# summer_best <- filter(all_dataset_fits_summer_plants, mean_loglik == max(all_dataset_fits_summer_plants$mean_loglik)) %>%
+#   mutate(min_within = mean_loglik - se_loglik) %>%
+#   select(dat_name, min_within)
+# 
+# best_lls <- bind_rows(winter_best, summer_best)
+# 
+# all_dataset_fits <- bind_rows(all_dataset_fits_summer_plants, all_dataset_fits_winter_plants) %>%
+#   left_join(best_lls) %>%
+#   mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_fits, aes(k, mean_loglik, color  = is_within)) +
   geom_point() +
   geom_hline(aes(yintercept = min_within)) +
   facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
@@ -71,14 +89,55 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_winter_plants, cache = cache)
+loadd(best_mod_dataset_best_config_all_dataset_fits_winter_plants_CC, cache = cache)
 
-winter_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_winter_plants)
+winter_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_winter_plants_CC)
 
 winter_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_winter_plants$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_winter_plants$ts_mod, selection = "mode")
+plot(best_mod_dataset_best_config_all_dataset_fits_winter_plants_CC$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_winter_plants_CC$ts_mod, selection = "mode")
+
+cc_betas <- exp(best_mod_dataset_best_config_all_dataset_fits_winter_plants_CC$lda_mod@beta)
+colnames(cc_betas) <- colnames(best_mod_dataset_best_config_all_dataset_fits_winter_plants_CC$dataset$abundance)
+cc_betas <- cc_betas %>%
+  as.data.frame() %>%
+  mutate(topic = c("V1", "V2")) %>%
+  tidyr::pivot_longer(-topic, names_to = "species", values_to = "prop") %>%
+  group_by(topic) %>%
+  arrange(desc(prop)) %>%
+  mutate(topic_rank = row_number()) %>%
+  ungroup() 
+
+cc_betas %>%
+  filter(topic_rank < 5) %>%
+  arrange(topic, topic_rank)
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_winter_plants_EE, cache = cache)
+
+winter_summ_EE <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_winter_plants_EE)
+
+winter_summ_EE
+
+plot(best_mod_dataset_best_config_all_dataset_fits_winter_plants_EE$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_winter_plants_EE$ts_mod, selection = "mode")
+
+
+ee_betas <- exp(best_mod_dataset_best_config_all_dataset_fits_winter_plants_EE$lda_mod@beta)
+colnames(ee_betas) <- colnames(best_mod_dataset_best_config_all_dataset_fits_winter_plants_EE$dataset$abundance)
+ee_betas <- ee_betas %>%
+  as.data.frame() %>%
+  mutate(topic = c("V1", "V2")) %>%
+  tidyr::pivot_longer(-topic, names_to = "species", values_to = "prop") %>%
+  group_by(topic) %>%
+  arrange(desc(prop)) %>%
+  mutate(topic_rank = row_number()) %>%
+  ungroup() 
+
+ee_betas %>%
+  filter(topic_rank < 5) %>%
+  arrange(topic, topic_rank)
+
 ```
 
 ## summer
@@ -86,13 +145,23 @@ plot(best_mod_dataset_best_config_all_dataset_fits_winter_plants$ts_mod, selecti
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_summer_plants, cache = cache)
+loadd(best_mod_dataset_best_config_all_dataset_fits_summer_plants_CC, cache = cache)
 
-summer_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_summer_plants)
+summer_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_summer_plants_CC)
 
 summer_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_summer_plants$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_summer_plants$ts_mod, selection = "mode")
+plot(best_mod_dataset_best_config_all_dataset_fits_summer_plants_CC$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_summer_plants_CC$ts_mod, selection = "mode")
+
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_summer_plants_EE, cache = cache)
+
+summer_summ_EE <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_summer_plants_EE)
+
+summer_summ_EE
+
+plot(best_mod_dataset_best_config_all_dataset_fits_summer_plants_EE$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_summer_plants_EE$ts_mod, selection = "mode")
 
 ```
