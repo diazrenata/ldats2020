@@ -1,0 +1,421 @@
+---
+title: "10 sites"
+author: Renata Diaz
+date: "`r Sys.Date()`"
+output: 
+    github_document:
+       df_print: kable
+       toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+library(LDATS)
+library(cvlt)
+library(drake)
+
+## Set up the cache and config
+db <- DBI::dbConnect(RSQLite::SQLite(), here::here("analysis", "drake", "drake-cache-cvlt.sqlite"))
+cache <- storr::storr_dbi("datatable", "keystable", db)
+cache$del(key = "lock", namespace = "session")
+
+theme_set(theme_bw())
+
+noholes <- read.csv(here::here("analysis", "holes", "no_holes.csv")) %>%
+  dplyr::filter(n_possible_years > 20)
+
+noholes_names <- noholes$matssname[1:10]
+```
+## Specs
+
+```{r, echo = T, eval = F}
+  ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 100),
+                       transform = cross(
+                         dataset = !!rlang::syms(datasets$target),
+                         ks = !!c(0,2:4),
+                         seeds = !!seq(2, 20, by = 2),
+                         cpts = !!c(0:4),
+                         return_full = F,
+                         return_fits = F,
+                         summarize_ll = F
+                       ))
+)
+```
+
+## 63_4
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_63_4, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_63_4, mean_loglik == max(all_dataset_fits_bbs_rtrg_63_4$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_63_4 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_63_4, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_63_4)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_63_4$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_63_4$ts_mod, selection = "mode")
+
+```
+
+## 128_4
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_128_4, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_128_4, mean_loglik == max(all_dataset_fits_bbs_rtrg_128_4$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_128_4 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_128_4, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_128_4)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_128_4$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_128_4$ts_mod, selection = "mode")
+
+```
+
+
+## 129_4
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_129_4, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_129_4, mean_loglik == max(all_dataset_fits_bbs_rtrg_129_4$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_129_4 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_129_4, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_129_4)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_129_4$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_129_4$ts_mod, selection = "mode")
+
+```
+
+## 213_4
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_213_4, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_213_4, mean_loglik == max(all_dataset_fits_bbs_rtrg_213_4$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_213_4 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_213_4, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_213_4)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_213_4$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_213_4$ts_mod, selection = "mode")
+
+```
+
+## 102_45
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_102_45, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_102_45, mean_loglik == max(all_dataset_fits_bbs_rtrg_102_45$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_102_45 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_102_45, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_102_45)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_102_45$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_102_45$ts_mod, selection = "mode")
+
+```
+
+
+## 41_56
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_41_56, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_41_56, mean_loglik == max(all_dataset_fits_bbs_rtrg_41_56$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_41_56 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_41_56, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_41_56)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_41_56$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_41_56$ts_mod, selection = "mode")
+
+```
+
+
+## 44_56
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_44_56, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_44_56, mean_loglik == max(all_dataset_fits_bbs_rtrg_44_56$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_44_56 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_44_56, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_44_56)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_44_56$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_44_56$ts_mod, selection = "mode")
+
+```
+
+
+## 117_65
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_117_65, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_117_65, mean_loglik == max(all_dataset_fits_bbs_rtrg_117_65$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_117_65 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_117_65, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_117_65)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_117_65$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_117_65$ts_mod, selection = "mode")
+
+```
+
+
+## 15_68
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_15_68, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_15_68, mean_loglik == max(all_dataset_fits_bbs_rtrg_15_68$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_15_68 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_15_68, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_15_68)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_15_68$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_15_68$ts_mod, selection = "mode")
+
+```
+
+
+## 22_68
+
+```{r}
+
+loadd(all_dataset_fits_bbs_rtrg_22_68, cache = cache)
+
+bbs_best <- filter(all_dataset_fits_bbs_rtrg_22_68, mean_loglik == max(all_dataset_fits_bbs_rtrg_22_68$mean_loglik)) %>%
+  mutate(min_within = mean_loglik - 2 *se_loglik) %>%
+  select(dat_name, min_within)
+
+best_lls <- bind_rows(bbs_best)
+
+all_dataset_fits <- all_dataset_fits_bbs_rtrg_22_68 %>%
+  left_join(bbs_best) %>%
+  mutate(is_within = mean_loglik > min_within)
+
+
+ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
+  geom_point() +
+  geom_hline(aes(yintercept = min_within)) +
+  facet_grid(cols = vars(cpts), rows = vars(dat_name), scales = "free_y")
+
+```
+
+```{r}
+
+loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_22_68, cache = cache)
+
+bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_22_68)
+
+bbs_summ
+
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_22_68$lda_mod)
+plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_22_68$ts_mod, selection = "mode")
+
+```

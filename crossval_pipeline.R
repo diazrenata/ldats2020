@@ -62,17 +62,21 @@ if(FALSE) {
                          dataset = !!rlang::syms(datasets$target),
                          ks = !!c(0,2:4),
                          seeds = !!seq(2, 20, by = 2),
-                         cpts = !!c(0:2),
+                         cpts = !!c(0:4),
                          return_full = F,
                          return_fits = F,
                          summarize_ll = F
                        )),
     all_dataset_fits = target(dplyr::bind_rows(ldats_fit),
                               transform = combine(ldats_fit, .by = dataset)),
-    best_config = target(select_cvlt(all_dataset_fits, nse = 2),
+    best_config_2se = target(select_cvlt(all_dataset_fits, nse = 2),
                          transform = map(all_dataset_fits)),
+    best_mod_2se = target(run_best_model(dataset, best_config_2se),
+                      transform = map(best_config_2se, .by = dataset)),
+    best_config = target(select_cvlt(all_dataset_fits),
+                             transform = map(all_dataset_fits)),
     best_mod = target(run_best_model(dataset, best_config),
-                      transform = map(best_config, .by = dataset))
+                          transform = map(best_config, .by = dataset))
   )  
 }
 
