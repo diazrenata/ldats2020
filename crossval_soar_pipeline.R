@@ -47,23 +47,31 @@ if(FALSE) {
     ldats_fit = target(fit_ldats_crossval(dataset, buffer = 2, k = ks, lda_seed = seeds, cpts = cpts, nit = 100),
                        transform = cross(
                          dataset = !!rlang::syms(datasets$target),
-                         ks = !!c(0,2:5),
-                         seeds = !!seq(2, 100, by = 2),
-                         cpts = !!c(0:4),
+                         ks = !!c(0,2:6),
+                         seeds = !!seq(2, 200, by = 2),
+                         cpts = !!c(0:5),
                          return_full = F,
                          return_fits = F,
                          summarize_ll = F
                        )),
     all_dataset_fits = target(dplyr::bind_rows(ldats_fit),
                               transform = combine(ldats_fit, .by = dataset)),
-    best_config = target(select_cvlt(all_dataset_fits, nse = 2),
+    best_config_2se = target(select_cvlt(all_dataset_fits, nse = 2),
+                             transform = map(all_dataset_fits)),
+    best_mod_2se = target(run_best_model(dataset, best_config),
+                          transform = map(best_config_2se, .by = dataset)),
+    best_mod_summary_2se = target(summarize_model(best_mod_2se),
+                                  transform = map(best_mod_2se)),
+    all_summaries_2se = target(dplyr::bind_rows(best_mod_summary_2se),
+                               transform = combine(best_mod_summary_2se)),
+    best_config = target(select_cvlt(all_dataset_fits, nse = 1),
                          transform = map(all_dataset_fits)),
     best_mod = target(run_best_model(dataset, best_config),
-                      transform = map(best_config, .by = dataset))#,
-   # best_mod_summary = target(summarize_model(best_mod),
-    #                          transform = map(best_mod)),
-    #all_summaries = target(dplyr::bind_rows(best_mod_summary),
-    #                       transform = combine(best_mod_summary))
+                      transform = map(best_config, .by = dataset)),
+    best_mod_summary = target(summarize_model(best_mod),
+                              transform = map(best_mod)),
+    all_summaries = target(dplyr::bind_rows(best_mod_summary),
+                           transform = combine(best_mod_summary))
   )  
 }
 
@@ -94,7 +102,7 @@ if(grepl("ufhpc", nodename)) {
        cache_log_file = here::here("analysis", "drake", "cache_log_soar.txt"),
        verbose = 1,
        parallelism = "clustermq",
-       jobs = 40,
+       jobs = 200,
        caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
 } else {
   

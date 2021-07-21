@@ -70,14 +70,14 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_63_4, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_63_4, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_63_4)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_63_4)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_63_4$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_63_4$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_63_4$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_63_4$ts_mod, selection = "mode")
 
 ```
 
@@ -107,14 +107,14 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_128_4, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_128_4, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_128_4)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_128_4)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_128_4$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_128_4$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_128_4$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_128_4$ts_mod, selection = "mode")
 
 ```
 
@@ -145,14 +145,14 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_129_4, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_129_4, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_129_4)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_129_4)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_129_4$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_129_4$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_129_4$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_129_4$ts_mod, selection = "mode")
 
 ```
 
@@ -182,14 +182,14 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_213_4, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_213_4, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_213_4)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_213_4)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_213_4$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_213_4$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_213_4$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_213_4$ts_mod, selection = "mode")
 
 ```
 
@@ -219,14 +219,14 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_102_45, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_102_45, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_102_45)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_102_45)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_102_45$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_102_45$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_102_45$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_102_45$ts_mod, selection = "mode")
 
 ```
 
@@ -257,14 +257,14 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_41_56, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_41_56, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_41_56)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_41_56)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_41_56$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_41_56$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_41_56$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_41_56$ts_mod, selection = "mode")
 
 ```
 
@@ -295,14 +295,14 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_44_56, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_44_56, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_44_56)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_44_56)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_44_56$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_44_56$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_44_56$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_44_56$ts_mod, selection = "mode")
 
 ```
 
@@ -333,14 +333,14 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_117_65, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_117_65, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_117_65)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_117_65)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_117_65$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_117_65$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_117_65$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_117_65$ts_mod, selection = "mode")
 
 ```
 
@@ -371,14 +371,14 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_15_68, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_15_68, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_15_68)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_15_68)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_15_68$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_15_68$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_15_68$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_15_68$ts_mod, selection = "mode")
 
 ```
 
@@ -409,13 +409,13 @@ ggplot(all_dataset_fits, aes(k, mean_loglik, color  = is_within)) +
 
 ```{r}
 
-loadd(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_22_68, cache = cache)
+loadd(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_22_68, cache = cache)
 
-bbs_summ <- summarize_model(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_22_68)
+bbs_summ <- summarize_model(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_22_68)
 
 bbs_summ
 
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_22_68$lda_mod)
-plot(best_mod_dataset_best_config_all_dataset_fits_bbs_rtrg_22_68$ts_mod, selection = "mode")
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_22_68$lda_mod)
+plot(best_mod_2se_dataset_best_config_2se_all_dataset_fits_bbs_rtrg_22_68$ts_mod, selection = "mode")
 
 ```
