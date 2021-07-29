@@ -102,7 +102,7 @@ if(grepl("ufhpc", nodename)) {
        cache_log_file = here::here("analysis", "drake", "cache_log_soar.txt"),
        verbose = 1,
        parallelism = "clustermq",
-       jobs = 200,
+       jobs = 400,
        caching = "master", memory_strategy = "autoclean") # Important for DBI caches!
 } else {
   
